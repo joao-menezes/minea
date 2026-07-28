@@ -1,65 +1,160 @@
-import Image from "next/image";
+"use client"
+
+import { useMemo, useState } from "react"
+import { MapPin, Search, PackageSearch } from "lucide-react"
+
+import { MARKETS, USER_LOCATION, haversineDistance } from "@/data/markets"
+import MarketCard from "@/components/MarketCard"
+import BottomNav from "@/components/BottomNav"
+import { useUserLocation } from "./hooks/useUserLocation"
+
+const CATEGORIES = [
+  "Tudo",
+  "Grãos",
+  "Carnes",
+  "Laticínios",
+  "Frutas",
+  "Bebidas",
+]
 
 export default function Home() {
+  const [search, setSearch] = useState("")
+  const [category, setCategory] = useState("Tudo")
+
+  const { location, loading, error } = useUserLocation()
+
+  const origin = location
+    ? { lat: location.latitude, lng: location.longitude }
+    : USER_LOCATION
+
+  const markets = useMemo(() => {
+    return MARKETS.map((market) => {
+      const distance = Math.round(haversineDistance(origin, market.coordinate))
+
+      const totalScore =
+        market.scores.price * 0.4 +
+        market.scores.quality * 0.2 +
+        market.scores.distance * 0.2 +
+        market.scores.availability * 0.2
+
+      return { ...market, distance, totalScore }
+    }).sort((a, b) => b.totalScore - a.totalScore)
+  }, [origin])
+
+  const filteredMarkets = markets.filter((market) => {
+    const matchesSearch =
+      !search ||
+      market.name.toLowerCase().includes(search.toLowerCase()) ||
+      market.street.toLowerCase().includes(search.toLowerCase())
+
+    const matchesCategory =
+      category === "Tudo" ||
+      market.products.some((p) => p.category === category)
+
+    return matchesSearch && matchesCategory
+  })
+
+  function clearFilters() {
+    setSearch("")
+    setCategory("Tudo")
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="bg-background min-h-screen pb-24">
+      <header className="border-border bg-card border-b px-4 py-5">
+        <h1 className="text-3xl font-bold tracking-tight">PricePal</h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          Onde comprar melhor perto de você
+        </p>
+      </header>
+
+      <section className="p-4">
+        <div className="border-border bg-card flex items-center gap-3 rounded-2xl border px-4 shadow-sm">
+          <Search size={20} className="text-muted-foreground" />
+
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="placeholder:text-muted-foreground h-12 flex-1 bg-transparent outline-none"
+            placeholder="Buscar mercado..."
+          />
+        </div>
+
+        <div className="mt-3 inline-flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-700">
+          <MapPin size={16} />
+          {loading
+            ? "Obtendo sua localização..."
+            : error
+              ? `Localização padrão · ${MARKETS.length} mercados próximos`
+              : `Sua localização · ${MARKETS.length} mercados próximos`}
+        </div>
+      </section>
+
+      <section className="flex gap-2 overflow-x-auto px-4 pb-2">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setCategory(cat)}
+            className={`rounded-full border px-4 py-2 text-sm whitespace-nowrap transition ${
+              category === cat
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border bg-card text-muted-foreground"
+            } `}
+          >
+            {cat}
+          </button>
+        ))}
+      </section>
+
+      <section className="px-4 pt-4">
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-muted-foreground text-xs tracking-wider uppercase">
+            Melhores mercados próximos
           </p>
+
+          {filteredMarkets.length > 0 && (
+            <span className="text-muted-foreground text-xs">
+              {filteredMarkets.length} resultado
+              {filteredMarkets.length !== 1 ? "s" : ""}
+            </span>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+
+        {loading ? (
+          <div className="flex flex-col gap-3">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="bg-card h-[76px] animate-pulse rounded-2xl border"
+              />
+            ))}
+          </div>
+        ) : filteredMarkets.length > 0 ? (
+          filteredMarkets.map((market, index) => (
+            <MarketCard key={market.id} market={market} best={index === 0} />
+          ))
+        ) : (
+          <div className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-8 text-center">
+            <PackageSearch size={32} className="text-muted-foreground" />
+
+            <div>
+              <p className="font-medium">Nenhum mercado encontrado</p>
+              <p className="text-muted-foreground mt-1 text-sm">
+                Tente ajustar sua busca ou categoria
+              </p>
+            </div>
+
+            <button
+              onClick={clearFilters}
+              className="text-primary mt-1 text-sm font-medium hover:underline"
+            >
+              Limpar filtros
+            </button>
+          </div>
+        )}
+      </section>
+
+      <BottomNav />
+    </main>
+  )
 }
