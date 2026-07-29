@@ -63,17 +63,26 @@ export default function MapPage() {
 
   const bestMarketId =
     prices.length > 0
-      ? prices.reduce((best: any, curr: any) =>
-          curr.price < best.price ? curr : best,
-        ).marketId
+      ? String(
+          prices.reduce((best: any, curr: any) =>
+            curr.price < best.price ? curr : best,
+          ).market_id,
+        )
       : null
 
   function getPriceForMarket(marketId: string) {
-    const marketPrices = prices.filter((p) => p.marketId === marketId)
+    const marketPrices = prices.filter(
+      (p) => String(p.market_id) === String(marketId),
+    )
 
     if (!marketPrices.length) return undefined
 
-    return marketPrices.reduce((a, b) => (a.price < b.price ? a : b))
+    const price = marketPrices.reduce((a, b) => (a.price < b.price ? a : b))
+
+    return {
+      ...price,
+      product: price.products?.[0]?.name,
+    }
   }
 
   function scheduleAutoShow() {
@@ -104,7 +113,7 @@ export default function MapPage() {
 
   const visibleMarkets =
     visibleMarketIds.size > 0
-      ? markets.filter((market) => visibleMarketIds.has(market.id))
+      ? markets.filter((market) => visibleMarketIds.has(String(market.id)))
       : markets
 
   return (
@@ -148,9 +157,9 @@ export default function MapPage() {
               key={market.id}
               market={market}
               product={product}
-              selected={selectedId === market.id}
-              best={market.id === bestMarketId}
-              onSelect={() => setSelectedId(market.id)}
+              selected={selectedId === String(market.id)}
+              best={String(market.id) === String(bestMarketId)}
+              onSelect={() => setSelectedId(String(market.id))}
               onClose={() => setSelectedId(null)}
             />
           )

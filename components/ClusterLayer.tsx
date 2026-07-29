@@ -13,9 +13,11 @@ type Market = {
 }
 
 type Price = {
-  marketId: string
+  market_id: string
   price: number
-  product?: string
+  products?: {
+    name: string
+  }[]
 }
 
 type Props = {
@@ -39,17 +41,19 @@ export default function ClusterLayer({
     const priceMap = new Map<string, Price>()
 
     prices.forEach((price) => {
-      const current = priceMap.get(price.marketId)
+      const marketId = String(price.market_id)
+
+      const current = priceMap.get(marketId)
 
       if (!current || price.price < current.price) {
-        priceMap.set(price.marketId, price)
+        priceMap.set(marketId, price)
       }
     })
 
     return {
       type: "FeatureCollection" as const,
       features: markets.map((market) => {
-        const price = priceMap.get(market.id)
+        const price = priceMap.get(String(market.id))
 
         return {
           type: "Feature" as const,
@@ -58,8 +62,8 @@ export default function ClusterLayer({
             id: market.id,
             name: market.name,
             price: price?.price ?? 0,
-            product: price?.product ?? "",
-            best: market.id === bestMarketId,
+            product: price?.products?.[0]?.name ?? "",
+            best: String(market.id) === String(bestMarketId),
           },
 
           geometry: {
@@ -84,7 +88,7 @@ export default function ClusterLayer({
         const id = feature.properties?.id
 
         if (typeof id === "string") {
-          ids.add(id)
+          ids.add(String(id))
         }
       })
 

@@ -33,7 +33,15 @@ export async function getProducts() {
 }
 
 export async function getPrices() {
-  const { data, error } = await supabase.from("prices").select("*")
+  const { data, error } = await supabase.from("prices").select(`
+  id,
+  price,
+  market_id,
+  product_id,
+  products (
+    name
+  )
+`)
 
   if (error) throw error
 
