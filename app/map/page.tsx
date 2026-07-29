@@ -4,7 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css"
 
 import { useEffect, useRef, useState } from "react"
 
-import Map, { Marker, MapRef } from "react-map-gl/mapbox"
+import Map, { Marker, MapRef, Source, Layer } from "react-map-gl/mapbox"
 import { ChevronUp, LocateFixed } from "lucide-react"
 import BackButton from "@/components/BackButton"
 
@@ -38,6 +38,8 @@ export default function MapPage() {
   const [prices, setPrices] = useState<any[]>([])
 
   const [visibleMarketIds, setVisibleMarketIds] = useState(new Set<string>())
+
+  const [route, setRoute] = useState<any>(null)
 
   const userLocation = location ?? DEFAULT_LOCATION
 
@@ -111,6 +113,21 @@ export default function MapPage() {
     })
   }
 
+  async function getRoute(market: any) {
+    const start = `${userLocation.longitude},${userLocation.latitude}`
+    const end = `${market.coordinate.lng},${market.coordinate.lat}`
+
+    const response = await fetch(
+      `https://api.mapbox.com/directions/v5/mapbox/driving/${start};${end}?geometries=geojson&access_token=${Constants.MAPBOX_TOKEN}`,
+    )
+
+    const data = await response.json()
+
+    if (data.routes?.length) {
+      setRoute(data.routes[0].geometry)
+    }
+  }
+
   const visibleMarkets =
     visibleMarketIds.size > 0
       ? markets.filter((market) => visibleMarketIds.has(String(market.id)))
@@ -140,6 +157,27 @@ export default function MapPage() {
           }}
         />
 
+        {route && (
+          <Source
+            id="route"
+            type="geojson"
+            data={{
+              type: "Feature",
+              geometry: route,
+            }}
+          >
+            <Layer
+              id="route-line"
+              type="line"
+              paint={{
+                "line-color": "#2563eb",
+                "line-width": 5,
+                "line-opacity": 0.8,
+              }}
+            />
+          </Source>
+        )}
+
         <Marker
           latitude={userLocation.latitude}
           longitude={userLocation.longitude}
@@ -161,6 +199,7 @@ export default function MapPage() {
               best={String(market.id) === String(bestMarketId)}
               onSelect={() => setSelectedId(String(market.id))}
               onClose={() => setSelectedId(null)}
+              onRoute={() => getRoute(market)}
             />
           )
         })}

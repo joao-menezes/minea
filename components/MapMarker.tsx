@@ -25,6 +25,7 @@ type Props = {
   best?: boolean
   onSelect?: () => void
   onClose?: () => void
+  onRoute?: () => void
 }
 
 export default function MapMarker({
@@ -34,6 +35,7 @@ export default function MapMarker({
   best = false,
   onSelect,
   onClose,
+  onRoute,
 }: Props) {
   return (
     <>
@@ -104,7 +106,10 @@ export default function MapMarker({
               {formatPrice(product.price)}
             </div>
 
-            <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-2 text-sm font-bold text-white">
+            <button
+              onClick={onRoute}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-2 text-sm font-bold text-white"
+            >
               <MapPin size={16} />
               Como chegar
             </button>

@@ -32,18 +32,23 @@ export async function getProducts() {
   return data
 }
 
-export async function getPrices() {
+export async function getPrices(): Promise<any[]> {
   const { data, error } = await supabase.from("prices").select(`
-  id,
-  price,
-  market_id,
-  product_id,
-  products (
-    name
-  )
-`)
+    id,
+    price,
+    market_id,
+    product_id,
+    products (
+      name
+    )
+  `)
 
   if (error) throw error
 
-  return data
+  return data.map((item) => ({
+    id: item.id,
+    marketId: item.market_id,
+    product: item.products?.[0]?.name ?? "Produto",
+    price: Number(item.price),
+  }))
 }
