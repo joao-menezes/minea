@@ -16,9 +16,10 @@ import { useRouter } from "next/navigation"
 export default function Profile() {
   const router = useRouter()
 
+  const year = new Date().getFullYear()
+
   return (
     <main className="bg-background min-h-screen pb-24">
-      {/* Header */}
       <header className="bg-card border-border border-b px-5 py-6">
         <h1 className="text-3xl font-bold">Perfil</h1>
 
@@ -27,7 +28,6 @@ export default function Profile() {
         </p>
       </header>
 
-      {/* Usuário */}
       <section className="p-4">
         <div className="bg-card flex items-center gap-4 rounded-3xl border p-5 shadow-sm">
           <div className="bg-primary/10 flex h-20 w-20 items-center justify-center rounded-3xl text-4xl">
@@ -47,7 +47,6 @@ export default function Profile() {
         </div>
       </section>
 
-      {/* Preferências */}
       <section className="px-4">
         <h3 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase">
           Preferências
@@ -81,12 +80,19 @@ export default function Profile() {
         </div>
       </section>
 
-      {/* Logout */}
       <section className="p-4">
         <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 py-3.5 text-sm font-bold text-red-600 transition hover:bg-red-100">
           <LogOut size={18} />
           Sair
         </button>
+      </section>
+
+      <section className="px-4 pt-4 pb-8 text-center">
+        <p className="text-muted-foreground text-xs">
+          © {year} PricePal. Todos os direitos reservados.
+        </p>
+
+        <p className="text-muted-foreground mt-1 text-[11px]">Build 0.0.1</p>
       </section>
 
       <BottomNav />

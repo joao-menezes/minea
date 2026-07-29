@@ -1,8 +1,7 @@
 "use client"
 
-import { useState } from "react"
 import { Marker, Popup } from "react-map-gl/mapbox"
-import { MapPin, Navigation } from "lucide-react"
+import { MapPin } from "lucide-react"
 
 import { formatPrice, type Market, type Product } from "@/data/markets"
 
@@ -12,6 +11,7 @@ type Props = {
   selected?: boolean
   best?: boolean
   onSelect?: () => void
+  onClose?: () => void
 }
 
 export default function MapMarker({
@@ -20,9 +20,8 @@ export default function MapMarker({
   selected = false,
   best = false,
   onSelect,
+  onClose,
 }: Props) {
-  const [showPopup, setShowPopup] = useState(false)
-
   return (
     <>
       <Marker
@@ -31,13 +30,10 @@ export default function MapMarker({
         anchor="bottom"
       >
         <button
-          onClick={() => {
-            setShowPopup(true)
-            onSelect?.()
-          }}
+          onClick={onSelect}
           className={`relative flex flex-col items-center transition-all duration-200 hover:scale-105 ${
             selected ? "scale-110" : ""
-          } `}
+          }`}
         >
           {best && (
             <span className="absolute -top-3 rounded-full bg-green-500 px-2 py-0.5 text-[10px] font-bold text-white shadow">
@@ -52,7 +48,7 @@ export default function MapMarker({
                 : best
                   ? "border-green-500"
                   : "border-border"
-            } `}
+            }`}
           >
             <span className="text-xl">{market.emoji}</span>
           </div>
@@ -63,18 +59,18 @@ export default function MapMarker({
         </button>
       </Marker>
 
-      {showPopup && (
+      {selected && (
         <Popup
           latitude={market.coordinate.lat}
           longitude={market.coordinate.lng}
           anchor="top"
           closeButton={false}
           closeOnClick={false}
-          onClose={() => setShowPopup(false)}
+          onClose={onClose}
         >
           <div className="min-w-[220px] p-3">
             <button
-              onClick={() => setShowPopup(false)}
+              onClick={onClose}
               className="bg-secondary absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full text-lg"
             >
               ×

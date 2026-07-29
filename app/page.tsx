@@ -1,12 +1,13 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { MapPin, Search, PackageSearch } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { MapPin, Search, PackageSearch, SlidersHorizontal } from "lucide-react"
 
-import { MARKETS, USER_LOCATION, haversineDistance } from "@/data/markets"
+import { USER_LOCATION, haversineDistance } from "@/data/markets"
 import MarketCard from "@/components/MarketCard"
 import BottomNav from "@/components/BottomNav"
 import { useUserLocation } from "./hooks/useUserLocation"
+import { getMarkets, getPrices, getProducts } from "@/lib/api"
 
 const CATEGORIES = [
   "Tudo",
@@ -20,39 +21,76 @@ const CATEGORIES = [
 export default function Home() {
   const [search, setSearch] = useState("")
   const [category, setCategory] = useState("Tudo")
+  const [markets, setMarkets] = useState<any[]>([])
+  const [prices, setPrices] = useState<any[]>([])
+  const [products, setProducts] = useState<any[]>([])
+  const [loadingMarkets, setLoadingMarkets] = useState(true)
 
-  const { location, loading, error } = useUserLocation()
+  const { location, loading: loadingLocation, error } = useUserLocation()
+
+  useEffect(() => {
+    async function load() {
+      const [marketsData, pricesData, productsData] = await Promise.all([
+        getMarkets(),
+        getPrices(),
+        getProducts(),
+      ])
+      setMarkets(marketsData)
+      setPrices(pricesData)
+      setProducts(productsData)
+      setLoadingMarkets(false)
+    }
+    load()
+  }, [])
 
   const origin = location
     ? { lat: location.latitude, lng: location.longitude }
     : USER_LOCATION
 
-  const markets = useMemo(() => {
-    return MARKETS.map((market) => {
-      const distance = Math.round(haversineDistance(origin, market.coordinate))
+  const rankedMarkets = useMemo(() => {
+    return markets
+      .map((market) => ({
+        ...market,
+        distance: Math.round(haversineDistance(origin, market.coordinate)),
+      }))
+      .sort((a, b) => a.distance - b.distance)
+  }, [markets, origin])
 
-      const totalScore =
-        market.scores.price * 0.4 +
-        market.scores.quality * 0.2 +
-        market.scores.distance * 0.2 +
-        market.scores.availability * 0.2
+  const productsInCategory = useMemo(() => {
+    if (category === "Tudo") return products.map((p) => p.name)
+    return products.filter((p) => p.category === category).map((p) => p.name)
+  }, [products, category])
 
-      return { ...market, distance, totalScore }
-    }).sort((a, b) => b.totalScore - a.totalScore)
-  }, [origin])
+  const filteredMarkets = useMemo(() => {
+    return rankedMarkets.filter((market) => {
+      const marketPrices = prices.filter((p) => p.marketId === market.id)
+      const matchesSearch =
+        !search ||
+        market.name.toLowerCase().includes(search.toLowerCase()) ||
+        market.street?.toLowerCase().includes(search.toLowerCase()) ||
+        marketPrices.some((p) =>
+          p.product.toLowerCase().includes(search.toLowerCase()),
+        )
+      const matchesCategory =
+        category === "Tudo" ||
+        marketPrices.some((p) => productsInCategory.includes(p.product))
+      return matchesSearch && matchesCategory
+    })
+  }, [rankedMarkets, prices, search, category, productsInCategory])
 
-  const filteredMarkets = markets.filter((market) => {
-    const matchesSearch =
-      !search ||
-      market.name.toLowerCase().includes(search.toLowerCase()) ||
-      market.street.toLowerCase().includes(search.toLowerCase())
+  function getPriceForMarket(marketId: string) {
+    const marketPrices = prices.filter((p) => p.marketId === marketId)
+    if (marketPrices.length === 0) return undefined
+    if (search) {
+      const match = marketPrices.find((p) =>
+        p.product.toLowerCase().includes(search.toLowerCase()),
+      )
+      if (match) return match
+    }
+    return marketPrices.sort((a, b) => a.price - b.price)[0]
+  }
 
-    const matchesCategory =
-      category === "Tudo" ||
-      market.products.some((p) => p.category === category)
-
-    return matchesSearch && matchesCategory
-  })
+  const loading = loadingMarkets || loadingLocation
 
   function clearFilters() {
     setSearch("")
@@ -61,57 +99,76 @@ export default function Home() {
 
   return (
     <main className="bg-background min-h-screen pb-24">
-      <header className="border-border bg-card border-b px-4 py-5">
-        <h1 className="text-3xl font-bold tracking-tight">PricePal</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Onde comprar melhor perto de você
-        </p>
+      <header className="border-border bg-card border-b px-4 pt-6 pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">PricePal</h1>
+            <p className="text-muted-foreground mt-0.5 text-sm">
+              Onde comprar melhor perto de você
+            </p>
+          </div>
+          <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-2xl">
+            <span className="text-xl">🛒</span>
+          </div>
+        </div>
       </header>
 
-      <section className="p-4">
+      <section className="px-4 pt-4">
         <div className="border-border bg-card flex items-center gap-3 rounded-2xl border px-4 shadow-sm">
-          <Search size={20} className="text-muted-foreground" />
-
+          <Search size={18} className="text-muted-foreground shrink-0" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="placeholder:text-muted-foreground h-12 flex-1 bg-transparent outline-none"
-            placeholder="Buscar mercado..."
+            className="placeholder:text-muted-foreground h-12 flex-1 bg-transparent text-sm outline-none"
+            placeholder="Buscar produto ou mercado..."
           />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="text-muted-foreground hover:text-foreground hover:bg-secondary flex h-6 w-6 items-center justify-center rounded-full text-sm transition"
+            >
+              ✕
+            </button>
+          )}
         </div>
 
-        <div className="mt-3 inline-flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-700">
-          <MapPin size={16} />
-          {loading
-            ? "Obtendo sua localização..."
-            : error
-              ? `Localização padrão · ${MARKETS.length} mercados próximos`
-              : `Sua localização · ${MARKETS.length} mercados próximos`}
+        <div className="mt-3 inline-flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-700 dark:bg-blue-950/40 dark:text-blue-400">
+          <MapPin size={14} />
+          <span>
+            {loading
+              ? "Obtendo sua localização..."
+              : error
+                ? `Localização padrão · ${filteredMarkets.length} mercados`
+                : `Sua localização · ${filteredMarkets.length} mercados`}
+          </span>
         </div>
       </section>
 
-      <section className="flex gap-2 overflow-x-auto px-4 pb-2">
+      <section className="mt-3 flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pb-1">
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => setCategory(cat)}
-            className={`rounded-full border px-4 py-2 text-sm whitespace-nowrap transition ${
+            className={`rounded-full border px-4 py-2 text-sm whitespace-nowrap transition-all duration-200 ${
               category === cat
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-card text-muted-foreground"
-            } `}
+                ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground"
+            }`}
           >
             {cat}
           </button>
         ))}
       </section>
 
-      <section className="px-4 pt-4">
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-muted-foreground text-xs tracking-wider uppercase">
-            Melhores mercados próximos
+      <section className="px-4 pt-5">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+            {search
+              ? `Resultados para "${search}"`
+              : category !== "Tudo"
+                ? `Mercados com ${category}`
+                : "Mercados próximos"}
           </p>
-
           {filteredMarkets.length > 0 && (
             <span className="text-muted-foreground text-xs">
               {filteredMarkets.length} resultado
@@ -125,25 +182,33 @@ export default function Home() {
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="bg-card h-[76px] animate-pulse rounded-2xl border"
+                className="bg-card h-[88px] animate-pulse rounded-3xl border"
               />
             ))}
           </div>
         ) : filteredMarkets.length > 0 ? (
           filteredMarkets.map((market, index) => (
-            <MarketCard key={market.id} market={market} best={index === 0} />
+            <MarketCard
+              key={market.id}
+              market={market}
+              best={index === 0}
+              rank={index + 1}
+              price={getPriceForMarket(market.id)}
+            />
           ))
         ) : (
-          <div className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-8 text-center">
-            <PackageSearch size={32} className="text-muted-foreground" />
-
+          <div className="border-border bg-card flex flex-col items-center gap-3 rounded-3xl border p-10 text-center">
+            <div className="bg-secondary flex h-14 w-14 items-center justify-center rounded-2xl">
+              <PackageSearch size={28} className="text-muted-foreground" />
+            </div>
             <div>
-              <p className="font-medium">Nenhum mercado encontrado</p>
+              <p className="font-semibold">Nenhum mercado encontrado</p>
               <p className="text-muted-foreground mt-1 text-sm">
-                Tente ajustar sua busca ou categoria
+                {search
+                  ? `Nenhum mercado vende "${search}" por aqui`
+                  : "Tente ajustar sua busca ou categoria"}
               </p>
             </div>
-
             <button
               onClick={clearFilters}
               className="text-primary mt-1 text-sm font-medium hover:underline"
