@@ -1,3 +1,5 @@
+import { DollarSign, Star, MapPin, Package } from "lucide-react"
+
 type Scores = {
   price: number
   quality: number
@@ -9,12 +11,32 @@ type Props = {
   scores: Scores
 }
 
-const LABELS: { key: keyof Scores; label: string; emoji: string }[] = [
-  { key: "price", label: "Preço", emoji: "💰" },
-  { key: "quality", label: "Qualidade", emoji: "⭐" },
-  { key: "distance", label: "Distância", emoji: "📍" },
-  { key: "availability", label: "Estoque", emoji: "📦" },
-]
+const LABELS = [
+  {
+    key: "price",
+    label: "Preço",
+    icon: DollarSign,
+  },
+  {
+    key: "quality",
+    label: "Qualidade",
+    icon: Star,
+  },
+  {
+    key: "distance",
+    label: "Distância",
+    icon: MapPin,
+  },
+  {
+    key: "availability",
+    label: "Estoque",
+    icon: Package,
+  },
+] satisfies {
+  key: keyof Scores
+  label: string
+  icon: React.ElementType
+}[]
 
 function barColor(value: number) {
   if (value >= 80) return "from-green-400 to-green-600"
@@ -25,15 +47,15 @@ function barColor(value: number) {
 export default function ScoreBar({ scores }: Props) {
   return (
     <div className="flex flex-col gap-4">
-      {LABELS.map(({ key, label, emoji }) => {
-        const value = Math.min(100, Math.max(0, scores[key]))
+      {LABELS.map(({ key, label, icon: Icon }) => {
+        const value = Math.min(100, Math.max(0, scores[key] ?? 0))
 
         return (
           <div key={key} className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="bg-secondary flex h-8 w-8 items-center justify-center rounded-xl text-sm">
-                  {emoji}
+                <span className="bg-secondary flex h-8 w-8 items-center justify-center rounded-xl">
+                  <Icon size={16} />
                 </span>
 
                 <span className="text-sm font-medium">{label}</span>
@@ -46,7 +68,7 @@ export default function ScoreBar({ scores }: Props) {
 
             <div className="bg-secondary h-2.5 overflow-hidden rounded-full">
               <div
-                className={`h-full rounded-full bg-gradient-to-r transition-all duration-700 ${barColor(value)} `}
+                className={`h-full rounded-full bg-gradient-to-r transition-[width] duration-700 ease-out ${barColor(value)}`}
                 style={{
                   width: `${value}%`,
                 }}

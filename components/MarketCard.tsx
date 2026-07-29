@@ -1,12 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronRight, MapPin, TrendingDown } from "lucide-react"
+import { ChevronRight, MapPin, ShoppingCart, TrendingDown } from "lucide-react"
 import { formatPrice } from "@/lib/utils"
 
 type Price = {
   price: number
-  unit: string
   currency?: string
   product?: string
 }
@@ -15,9 +14,8 @@ type Market = {
   id: string
   name: string
   street?: string
-  distance: number
-  currency: string
-  emoji?: string
+  distance?: number
+  image?: string
   open?: boolean
 }
 
@@ -45,7 +43,8 @@ export default function MarketCard({ market, best, price, rank }: Props) {
               best ? "bg-green-100 dark:bg-green-900/40" : "bg-secondary"
             }`}
           >
-            {market.emoji ?? "🛒"}
+            {/*{market.image ?? <ShoppingCart />}*/}
+            <ShoppingCart />
           </div>
           {rank !== undefined && rank <= 3 && (
             <span className="border-border absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full border bg-white text-[11px] shadow-sm">
@@ -97,11 +96,13 @@ export default function MarketCard({ market, best, price, rank }: Props) {
               <div
                 className={`text-xl font-extrabold ${best ? "text-green-600 dark:text-green-400" : "text-primary"}`}
               >
-                {formatPrice(price.price, price.currency ?? market.currency)}
+                {formatPrice(price.price)}
               </div>
-              <span className="text-muted-foreground text-xs">
-                / {price.unit}
-              </span>
+              {/*{price.unit && (*/}
+              {/*  <span className="text-muted-foreground text-xs">*/}
+              {/*    / {price.unit}*/}
+              {/*  </span>*/}
+              {/*)}*/}
             </>
           ) : (
             <span className="text-muted-foreground text-xs italic">

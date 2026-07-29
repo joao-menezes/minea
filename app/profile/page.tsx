@@ -3,11 +3,11 @@
 import {
   Bell,
   ChevronRight,
-  Globe,
   Heart,
   LogOut,
   MapPin,
   Settings,
+  UserRound,
 } from "lucide-react"
 
 import BottomNav from "@/components/BottomNav"
@@ -15,8 +15,6 @@ import { useRouter } from "next/navigation"
 
 export default function Profile() {
   const router = useRouter()
-
-  const year = new Date().getFullYear()
 
   return (
     <main className="bg-background min-h-screen pb-24">
@@ -31,7 +29,7 @@ export default function Profile() {
       <section className="p-4">
         <div className="bg-card flex items-center gap-4 rounded-3xl border p-5 shadow-sm">
           <div className="bg-primary/10 flex h-20 w-20 items-center justify-center rounded-3xl text-4xl">
-            👤
+            <UserRound size={50} />
           </div>
 
           <div className="flex-1">
@@ -66,16 +64,10 @@ export default function Profile() {
           />
 
           <ProfileItem
-            icon={<Globe size={20} />}
-            title="Idioma e moeda"
-            description="Português (Brasil)"
-            onClick={() => router.push("/profile/language")}
-          />
-
-          <ProfileItem
             icon={<Settings size={20} />}
             title="Configurações"
             description="Conta e privacidade"
+            onClick={() => router.push("/profile/configuration")}
           />
         </div>
       </section>
@@ -86,15 +78,6 @@ export default function Profile() {
           Sair
         </button>
       </section>
-
-      <section className="px-4 pt-4 pb-8 text-center">
-        <p className="text-muted-foreground text-xs">
-          © {year} PricePal. Todos os direitos reservados.
-        </p>
-
-        <p className="text-muted-foreground mt-1 text-[11px]">Build 0.0.1</p>
-      </section>
-
       <BottomNav />
     </main>
   )

@@ -1,4 +1,8 @@
-import Link from "next/link"
+"use client"
+
+import { Check } from "lucide-react"
+
+import BackButton from "@/components/BackButton"
 
 export default function LanguagePage() {
   const languages = [
@@ -12,25 +16,30 @@ export default function LanguagePage() {
     "中文",
   ]
 
+  const currentLanguage = "Português (Brasil)"
+
   return (
-    <main className="bg-background min-h-screen p-4">
-      <Link href="/profile" className="text-primary mb-4 block text-sm">
-        ← Voltar
-      </Link>
+    <main className="bg-background min-h-screen pb-8">
+      <BackButton variant="header" />
 
-      <h1 className="mb-6 text-2xl font-bold">Idioma</h1>
+      <section className="px-4 pt-6">
+        <div className="border-border bg-card overflow-hidden rounded-3xl border shadow-sm">
+          {languages.map((language, index) => (
+            <button
+              key={language}
+              className={`hover:bg-secondary/50 flex w-full items-center justify-between px-5 py-4 text-left transition ${
+                index !== languages.length - 1 ? "border-border border-b" : ""
+              }`}
+            >
+              <span>{language}</span>
 
-      <div className="bg-card overflow-hidden rounded-2xl border">
-        {languages.map((language) => (
-          <button
-            key={language}
-            className="hover:bg-muted flex w-full items-center justify-between border-b px-4 py-4 text-left last:border-none"
-          >
-            <span>{language}</span>
-            <span className="text-muted-foreground">→</span>
-          </button>
-        ))}
-      </div>
+              {language === currentLanguage && (
+                <Check size={18} className="text-primary" />
+              )}
+            </button>
+          ))}
+        </div>
+      </section>
     </main>
   )
 }

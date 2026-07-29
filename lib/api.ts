@@ -1,18 +1,61 @@
-import Constants from "../utils/consts/constants"
-
-const API_URL = Constants.API_URL
+import { supabase } from "./supabase"
 
 export async function getMarkets() {
-  const res = await fetch(`${API_URL}/markets`)
-  return res.json()
+  const { data, error } = await supabase.from("markets").select("*")
+
+  if (error) throw error
+
+  return data.map(
+    (market: {
+      id: any
+      name: any
+      street: any
+      latitude: any
+      longitude: any
+    }) => ({
+      id: market.id,
+      name: market.name,
+      street: market.street,
+      coordinate: {
+        lat: market.latitude,
+        lng: market.longitude,
+      },
+    }),
+  )
+}
+
+export async function getProducts() {
+  const { data, error } = await supabase.from("products").select("*")
+
+  if (error) throw error
+
+  return data
 }
 
 export async function getPrices(product?: string) {
-  const query = product ? `?product=${product}` : ""
-  const res = await fetch(`${API_URL}/prices${query}`)
-  return res.json()
-}
-export async function getProducts() {
-  const res = await fetch(`${API_URL}/products`)
-  return res.json()
+  const { data, error } = await supabase.from("prices").select(`
+      id,
+      price,
+      market_id,
+      products (
+        name
+      )
+    `)
+
+  if (error) throw error
+
+  let prices = data.map((item) => ({
+    id: item.id,
+    marketId: item.market_id,
+    product: item.products?.[0]?.name ?? "Produto",
+    price: Number(item.price),
+  }))
+
+  if (product) {
+    prices = prices.filter((item) =>
+      item.product.toLowerCase().includes(product.toLowerCase()),
+    )
+  }
+
+  return prices
 }

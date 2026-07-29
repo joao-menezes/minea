@@ -14,7 +14,7 @@
       "country": "IE",
       "distance": 320,
       "open": true,
-      "emoji": "🏪",
+      "image": "",
       "currency": "EUR",
       "coordinate": {
         "lat": 53.3465,
@@ -35,7 +35,7 @@
       "country": "IE",
       "distance": 580,
       "open": true,
-      "emoji": "🛒",
+      "image": "",
       "currency": "EUR",
       "coordinate": {
         "lat": 53.3512,
@@ -56,7 +56,7 @@
       "country": "IE",
       "distance": 900,
       "open": true,
-      "emoji": "🏬",
+      "image": "",
       "currency": "EUR",
       "coordinate": {
         "lat": 53.3477,
@@ -100,9 +100,9 @@
     }
   ],
   "products": [
-    { "id": "1", "name": "arroz", "category": "Grãos", "emoji": "🌾" },
-    { "id": "2", "name": "feijão", "category": "Grãos", "emoji": "🫘" },
-    { "id": "3", "name": "frango", "category": "Carnes", "emoji": "🍗" },
-    { "id": "4", "name": "leite", "category": "Laticínios", "emoji": "🥛" }
+    { "id": "1", "name": "arroz", "category": "Grãos", "image": "🌾" },
+    { "id": "2", "name": "feijão", "category": "Grãos", "image": "🫘" },
+    { "id": "3", "name": "frango", "category": "Carnes", "image": "🍗" },
+    { "id": "4", "name": "leite", "category": "Laticínios", "image": "🥛" }
   ]
 }

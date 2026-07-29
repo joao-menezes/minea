@@ -1,13 +1,26 @@
 "use client"
 
 import { Marker, Popup } from "react-map-gl/mapbox"
-import { MapPin } from "lucide-react"
+import { MapPin, ShoppingCart } from "lucide-react"
 
-import { formatPrice, type Market, type Product } from "@/data/markets"
+import { formatPrice } from "@/lib/utils"
 
 type Props = {
-  market: Market
-  product: Product
+  market: {
+    id: string
+    name: string
+    street?: string
+    coordinate: {
+      lat: number
+      lng: number
+    }
+  }
+
+  product: {
+    price: number
+    product?: string
+  }
+
   selected?: boolean
   best?: boolean
   onSelect?: () => void
@@ -29,33 +42,28 @@ export default function MapMarker({
         longitude={market.coordinate.lng}
         anchor="bottom"
       >
-        <button
-          onClick={onSelect}
-          className={`relative flex flex-col items-center transition-all duration-200 hover:scale-105 ${
-            selected ? "scale-110" : ""
-          }`}
-        >
+        <button onClick={onSelect} className="flex flex-col items-center">
           {best && (
-            <span className="absolute -top-3 rounded-full bg-green-500 px-2 py-0.5 text-[10px] font-bold text-white shadow">
-              🥇
+            <span className="mb-1 rounded-full bg-green-500 px-2 py-0.5 text-[10px] text-white">
+              🥇 Melhor
             </span>
           )}
 
           <div
-            className={`bg-card flex h-12 w-12 items-center justify-center rounded-full border-2 shadow-lg ${
-              selected
-                ? "border-primary ring-primary/20 ring-4"
-                : best
-                  ? "border-green-500"
-                  : "border-border"
-            }`}
+            className={`flex h-12 w-12 items-center justify-center rounded-full border-2 bg-white shadow-lg ${
+              best ? "border-green-500" : "border-blue-500"
+            } `}
           >
-            <span className="text-xl">{market.emoji}</span>
+            <ShoppingCart size={24} />
           </div>
 
-          <span className="bg-primary mt-1 rounded-full px-2.5 py-1 text-xs font-bold text-white shadow">
-            {formatPrice(product.price, market.currency)}
-          </span>
+          <div className="mt-1 rounded-full bg-blue-600 px-2 py-1 text-xs font-bold text-white shadow">
+            {formatPrice(product.price)}
+          </div>
+
+          <div className="mt-1 max-w-[120px] truncate rounded-md bg-white px-2 py-1 text-[11px] font-bold shadow">
+            {market.name}
+          </div>
         </button>
       </Marker>
 
@@ -65,36 +73,27 @@ export default function MapMarker({
           longitude={market.coordinate.lng}
           anchor="top"
           closeButton={false}
-          closeOnClick={false}
           onClose={onClose}
         >
-          <div className="min-w-[220px] p-3">
+          <div className="w-[220px] p-3">
+            <strong className="text-sm">{market.name}</strong>
+
+            <p className="mt-1 text-xs text-gray-500">📍 {market.street}</p>
+
+            {product.product && (
+              <p className="mt-2 text-sm">{product.product}</p>
+            )}
+
+            <div className="mt-2 rounded-lg bg-blue-50 p-2 text-center font-bold text-blue-600">
+              {formatPrice(product.price)}
+            </div>
+
             <button
               onClick={onClose}
-              className="bg-secondary absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full text-lg"
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-2 text-sm font-bold text-white"
             >
-              ×
-            </button>
-
-            <div className="flex items-center gap-3 pr-8">
-              <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-xl text-xl">
-                {market.emoji}
-              </div>
-
-              <strong className="text-sm">{market.name}</strong>
-            </div>
-
-            <p className="text-muted-foreground mt-3 text-xs">
-              📍 {market.street}
-            </p>
-
-            <div className="bg-primary/10 text-primary mt-3 rounded-xl px-3 py-2 text-center font-bold">
-              {formatPrice(product.price, market.currency)}
-            </div>
-
-            <button className="bg-primary mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-2 text-sm font-bold text-white">
-              <MapPin size={18} />
-              Como chegar
+              <MapPin size={16} />
+              Fechar
             </button>
           </div>
         </Popup>

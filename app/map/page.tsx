@@ -5,7 +5,8 @@ import "mapbox-gl/dist/mapbox-gl.css"
 import { useEffect, useRef, useState } from "react"
 
 import Map, { Marker, MapRef } from "react-map-gl/mapbox"
-import { ChevronLeft, ChevronUp, LocateFixed } from "lucide-react"
+import { ChevronUp, LocateFixed } from "lucide-react"
+import BackButton from "@/components/BackButton"
 
 import MapMarker from "@/components/MapMarker"
 import BottomNav from "@/components/BottomNav"
@@ -15,11 +16,10 @@ import { getMarkets, getPrices } from "@/lib/api"
 
 import Constants from "../../utils/consts/constants"
 import ClusterLayer from "@/components/ClusterLayer"
-import { useRouter } from "next/navigation"
 
 const DEFAULT_LOCATION = {
-  latitude: 53.3499,
-  longitude: -6.2608,
+  latitude: -22.5668,
+  longitude: -47.4017,
 }
 
 const MAP_CONFIG = {
@@ -28,8 +28,6 @@ const MAP_CONFIG = {
 }
 
 export default function MapPage() {
-  const router = useRouter()
-
   const mapRef = useRef<MapRef | null>(null)
   const interactionTimer = useRef<NodeJS.Timeout | null>(null)
 
@@ -45,7 +43,7 @@ export default function MapPage() {
 
   useEffect(() => {
     getMarkets().then((data) => setMarkets(data))
-    getPrices("arroz").then((data) => setPrices(data))
+    getPrices().then((data) => setPrices(data))
   }, [])
 
   useEffect(() => {
@@ -71,7 +69,11 @@ export default function MapPage() {
       : null
 
   function getPriceForMarket(marketId: string) {
-    return prices.find((p) => p.marketId === marketId)
+    const marketPrices = prices.filter((p) => p.marketId === marketId)
+
+    if (!marketPrices.length) return undefined
+
+    return marketPrices.reduce((a, b) => (a.price < b.price ? a : b))
   }
 
   function scheduleAutoShow() {
@@ -100,9 +102,10 @@ export default function MapPage() {
     })
   }
 
-  const visibleMarkets = markets.filter((market) =>
-    visibleMarketIds.has(market.id),
-  )
+  const visibleMarkets =
+    visibleMarketIds.size > 0
+      ? markets.filter((market) => visibleMarketIds.has(market.id))
+      : markets
 
   return (
     <main className="relative h-screen w-full overflow-hidden">
@@ -123,6 +126,9 @@ export default function MapPage() {
           prices={prices}
           bestMarketId={bestMarketId}
           onVisibleMarketsChange={setVisibleMarketIds}
+          onSelectMarket={function (id: string): void {
+            throw new Error("Function not implemented.")
+          }}
         />
 
         <Marker
@@ -156,13 +162,9 @@ export default function MapPage() {
         <LocationMessage>Buscando sua localização...</LocationMessage>
       )}
 
-      <button
-        onClick={() => router.push("/")}
-        aria-label="Voltar"
-        className="border-border bg-card/95 fixed top-5 left-4 z-50 flex h-12 w-12 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-105 active:scale-95"
-      >
-        <ChevronLeft size={20} className="text-primary" strokeWidth={2.5} />
-      </button>
+      <div className="fixed top-5 left-4 z-50">
+        <BackButton />
+      </div>
 
       <div
         className={`fixed right-0 bottom-0 left-0 z-50 transition-all duration-300 ease-out ${

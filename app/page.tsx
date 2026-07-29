@@ -1,7 +1,13 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { MapPin, Search, PackageSearch, SlidersHorizontal } from "lucide-react"
+import {
+  MapPin,
+  Search,
+  PackageSearch,
+  SlidersHorizontal,
+  ShoppingCart,
+} from "lucide-react"
 
 import { USER_LOCATION, haversineDistance } from "@/data/markets"
 import MarketCard from "@/components/MarketCard"
@@ -108,7 +114,9 @@ export default function Home() {
             </p>
           </div>
           <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-2xl">
-            <span className="text-xl">🛒</span>
+            <span className="text-xl">
+              <ShoppingCart />
+            </span>
           </div>
         </div>
       </header>

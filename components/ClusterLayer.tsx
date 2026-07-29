@@ -1,8 +1,6 @@
 "use client"
 
 import { useEffect, useMemo } from "react"
-import type { GeoJSONFeature } from "mapbox-gl"
-
 import { Layer, Source, useMap } from "react-map-gl/mapbox"
 
 type Market = {
@@ -17,7 +15,7 @@ type Market = {
 type Price = {
   marketId: string
   price: number
-  currency: string
+  product?: string
 }
 
 type Props = {
@@ -25,6 +23,7 @@ type Props = {
   prices: Price[]
   bestMarketId: string | null
   onVisibleMarketsChange: (ids: Set<string>) => void
+  onSelectMarket: (id: string) => void
 }
 
 export default function ClusterLayer({
@@ -32,73 +31,85 @@ export default function ClusterLayer({
   prices,
   bestMarketId,
   onVisibleMarketsChange,
+  onSelectMarket,
 }: Props) {
   const { current: map } = useMap()
 
   const geojson = useMemo(() => {
-    const priceMap = new Map(prices.map((price) => [price.marketId, price]))
+    const priceMap = new Map<string, Price>()
+
+    prices.forEach((price) => {
+      const current = priceMap.get(price.marketId)
+
+      if (!current || price.price < current.price) {
+        priceMap.set(price.marketId, price)
+      }
+    })
 
     return {
       type: "FeatureCollection" as const,
-
-      features: markets.flatMap((market) => {
+      features: markets.map((market) => {
         const price = priceMap.get(market.id)
 
-        if (!price) return []
+        return {
+          type: "Feature" as const,
 
-        return [
-          {
-            type: "Feature" as const,
-
-            properties: {
-              id: market.id,
-              name: market.name,
-              price: price.price,
-              currency: price.currency,
-              best: market.id === bestMarketId,
-            },
-
-            geometry: {
-              type: "Point" as const,
-              coordinates: [market.coordinate.lng, market.coordinate.lat],
-            },
+          properties: {
+            id: market.id,
+            name: market.name,
+            price: price?.price ?? 0,
+            product: price?.product ?? "",
+            best: market.id === bestMarketId,
           },
-        ]
+
+          geometry: {
+            type: "Point" as const,
+            coordinates: [market.coordinate.lng, market.coordinate.lat],
+          },
+        }
       }),
     }
   }, [markets, prices, bestMarketId])
 
-  if (map === undefined) return
-
   useEffect(() => {
-    function updateVisibleMarkets() {
-      if (map === undefined) return
+    if (!map) return
 
-      const features = map.queryRenderedFeatures({
-        layers: ["market-points"],
-      }) as GeoJSONFeature[]
+    function updateVisibleMarkets() {
+      const features = map.querySourceFeatures("markets")
 
       const ids = new Set<string>()
 
-      for (const feature of features) {
+      features.forEach((feature: any) => {
         const id = feature.properties?.id
 
         if (typeof id === "string") {
           ids.add(id)
         }
-      }
+      })
 
       onVisibleMarketsChange(ids)
     }
 
-    map.on("moveend", updateVisibleMarkets)
+    function handleMarketClick(e: any) {
+      const feature = e.features?.[0]
+
+      const id = feature?.properties?.id
+
+      if (id) {
+        onSelectMarket(id)
+      }
+    }
+
     map.on("idle", updateVisibleMarkets)
 
+    map.on("click", "market-points", handleMarketClick)
+
     return () => {
-      map.off("moveend", updateVisibleMarkets)
       map.off("idle", updateVisibleMarkets)
+
+      map.off("click", "market-points", handleMarketClick)
     }
-  }, [map, geojson, onVisibleMarketsChange])
+  }, [map, geojson, onVisibleMarketsChange, onSelectMarket])
 
   return (
     <Source
@@ -106,11 +117,8 @@ export default function ClusterLayer({
       type="geojson"
       data={geojson}
       cluster
-      clusterRadius={20}
-      clusterMaxZoom={15}
-      clusterProperties={{
-        maxPrice: ["max", ["get", "price"]],
-      }}
+      clusterRadius={30}
+      clusterMaxZoom={13}
     >
       <Layer
         id="clusters"
@@ -118,24 +126,9 @@ export default function ClusterLayer({
         filter={["has", "point_count"]}
         paint={{
           "circle-color": "#2563eb",
-
-          "circle-radius": [
-            "step",
-            ["get", "point_count"],
-            22,
-            10,
-            28,
-            50,
-            38,
-            100,
-            46,
-          ],
-
+          "circle-radius": ["step", ["get", "point_count"], 22, 10, 28, 50, 38],
           "circle-stroke-width": 3,
-
-          "circle-stroke-color": "#ffffff",
-
-          "circle-opacity": 0.9,
+          "circle-stroke-color": "#fff",
         }}
       />
 
@@ -145,11 +138,10 @@ export default function ClusterLayer({
         filter={["has", "point_count"]}
         layout={{
           "text-field": "{point_count_abbreviated}",
-
           "text-size": 14,
         }}
         paint={{
-          "text-color": "#ffffff",
+          "text-color": "#fff",
         }}
       />
 
@@ -158,7 +150,7 @@ export default function ClusterLayer({
         type="circle"
         filter={["!", ["has", "point_count"]]}
         paint={{
-          "circle-radius": 7,
+          "circle-radius": 9,
 
           "circle-color": [
             "case",
@@ -167,10 +159,8 @@ export default function ClusterLayer({
             "#2563eb",
           ],
 
-          "circle-stroke-color": "#ffffff",
+          "circle-stroke-color": "#fff",
           "circle-stroke-width": 2,
-
-          "circle-opacity": 1,
         }}
       />
     </Source>

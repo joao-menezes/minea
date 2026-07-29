@@ -15,7 +15,7 @@ export type Market = {
   id: string
   name: string
   street: string
-  emoji: string
+  image: string
   currency: string
   distance: number
   coordinate: Coordinate
@@ -40,7 +40,7 @@ export const MARKETS: Market[] = [
     id: "lidl",
     name: "Lidl",
     street: "Henry Street",
-    emoji: "🛒",
+    image: "🛒",
     currency: "€",
 
     distance: 400,
@@ -79,7 +79,7 @@ export const MARKETS: Market[] = [
     id: "tesco",
     name: "Tesco",
     street: "O'Connell Street",
-    emoji: "🛍️",
+    image: "🛍️",
     currency: "€",
 
     distance: 650,
