@@ -98,11 +98,11 @@ export default function MarketCard({ market, best, price, rank }: Props) {
               >
                 {formatPrice(price.price)}
               </div>
-              {/*{price.unit && (*/}
-              {/*  <span className="text-muted-foreground text-xs">*/}
-              {/*    / {price.unit}*/}
-              {/*  </span>*/}
-              {/*)}*/}
+              {price.price && (
+                <span className="text-muted-foreground text-xs">
+                  / {price.price}
+                </span>
+              )}
             </>
           ) : (
             <span className="text-muted-foreground text-xs italic">

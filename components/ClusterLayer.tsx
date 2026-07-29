@@ -75,6 +75,7 @@ export default function ClusterLayer({
     if (!map) return
 
     function updateVisibleMarkets() {
+      if (!map) return
       const features = map.querySourceFeatures("markets")
 
       const ids = new Set<string>()

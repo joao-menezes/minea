@@ -32,30 +32,10 @@ export async function getProducts() {
   return data
 }
 
-export async function getPrices(product?: string) {
-  const { data, error } = await supabase.from("prices").select(`
-      id,
-      price,
-      market_id,
-      products (
-        name
-      )
-    `)
+export async function getPrices() {
+  const { data, error } = await supabase.from("prices").select("*")
 
   if (error) throw error
 
-  let prices = data.map((item) => ({
-    id: item.id,
-    marketId: item.market_id,
-    product: item.products?.[0]?.name ?? "Produto",
-    price: Number(item.price),
-  }))
-
-  if (product) {
-    prices = prices.filter((item) =>
-      item.product.toLowerCase().includes(product.toLowerCase()),
-    )
-  }
-
-  return prices
+  return data
 }

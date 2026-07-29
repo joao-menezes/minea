@@ -133,19 +133,3 @@ export function haversineDistance(a: Coordinate, b: Coordinate): number {
 
   return R * 2 * Math.asin(Math.sqrt(h))
 }
-
-/**
- * Formata um preço com o símbolo da moeda, centralizando a lógica
- * repetida em MarketCard e MapMarker.
- */
-export function formatPrice(value: number, currency: string): string {
-  const formatted = value.toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-  })
-
-  return `${currency}${formatted}`
-}
-
-export function getMarketById(id: string): Market | undefined {
-  return MARKETS.find((m) => m.id === id)
-}

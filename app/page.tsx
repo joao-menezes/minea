@@ -1,19 +1,13 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import {
-  MapPin,
-  Search,
-  PackageSearch,
-  SlidersHorizontal,
-  ShoppingCart,
-} from "lucide-react"
+import { MapPin, Search, PackageSearch, ShoppingCart } from "lucide-react"
 
-import { USER_LOCATION, haversineDistance } from "@/data/markets"
 import MarketCard from "@/components/MarketCard"
 import BottomNav from "@/components/BottomNav"
 import { useUserLocation } from "./hooks/useUserLocation"
 import { getMarkets, getPrices, getProducts } from "@/lib/api"
+import { haversineDistance, USER_LOCATION } from "@/data/markets"
 
 const CATEGORIES = [
   "Tudo",
@@ -75,24 +69,30 @@ export default function Home() {
         market.name.toLowerCase().includes(search.toLowerCase()) ||
         market.street?.toLowerCase().includes(search.toLowerCase()) ||
         marketPrices.some((p) =>
-          p.product.toLowerCase().includes(search.toLowerCase()),
+          p.products?.[0]?.name?.toLowerCase().includes(search.toLowerCase()),
         )
       const matchesCategory =
         category === "Tudo" ||
-        marketPrices.some((p) => productsInCategory.includes(p.product))
+        marketPrices.some((p) =>
+          productsInCategory.includes(p.products?.[0]?.name),
+        )
       return matchesSearch && matchesCategory
     })
   }, [rankedMarkets, prices, search, category, productsInCategory])
 
   function getPriceForMarket(marketId: string) {
-    const marketPrices = prices.filter((p) => p.marketId === marketId)
+    const marketPrices = prices.filter((p) => p.market_id === marketId)
+
     if (marketPrices.length === 0) return undefined
+
     if (search) {
       const match = marketPrices.find((p) =>
-        p.product.toLowerCase().includes(search.toLowerCase()),
+        p.products?.[0]?.name?.toLowerCase().includes(search.toLowerCase()),
       )
+
       if (match) return match
     }
+
     return marketPrices.sort((a, b) => a.price - b.price)[0]
   }
 
