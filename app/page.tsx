@@ -64,32 +64,32 @@ export default function Home() {
   const filteredMarkets = useMemo(() => {
     return rankedMarkets.filter((market) => {
       const marketPrices = prices.filter((p) => p.marketId === market.id)
+
       const matchesSearch =
         !search ||
         market.name.toLowerCase().includes(search.toLowerCase()) ||
         market.street?.toLowerCase().includes(search.toLowerCase()) ||
         marketPrices.some((p) =>
-          p.products?.[0]?.name?.toLowerCase().includes(search.toLowerCase()),
+          p.product?.toLowerCase().includes(search.toLowerCase()),
         )
+
       const matchesCategory =
         category === "Tudo" ||
-        marketPrices.some((p) =>
-          productsInCategory.includes(p.products?.[0]?.name),
-        )
+        marketPrices.some((p) => productsInCategory.includes(p.product))
+
       return matchesSearch && matchesCategory
     })
   }, [rankedMarkets, prices, search, category, productsInCategory])
 
   function getPriceForMarket(marketId: string) {
-    const marketPrices = prices.filter((p) => p.market_id === marketId)
+    const marketPrices = prices.filter((p) => p.marketId === marketId)
 
     if (marketPrices.length === 0) return undefined
 
     if (search) {
       const match = marketPrices.find((p) =>
-        p.products?.[0]?.name?.toLowerCase().includes(search.toLowerCase()),
+        p.product?.toLowerCase().includes(search.toLowerCase()),
       )
-
       if (match) return match
     }
 

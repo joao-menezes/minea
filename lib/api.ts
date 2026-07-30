@@ -45,10 +45,10 @@ export async function getPrices(): Promise<any[]> {
 
   if (error) throw error
 
-  return data.map((item) => ({
+  return data.map((item: any) => ({
     id: item.id,
     marketId: item.market_id,
-    product: item.products?.[0]?.name ?? "Produto",
+    product: item.products?.name ?? "Produto",
     price: Number(item.price),
   }))
 }

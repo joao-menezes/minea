@@ -68,13 +68,13 @@ export default function MapPage() {
       ? String(
           prices.reduce((best: any, curr: any) =>
             curr.price < best.price ? curr : best,
-          ).market_id,
+          ).marketid,
         )
       : null
 
   function getPriceForMarket(marketId: string) {
     const marketPrices = prices.filter(
-      (p) => String(p.market_id) === String(marketId),
+      (p) => String(p.marketId) === String(marketId),
     )
 
     if (!marketPrices.length) return undefined
@@ -152,9 +152,7 @@ export default function MapPage() {
           prices={prices}
           bestMarketId={bestMarketId}
           onVisibleMarketsChange={setVisibleMarketIds}
-          onSelectMarket={function (id: string): void {
-            throw new Error("Function not implemented.")
-          }}
+          onSelectMarket={(id) => setSelectedId(id)}
         />
 
         {route && (
