@@ -15,7 +15,7 @@ export type Market = {
   name: string
   street: string
   coordinate: Coordinate
-  emoji?: string
+  image?: string
   currency?: string
   open?: boolean
   scores?: Score
@@ -38,5 +38,4 @@ export type Product = {
   id: string
   name: string
   category: string
-  emoji?: string
 }

@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react"
 
 import { getMarkets, getPrices, getProducts } from "@/lib/api"
 import { haversineDistance, USER_LOCATION } from "@/data/markets"
-import { useUserLocation } from "@/app/hooks/useUserLocation"
-import type { Market, MarketWithDistance, Price, Product } from "@/app/types"
+import { useUserLocation } from "@/hooks/useUserLocation"
+import type { Market, MarketWithDistance, Price, Product } from "@/types"
 
 type UseMarketDataReturn = {
   markets: MarketWithDistance[]

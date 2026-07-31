@@ -11,10 +11,10 @@ import BackButton from "@/components/BackButton"
 import MapMarker from "@/components/MapMarker"
 import BottomNav from "@/components/BottomNav"
 
-import { useUserLocation } from "../hooks/useUserLocation"
+import { useUserLocation } from "@/hooks/useUserLocation"
 import { getMarkets, getPrices } from "@/lib/api"
 
-import Constants from "../../utils/consts/constants"
+import Constants from "@/lib/constants"
 import ClusterLayer from "@/components/ClusterLayer"
 
 const DEFAULT_LOCATION = {

@@ -5,9 +5,9 @@ import { MapPin, Search, PackageSearch, ShoppingCart } from "lucide-react"
 
 import MarketCard from "@/components/MarketCard"
 import BottomNav from "@/components/BottomNav"
-import { useMarketData } from "@/app/hooks/useMarketData"
-import { useMarketFilter } from "@/app/hooks/useMarketFilter"
-import { MarketWithDistance } from "@/app/types"
+import { useMarketData } from "@/hooks/useMarketData"
+import { useMarketFilter } from "@/hooks/useMarketFilter"
+import { MarketWithDistance } from "@/types"
 
 const CATEGORIES = [
   "Tudo",

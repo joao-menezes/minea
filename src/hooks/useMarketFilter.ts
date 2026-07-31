@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import type { MarketWithDistance, Price, Product } from "@/app/types"
+import type { MarketWithDistance, Price, Product } from "@/types"
 
 type UseMarketFilterParams = {
   markets: MarketWithDistance[]
