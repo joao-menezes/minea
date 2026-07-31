@@ -1,0 +1,34 @@
+{
+  "Home": {
+    "title": "PricePal",
+    "subtitle": "Find the best prices near you",
+    "searchPlaceholder": "Search product or market...",
+    "locationDetecting": "Getting your location...",
+    "locationDefault": "Default location · {count} markets",
+    "locationFound": "Your location · {count} markets",
+    "resultsFor": "Results for \"{search}\"",
+    "resultsCategory": "Markets with {category}",
+    "resultsNearby": "Nearby markets",
+    "emptyTitle": "No markets found",
+    "emptySearch": "No market sells \"{search}\" nearby",
+    "emptyDefault": "Try adjusting your search or category",
+    "clearFilters": "Clear filters"
+  },
+  "Categories": {
+    "all": "All",
+    "grains": "Grains",
+    "meat": "Meat",
+    "dairy": "Dairy",
+    "fruits": "Fruits",
+    "beverages": "Beverages"
+  },
+  "Details": {
+    "back": "Back",
+    "viewOnMap": "View on map",
+    "rating": "Rating",
+    "pricesFound": "Prices found",
+    "items": "{count} items",
+    "lowestPriceReported": "Lowest reported price",
+    "noPricesFound": "No prices found"
+  }
+}

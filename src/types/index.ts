@@ -1,4 +1,4 @@
-export type Coordinate = {
+﻿export type Coordinate = {
   lat: number
   lng: number
 }
@@ -10,6 +10,22 @@ export type Score = {
   availability: number
 }
 
+export const PRODUCT_CATEGORIES = [
+  "grains",
+  "meat",
+  "dairy",
+  "fruits",
+  "beverages",
+] as const
+
+export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number]
+
+export type Product = {
+  id: string
+  name: string
+  category: ProductCategory
+}
+
 export type Market = {
   id: string
   name: string
@@ -19,6 +35,7 @@ export type Market = {
   currency?: string
   open?: boolean
   scores?: Score
+  products?: Product[]
 }
 
 export type MarketWithDistance = Market & {
@@ -32,10 +49,4 @@ export type Price = {
   price: number
   unit?: string
   currency?: string
-}
-
-export type Product = {
-  id: string
-  name: string
-  category: string
 }

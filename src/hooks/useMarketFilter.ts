@@ -1,12 +1,12 @@
 import { useMemo } from "react"
-import type { MarketWithDistance, Price, Product } from "@/types"
+import type { MarketWithDistance, Price, Product, ProductCategory } from "@/types"
 
 type UseMarketFilterParams = {
   markets: MarketWithDistance[]
   prices: Price[]
   products: Product[]
   search: string
-  category: string
+  category: ProductCategory | "all"
 }
 
 type UseMarketFilterReturn = {
@@ -22,7 +22,7 @@ export function useMarketFilter({
   category,
 }: UseMarketFilterParams): UseMarketFilterReturn {
   const productsInCategory = useMemo(() => {
-    if (category === "Tudo") return new Set(products.map((p) => p.name))
+    if (category === "all") return new Set(products.map((p) => p.name))
     return new Set(
       products.filter((p) => p.category === category).map((p) => p.name),
     )
@@ -50,7 +50,7 @@ export function useMarketFilter({
         marketPrices.some((p) => p.product?.toLowerCase().includes(query))
 
       const matchesCategory =
-        category === "Tudo" ||
+        category === "all" ||
         marketPrices.some((p) => productsInCategory.has(p.product))
 
       return matchesSearch && matchesCategory

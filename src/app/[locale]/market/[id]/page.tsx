@@ -11,6 +11,8 @@ import BackButton from "@/components/BackButton"
 
 import { getMarkets, getPrices } from "@/lib/api"
 import { formatPrice } from "@/lib/utils"
+import { useTranslations } from "next-intl"
+import { Chip } from "@/components/ui/chip"
 
 type Score = {
   price: number
@@ -44,6 +46,8 @@ type Props = {
 }
 
 export default function MarketDetailsPage({ params }: Props) {
+  const t = useTranslations("Details")
+
   const { id } = use(params)
 
   const [market, setMarket] = useState<Market | null>(null)
@@ -100,7 +104,7 @@ export default function MarketDetailsPage({ params }: Props) {
 
   return (
     <main className="bg-background min-h-screen pb-24">
-      <BackButton variant="header" label="Voltar" />
+      <BackButton variant="header" label={t("back")} />
 
       <section className="px-4 pt-5">
         <div className="flex items-center gap-4">
@@ -122,13 +126,13 @@ export default function MarketDetailsPage({ params }: Props) {
           className="border-border bg-card mt-4 flex items-center justify-center gap-2 rounded-2xl border py-3 text-sm font-medium shadow-sm transition hover:shadow-md"
         >
           <MapPinned size={17} className="text-primary" />
-          Ver no mapa
+          {t("viewOnMap")}
         </Link>
       </section>
 
       <section className="mt-6 px-4">
         <p className="text-muted-foreground mb-3 text-xs font-medium tracking-wider uppercase">
-          Avaliação
+          {t("rating")}
         </p>
 
         <div className="bg-card rounded-3xl border p-5 shadow-sm">
@@ -148,11 +152,11 @@ export default function MarketDetailsPage({ params }: Props) {
       <section className="mt-6 px-4">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
-            Preços encontrados
+            {t("pricesFound")}
           </p>
 
           <span className="text-muted-foreground text-xs">
-            {prices.length} itens
+            {t("items", { count: prices.length })}
           </span>
         </div>
 
@@ -167,20 +171,18 @@ export default function MarketDetailsPage({ params }: Props) {
                   <p className="font-medium">{price.product}</p>
 
                   <p className="text-muted-foreground text-xs">
-                    Menor preço informado
+                    {t("lowestPriceReported")}
                   </p>
                 </div>
-
-                <div className="bg-primary/10 rounded-xl px-3 py-2">
-                  <p className="text-primary font-bold">
-                    {formatPrice(price.price)}
-                  </p>
-                </div>
+                <Chip
+                  className="bg-primary/10 text-primary rounded-xl px-3 py-2 font-bold"
+                  children={formatPrice(price.price)}
+                ></Chip>
               </div>
             ))
           ) : (
             <div className="bg-card text-muted-foreground rounded-3xl border p-5 text-center text-sm">
-              Nenhum preço encontrado
+              {t("noPricesFound")}
             </div>
           )}
         </div>

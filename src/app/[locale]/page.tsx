@@ -1,26 +1,29 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { MapPin, Search, PackageSearch, ShoppingCart } from "lucide-react"
 
 import MarketCard from "@/components/MarketCard"
 import BottomNav from "@/components/BottomNav"
 import { useMarketData } from "@/hooks/useMarketData"
 import { useMarketFilter } from "@/hooks/useMarketFilter"
-import { MarketWithDistance } from "@/types"
+import {
+  MarketWithDistance,
+  PRODUCT_CATEGORIES,
+  ProductCategory,
+} from "@/types"
 
-const CATEGORIES = [
-  "Tudo",
-  "Grãos",
-  "Carnes",
-  "Laticínios",
-  "Frutas",
-  "Bebidas",
-]
+const CATEGORY_KEYS = ["all", ...PRODUCT_CATEGORIES] as const
+
+type CategoryKey = "all" | ProductCategory
 
 export default function Home() {
+  const t = useTranslations("Home")
+  const tCategories = useTranslations("Categories")
+
   const [search, setSearch] = useState("")
-  const [category, setCategory] = useState("Tudo")
+  const [category, setCategory] = useState<CategoryKey>("all")
 
   const { markets, prices, products, loading, locationError } = useMarketData()
 
@@ -34,29 +37,31 @@ export default function Home() {
 
   function clearFilters() {
     setSearch("")
-    setCategory("Tudo")
+    setCategory("all")
   }
 
   return (
     <main className="bg-background min-h-screen pb-24">
-      <Header />
+      <Header title={t("title")} subtitle={t("subtitle")} />
 
       <SearchBar
         value={search}
         onChange={setSearch}
         onClear={() => setSearch("")}
+        placeholder={t("searchPlaceholder")}
       />
 
       <LocationBadge
         loading={loading}
         error={locationError}
         count={filteredMarkets.length}
+        t={t}
       />
 
       <CategoryFilter
-        categories={CATEGORIES}
         active={category}
         onChange={setCategory}
+        tCategories={tCategories}
       />
 
       <section className="px-4 pt-5">
@@ -64,6 +69,8 @@ export default function Home() {
           search={search}
           category={category}
           count={filteredMarkets.length}
+          t={t}
+          tCategories={tCategories}
         />
 
         {loading ? (
@@ -79,7 +86,7 @@ export default function Home() {
             />
           ))
         ) : (
-          <EmptyState search={search} onClear={clearFilters} />
+          <EmptyState search={search} onClear={clearFilters} t={t} />
         )}
       </section>
 
@@ -88,17 +95,13 @@ export default function Home() {
   )
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function Header() {
+function Header({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <header className="border-border bg-card border-b px-4 pt-6 pb-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">PricePal</h1>
-          <p className="text-muted-foreground mt-0.5 text-sm">
-            Onde comprar melhor perto de você
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          <p className="text-muted-foreground mt-0.5 text-sm">{subtitle}</p>
         </div>
         <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-2xl">
           <ShoppingCart size={20} className="text-primary" />
@@ -112,10 +115,12 @@ function SearchBar({
   value,
   onChange,
   onClear,
+  placeholder,
 }: {
   value: string
   onChange: (v: string) => void
   onClear: () => void
+  placeholder: string
 }) {
   return (
     <section className="px-4 pt-4">
@@ -125,7 +130,7 @@ function SearchBar({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="placeholder:text-muted-foreground h-12 flex-1 bg-transparent text-sm outline-none"
-          placeholder="Buscar produto ou mercado..."
+          placeholder={placeholder}
         />
         {value && (
           <button
@@ -133,7 +138,7 @@ function SearchBar({
             aria-label="Limpar busca"
             className="text-muted-foreground hover:text-foreground hover:bg-secondary flex h-6 w-6 items-center justify-center rounded-full text-sm transition"
           >
-            ✕
+            âœ•
           </button>
         )}
       </div>
@@ -145,16 +150,18 @@ function LocationBadge({
   loading,
   error,
   count,
+  t,
 }: {
   loading: boolean
   error: string | null
   count: number
+  t: ReturnType<typeof useTranslations>
 }) {
   const label = loading
-    ? "Obtendo sua localização..."
+    ? t("locationDetecting")
     : error
-      ? `Localização padrão · ${count} mercados`
-      : `Sua localização · ${count} mercados`
+      ? t("locationDefault", { count })
+      : t("locationFound", { count })
 
   return (
     <div className="px-4 pt-3">
@@ -167,27 +174,27 @@ function LocationBadge({
 }
 
 function CategoryFilter({
-  categories,
   active,
   onChange,
+  tCategories,
 }: {
-  categories: string[]
-  active: string
-  onChange: (cat: string) => void
+  active: CategoryKey
+  onChange: (cat: CategoryKey) => void
+  tCategories: ReturnType<typeof useTranslations>
 }) {
   return (
     <section className="mt-3 flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pb-1">
-      {categories.map((cat) => (
+      {CATEGORY_KEYS.map((key) => (
         <button
-          key={cat}
-          onClick={() => onChange(cat)}
+          key={key}
+          onClick={() => onChange(key)}
           className={`rounded-full border px-4 py-2 text-sm whitespace-nowrap transition-all duration-200 ${
-            active === cat
+            active === key
               ? "border-primary bg-primary text-primary-foreground shadow-sm"
               : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground"
           }`}
         >
-          {cat}
+          {tCategories(key)}
         </button>
       ))}
     </section>
@@ -198,16 +205,20 @@ function ResultsHeader({
   search,
   category,
   count,
+  t,
+  tCategories,
 }: {
   search: string
-  category: string
+  category: CategoryKey
   count: number
+  t: ReturnType<typeof useTranslations>
+  tCategories: ReturnType<typeof useTranslations>
 }) {
   const label = search
-    ? `Resultados para "${search}"`
-    : category !== "Tudo"
-      ? `Mercados com ${category}`
-      : "Mercados próximos"
+    ? t("resultsFor", { search })
+    : category !== "all"
+      ? t("resultsCategory", { category: tCategories(category) })
+      : t("resultsNearby")
 
   return (
     <div className="mb-3 flex items-center justify-between">
@@ -215,9 +226,7 @@ function ResultsHeader({
         {label}
       </p>
       {count > 0 && (
-        <span className="text-muted-foreground text-xs">
-          {count} resultado{count !== 1 ? "s" : ""}
-        </span>
+        <span className="text-muted-foreground text-xs">{count}</span>
       )}
     </div>
   )
@@ -239,9 +248,11 @@ function MarketListSkeleton() {
 function EmptyState({
   search,
   onClear,
+  t,
 }: {
   search: string
   onClear: () => void
+  t: ReturnType<typeof useTranslations>
 }) {
   return (
     <div className="border-border bg-card flex flex-col items-center gap-3 rounded-3xl border p-10 text-center">
@@ -249,18 +260,16 @@ function EmptyState({
         <PackageSearch size={28} className="text-muted-foreground" />
       </div>
       <div>
-        <p className="font-semibold">Nenhum mercado encontrado</p>
+        <p className="font-semibold">{t("emptyTitle")}</p>
         <p className="text-muted-foreground mt-1 text-sm">
-          {search
-            ? `Nenhum mercado vende "${search}" por aqui`
-            : "Tente ajustar sua busca ou categoria"}
+          {search ? t("emptySearch", { search }) : t("emptyDefault")}
         </p>
       </div>
       <button
         onClick={onClear}
         className="text-primary mt-1 text-sm font-medium hover:underline"
       >
-        Limpar filtros
+        {t("clearFilters")}
       </button>
     </div>
   )
