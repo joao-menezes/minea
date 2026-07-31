@@ -2,7 +2,13 @@
 
 import { useState } from "react"
 import { useTranslations } from "next-intl"
-import { MapPin, Search, PackageSearch, ShoppingCart } from "lucide-react"
+import {
+  MapPin,
+  Search,
+  PackageSearch,
+  ShoppingCart,
+  LoaderCircle,
+} from "lucide-react"
 
 import MarketCard from "@/components/MarketCard"
 import BottomNav from "@/components/BottomNav"
@@ -74,9 +80,9 @@ export default function Home() {
         />
 
         {loading ? (
-          <MarketListSkeleton />
+          <MarketListLoading />
         ) : filteredMarkets.length > 0 ? (
-          filteredMarkets.map((market: MarketWithDistance, index: number) => (
+          filteredMarkets.map((market, index) => (
             <MarketCard
               key={market.id}
               market={market}
@@ -238,9 +244,17 @@ function MarketListSkeleton() {
       {[0, 1, 2].map((i) => (
         <div
           key={i}
-          className="bg-card h-[88px] animate-pulse rounded-3xl border"
+          className="h-[88px] animate-pulse rounded-3xl border bg-cyan-200"
         />
       ))}
+    </div>
+  )
+}
+
+function MarketListLoading() {
+  return (
+    <div className="flex justify-center py-16">
+      <LoaderCircle className="text-primary h-16 w-16 animate-spin" />
     </div>
   )
 }
