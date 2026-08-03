@@ -1,5 +1,4 @@
 import { DollarSign, Star, MapPin, Package } from "lucide-react"
-import { Chip } from "@/components/ui/chip"
 
 type Scores = {
   price: number
@@ -61,7 +60,7 @@ export default function ScoreBar({ scores }: Props) {
 
                 <span className="text-sm font-medium">{label}</span>
               </div>{" "}
-              <Chip
+              <div
                 className="bg-primary/10 text-primary rounded-full px-2.5 py-1 text-xs font-bold"
                 children={value + " %"}
               />

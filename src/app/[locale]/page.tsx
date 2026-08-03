@@ -7,18 +7,16 @@ import {
   Search,
   PackageSearch,
   ShoppingCart,
-  LoaderCircle,
+  List,
+  LayoutGrid,
 } from "lucide-react"
 
 import MarketCard from "@/components/MarketCard"
 import BottomNav from "@/components/BottomNav"
 import { useMarketData } from "@/hooks/useMarketData"
 import { useMarketFilter } from "@/hooks/useMarketFilter"
-import {
-  MarketWithDistance,
-  PRODUCT_CATEGORIES,
-  ProductCategory,
-} from "@/types"
+import { PRODUCT_CATEGORIES, ProductCategory } from "@/lib/types"
+import { LoadSpinner } from "@/components/LoadSpinner"
 
 const CATEGORY_KEYS = ["all", ...PRODUCT_CATEGORIES] as const
 
@@ -30,6 +28,8 @@ export default function Home() {
 
   const [search, setSearch] = useState("")
   const [category, setCategory] = useState<CategoryKey>("all")
+
+  const [viewMode, setViewMode] = useState<"row" | "grid">("row")
 
   const { markets, prices, products, loading, locationError } = useMarketData()
 
@@ -77,20 +77,31 @@ export default function Home() {
           count={filteredMarkets.length}
           t={t}
           tCategories={tCategories}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
         />
 
         {loading ? (
-          <MarketListLoading />
+          <LoadSpinner />
         ) : filteredMarkets.length > 0 ? (
-          filteredMarkets.map((market, index) => (
-            <MarketCard
-              key={market.id}
-              market={market}
-              best={index === 0}
-              rank={index + 1}
-              price={getPriceForMarket(market.id)}
-            />
-          ))
+          <div
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-2 gap-2 md:gap-3 lg:grid-cols-3"
+                : "flex flex-col gap-3"
+            }
+          >
+            {filteredMarkets.map((market, index) => (
+              <MarketCard
+                key={market.id}
+                market={market}
+                best={index === 0}
+                rank={index + 1}
+                price={getPriceForMarket(market.id)}
+                variant={viewMode}
+              />
+            ))}
+          </div>
         ) : (
           <EmptyState search={search} onClear={clearFilters} t={t} />
         )}
@@ -213,12 +224,16 @@ function ResultsHeader({
   count,
   t,
   tCategories,
+  viewMode,
+  setViewMode,
 }: {
   search: string
   category: CategoryKey
   count: number
   t: ReturnType<typeof useTranslations>
   tCategories: ReturnType<typeof useTranslations>
+  viewMode: "row" | "grid"
+  setViewMode: (mode: "row" | "grid") => void
 }) {
   const label = search
     ? t("resultsFor", { search })
@@ -230,10 +245,31 @@ function ResultsHeader({
     <div className="mb-3 flex items-center justify-between">
       <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
         {label}
+
+        {count > 0 && <span className="ml-2">({count})</span>}
       </p>
-      {count > 0 && (
-        <span className="text-muted-foreground text-xs">{count}</span>
-      )}
+
+      <div className="flex items-center gap-2">
+        <div className="bg-card flex gap-1 rounded-2xl border p-1">
+          <button
+            onClick={() => setViewMode("row")}
+            className={`rounded-xl p-2 ${
+              viewMode === "row" ? "bg-primary text-primary-foreground" : ""
+            }`}
+          >
+            <List className="h-4 w-4" />
+          </button>
+
+          <button
+            onClick={() => setViewMode("grid")}
+            className={`rounded-xl p-2 ${
+              viewMode === "grid" ? "bg-primary text-primary-foreground" : ""
+            }`}
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -247,14 +283,6 @@ function MarketListSkeleton() {
           className="h-[88px] animate-pulse rounded-3xl border bg-cyan-200"
         />
       ))}
-    </div>
-  )
-}
-
-function MarketListLoading() {
-  return (
-    <div className="flex justify-center py-16">
-      <LoaderCircle className="text-primary h-16 w-16 animate-spin" />
     </div>
   )
 }

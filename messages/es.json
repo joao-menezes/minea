@@ -30,5 +30,8 @@
     "items": "{count} artículos",
     "lowestPriceReported": "Precio más bajo informado",
     "noPricesFound": "No se encontraron precios"
+  },
+  "Header": {
+    "back": "Volver"
   }
 }

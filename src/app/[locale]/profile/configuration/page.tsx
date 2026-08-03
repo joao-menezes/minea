@@ -15,15 +15,29 @@ import type { ReactNode } from "react"
 
 import BottomNav from "@/components/BottomNav"
 import { useRouter } from "next/navigation"
+import { getRequestConfig } from "next-intl/server"
+import { useLocale } from "next-intl"
 
 export default function Config() {
   const router = useRouter()
 
   const year = new Date().getFullYear()
 
+  const LOCALE_LABELS: Record<string, string> = {
+    pt: "Português (Brasil)",
+    en: "English",
+    es: "Español",
+    it: "Italiano",
+    ja: "日本語",
+    zh: "中文",
+    fr: "France",
+    de: "Deutsch",
+  }
+
+  const locale = useLocale()
+
   return (
     <main className="bg-background min-h-screen pb-24">
-      {/* Header */}
       <header className="border-border bg-card border-b px-4 pt-6 pb-4">
         <h1 className="text-2xl font-bold tracking-tight">Configurações</h1>
         <p className="text-muted-foreground mt-1 text-sm">
@@ -32,7 +46,6 @@ export default function Config() {
       </header>
 
       <section className="space-y-6 px-4 pt-6">
-        {/* Perfil */}
         <div>
           <h2 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
             Conta
@@ -55,7 +68,6 @@ export default function Config() {
           </div>
         </div>
 
-        {/* Preferências */}
         <div>
           <h2 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
             Preferências
@@ -89,13 +101,12 @@ export default function Config() {
             <ConfigItem
               icon={<Globe size={20} />}
               title="Idioma"
-              subtitle="Português (Brasil)"
+              subtitle={LOCALE_LABELS[locale] ?? locale}
               onClick={() => router.push("/profile/language")}
             />
           </div>
         </div>
 
-        {/* Sobre */}
         <div>
           <h2 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
             Sobre

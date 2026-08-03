@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 
 type ChipProps = React.HTMLAttributes<HTMLDivElement>
 
-export function Chip({ className, ...props }: ChipProps) {
+export function c({ className, ...props }: ChipProps) {
   return (
     <div
       className={cn(

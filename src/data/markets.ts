@@ -1,4 +1,4 @@
-﻿import type { Coordinate } from "@/types"
+﻿import type { Coordinate } from "@/lib/types"
 
 export const USER_LOCATION: Coordinate = {
   lat: 53.3498,

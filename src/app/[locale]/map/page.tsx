@@ -5,7 +5,7 @@ import "mapbox-gl/dist/mapbox-gl.css"
 import { useEffect, useRef, useState } from "react"
 
 import Map, { Marker, MapRef, Source, Layer } from "react-map-gl/mapbox"
-import { ChevronUp, LocateFixed } from "lucide-react"
+import { ChevronUp, LocateFixed, MapPin } from "lucide-react"
 import BackButton from "@/components/BackButton"
 
 import MapMarker from "@/components/MapMarker"
@@ -203,7 +203,19 @@ export default function MapPage() {
         })}
       </Map>
 
-      {error && <LocationMessage>📍 Usando localização padrão</LocationMessage>}
+      {error && (
+        <LocationMessage>
+          <div className="flex items-center gap-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100">
+              <MapPin size={12} className="text-blue-600" />
+            </span>
+
+            <span className="font-medium text-gray-700">
+              Localização padrão
+            </span>
+          </div>
+        </LocationMessage>
+      )}
       {loading && (
         <LocationMessage>Buscando sua localização...</LocationMessage>
       )}
@@ -249,7 +261,7 @@ export default function MapPage() {
 
 function LocationMessage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 rounded-full border bg-white px-4 py-2 text-xs text-gray-600 shadow-lg">
+    <div className="absolute top-4 left-1/2 flex -translate-x-1/2 items-center rounded-full border border-gray-200 bg-white/95 px-4 py-2 text-xs text-gray-600 shadow-md backdrop-blur-sm">
       {children}
     </div>
   )

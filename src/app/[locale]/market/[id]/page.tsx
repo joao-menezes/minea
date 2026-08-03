@@ -3,16 +3,16 @@
 import { use, useEffect, useState } from "react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { MapPinned, ShoppingCart } from "lucide-react"
+import { LayoutGrid, List, MapPin, MapPinned, ShoppingCart } from "lucide-react"
 
 import ScoreBar from "@/components/ScoreBar"
 import BottomNav from "@/components/BottomNav"
 import BackButton from "@/components/BackButton"
+import PriceCard from "@/components/PriceCard"
 
 import { getMarkets, getPrices } from "@/lib/api"
-import { formatPrice } from "@/lib/utils"
 import { useTranslations } from "next-intl"
-import { Chip } from "@/components/ui/chip"
+import { LoadSpinner } from "@/components/LoadSpinner"
 
 type Score = {
   price: number
@@ -45,6 +45,8 @@ type Props = {
   }>
 }
 
+type ViewMode = "row" | "grid"
+
 export default function MarketDetailsPage({ params }: Props) {
   const t = useTranslations("Details")
 
@@ -53,6 +55,8 @@ export default function MarketDetailsPage({ params }: Props) {
   const [market, setMarket] = useState<Market | null>(null)
   const [prices, setPrices] = useState<Price[]>([])
   const [loading, setLoading] = useState(true)
+
+  const [viewMode, setViewMode] = useState<ViewMode>("row")
 
   useEffect(() => {
     async function load() {
@@ -91,11 +95,7 @@ export default function MarketDetailsPage({ params }: Props) {
   }, [id])
 
   if (loading) {
-    return (
-      <main className="bg-background flex min-h-screen items-center justify-center">
-        <div className="bg-card h-20 w-80 animate-pulse rounded-3xl border" />
-      </main>
-    )
+    return <LoadSpinner />
   }
 
   if (!market) {
@@ -104,30 +104,39 @@ export default function MarketDetailsPage({ params }: Props) {
 
   return (
     <main className="bg-background min-h-screen pb-24">
-      <BackButton variant="header" label={t("back")} />
+      <BackButton variant="header" />
 
-      <section className="px-4 pt-5">
-        <div className="flex items-center gap-4">
-          <div className="bg-secondary flex h-16 w-16 items-center justify-center rounded-2xl">
-            <ShoppingCart size={30} />
+      <section className="px-4 pt-4">
+        <div className="bg-card rounded-3xl border p-5 shadow-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex gap-4">
+              <div className="bg-primary/10 text-primary flex h-16 w-16 items-center justify-center rounded-2xl">
+                <ShoppingCart className="h-8 w-8" />
+              </div>
+
+              <div>
+                <h1 className="text-xl font-bold">{market.name}</h1>
+
+                <p className="text-muted-foreground mt-1 flex items-center gap-1 text-sm">
+                  <MapPin className="h-4 w-4" />
+                  {market.street}
+                </p>
+              </div>
+            </div>
+
+            <button className="bg-primary text-primary-foreground rounded-xl px-3 py-2 text-sm font-medium">
+              Reportar Preço
+            </button>
           </div>
 
-          <div>
-            <h1 className="text-2xl font-bold">{market.name}</h1>
-
-            <p className="text-muted-foreground mt-1 text-sm">
-              📍 {market.street}
-            </p>
-          </div>
+          <Link
+            href={`/map?focus=${market.id}`}
+            className="bg-secondary mt-5 flex items-center justify-center gap-2 rounded-2xl py-3 font-medium transition hover:opacity-90"
+          >
+            <MapPinned className="h-5 w-5" />
+            {t("viewOnMap")}
+          </Link>
         </div>
-
-        <Link
-          href={`/map?focus=${market.id}`}
-          className="border-border bg-card mt-4 flex items-center justify-center gap-2 rounded-2xl border py-3 text-sm font-medium shadow-sm transition hover:shadow-md"
-        >
-          <MapPinned size={17} className="text-primary" />
-          {t("viewOnMap")}
-        </Link>
       </section>
 
       <section className="mt-6 px-4">
@@ -151,34 +160,56 @@ export default function MarketDetailsPage({ params }: Props) {
 
       <section className="mt-6 px-4">
         <div className="mb-3 flex items-center justify-between">
-          <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
-            {t("pricesFound")}
-          </p>
+          <div>
+            <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+              {t("pricesFound")}
+            </p>
 
-          <span className="text-muted-foreground text-xs">
-            {t("items", { count: prices.length })}
-          </span>
+            <span className="text-muted-foreground text-xs">
+              {t("items", {
+                count: prices.length,
+              })}
+            </span>
+          </div>
+
+          <div className="bg-card flex gap-1 rounded-2xl border p-1">
+            <button
+              onClick={() => setViewMode("row")}
+              className={`rounded-xl p-2 transition ${
+                viewMode === "row" ? "bg-primary text-primary-foreground" : ""
+              }`}
+            >
+              <List className="h-4 w-4" />
+            </button>
+
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`rounded-xl p-2 transition ${
+                viewMode === "grid" ? "bg-primary text-primary-foreground" : ""
+              }`}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div
+          className={
+            viewMode === "grid"
+              ? "grid grid-cols-2 gap-3 md:grid-cols-3"
+              : "flex flex-col gap-3"
+          }
+        >
           {prices.length > 0 ? (
             prices.map((price) => (
-              <div
+              <PriceCard
                 key={price.id}
-                className="bg-card flex items-center justify-between rounded-3xl border p-4 shadow-sm"
-              >
-                <div>
-                  <p className="font-medium">{price.product}</p>
-
-                  <p className="text-muted-foreground text-xs">
-                    {t("lowestPriceReported")}
-                  </p>
-                </div>
-                <Chip
-                  className="bg-primary/10 text-primary rounded-xl px-3 py-2 font-bold"
-                  children={formatPrice(price.price)}
-                ></Chip>
-              </div>
+                product={price.product}
+                price={price.price}
+                marketId={market.id}
+                variant={viewMode}
+                lowestPriceText={t("lowestPriceReported")}
+              />
             ))
           ) : (
             <div className="bg-card text-muted-foreground rounded-3xl border p-5 text-center text-sm">

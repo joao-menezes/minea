@@ -30,5 +30,8 @@
     "items": "{count} items",
     "lowestPriceReported": "Lowest reported price",
     "noPricesFound": "No prices found"
+  },
+  "Header": {
+    "back": "Back"
   }
 }

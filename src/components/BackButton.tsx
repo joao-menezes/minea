@@ -3,6 +3,7 @@
 import { ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 
 type BackButtonProps = {
   variant?: "button" | "header"
@@ -21,6 +22,8 @@ export default function BackButton({
 
   const isHeader = variant === "header"
 
+  const t = useTranslations("Header")
+
   function handleBack() {
     if (window.history.length > 1) {
       router.back()
@@ -33,7 +36,7 @@ export default function BackButton({
     <button
       type="button"
       onClick={handleBack}
-      aria-label={label ?? "Voltar"}
+      aria-label={label ?? t("back")}
       className={cn(
         "transition-all duration-200",
         isHeader
@@ -45,7 +48,7 @@ export default function BackButton({
       <ArrowLeft size={20} />
 
       {(label || isHeader) && (
-        <span className="text-sm font-medium">{label ?? "Voltar"}</span>
+        <span className="text-sm font-medium">{label ?? t("back")}</span>
       )}
     </button>
   )

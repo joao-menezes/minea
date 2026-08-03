@@ -50,3 +50,11 @@ export type Price = {
   unit?: string
   currency?: string
 }
+
+export type ProfileMenuItem = {
+  icon: React.ReactNode
+  title: string
+  description: string
+  href?: string
+  onClick?: () => void
+}

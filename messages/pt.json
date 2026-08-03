@@ -23,12 +23,14 @@
     "beverages": "Bebidas"
   },
   "Details": {
-    "back": "Voltar",
     "viewOnMap": "Ver no mapa",
     "rating": "Avaliação",
     "pricesFound": "Preços encontrados",
     "items": "{count} itens",
     "lowestPriceReported": "Menor preço informado",
     "noPricesFound": "Nenhum preço encontrado"
+  },
+  "Header": {
+    "back": "Voltar"
   }
 }

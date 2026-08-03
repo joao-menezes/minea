@@ -96,7 +96,12 @@ export default function MapMarker({
               </button>
             </div>
 
-            <p className="mt-1 text-xs text-gray-500">📍 {market.street}</p>
+            <div
+              className={`mt-2 inline-flex items-center gap-1.5 rounded-full font-mono text-xs text-gray-500`}
+            >
+              <MapPin size={12} />
+              <span className="truncate">{market.street}</span>
+            </div>
 
             {product.product && (
               <p className="mt-2 text-sm">{product.product}</p>
