@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react"
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { notFound, useRouter } from "next/navigation"
 import { LayoutGrid, List, MapPin, MapPinned, ShoppingCart } from "lucide-react"
 
 import ScoreBar from "@/components/ScoreBar"
@@ -49,6 +49,8 @@ type ViewMode = "row" | "grid"
 
 export default function MarketDetailsPage({ params }: Props) {
   const t = useTranslations("Details")
+
+  const router = useRouter()
 
   const { id } = use(params)
 
@@ -124,7 +126,10 @@ export default function MarketDetailsPage({ params }: Props) {
               </div>
             </div>
 
-            <button className="bg-primary text-primary-foreground rounded-xl px-3 py-2 text-sm font-medium">
+            <button
+              className="bg-primary text-primary-foreground rounded-xl px-3 py-2 text-sm font-medium"
+              onClick={() => router.push(`/report?marketId=${market.id}`)}
+            >
               Reportar Preço
             </button>
           </div>
