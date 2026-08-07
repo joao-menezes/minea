@@ -14,12 +14,14 @@ import {
 import type { ReactNode } from "react"
 
 import BottomNav from "@/components/BottomNav"
+import BackButton from "@/components/BackButton"
+
 import { useRouter } from "next/navigation"
-import { getRequestConfig } from "next-intl/server"
 import { useLocale } from "next-intl"
 
 export default function Config() {
   const router = useRouter()
+  const locale = useLocale()
 
   const year = new Date().getFullYear()
 
@@ -30,104 +32,115 @@ export default function Config() {
     it: "Italiano",
     ja: "日本語",
     zh: "中文",
-    fr: "France",
+    fr: "Français",
     de: "Deutsch",
   }
 
-  const locale = useLocale()
-
   return (
-    <main className="bg-background min-h-screen pb-24">
-      <header className="border-border bg-card border-b px-4 pt-6 pb-4">
-        <h1 className="text-2xl font-bold tracking-tight">Configurações</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Personalize sua experiência no PricePal
+    <main className="min-h-screen bg-[#F7F3E8] pb-24">
+      <header className="border-b border-[#D8D1C1] bg-[#F7F3E8] px-4 py-4">
+        <div className="flex items-center gap-3">
+          <BackButton />
+
+          <div>
+            <span className="block text-[8px] font-black tracking-[0.25em] text-[#8291A1] uppercase">
+              LocalV1
+            </span>
+
+            <h1 className="mt-0.5 text-lg font-black tracking-tight text-[#102A43]">
+              Configurações
+            </h1>
+          </div>
+        </div>
+
+        <p className="mt-4 pl-13 text-[10px] leading-4 text-[#8291A1]">
+          Personalize sua experiência de viagem.
         </p>
       </header>
-
       <section className="space-y-6 px-4 pt-6">
-        <div>
-          <h2 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
-            Conta
-          </h2>
+        <ConfigSection title="Conta">
+          <ConfigItem
+            icon={<User size={18} />}
+            title="Perfil"
+            subtitle="Nome, foto e informações"
+          />
 
-          <div className="border-border bg-card overflow-hidden rounded-3xl border shadow-sm">
-            <ConfigItem
-              icon={<User size={20} />}
-              title="Perfil"
-              subtitle="Nome, foto e informações"
-            />
+          <Divider />
 
-            <Divider />
+          <ConfigItem
+            icon={<Shield size={18} />}
+            title="Privacidade"
+            subtitle="Permissões e segurança"
+          />
+        </ConfigSection>
 
-            <ConfigItem
-              icon={<Shield size={20} />}
-              title="Privacidade"
-              subtitle="Permissões e segurança"
-            />
-          </div>
-        </div>
+        <ConfigSection title="Experiência">
+          <ConfigItem
+            icon={<MapPin size={18} />}
+            title="Localização"
+            subtitle="Usar localização atual"
+          />
 
-        <div>
-          <h2 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
-            Preferências
-          </h2>
+          <Divider />
 
-          <div className="border-border bg-card overflow-hidden rounded-3xl border shadow-sm">
-            <ConfigItem
-              icon={<MapPin size={20} />}
-              title="Localização"
-              subtitle="Usar localização atual"
-            />
+          <ConfigItem
+            icon={<Bell size={18} />}
+            title="Notificações"
+            subtitle="Alertas de preços e economia"
+          />
 
-            <Divider />
+          <Divider />
 
-            <ConfigItem
-              icon={<Bell size={20} />}
-              title="Notificações"
-              subtitle="Alertas de promoções"
-            />
+          <ConfigItem
+            icon={<Moon size={18} />}
+            title="Tema"
+            subtitle="Claro, escuro ou automático"
+          />
 
-            <Divider />
+          <Divider />
 
-            <ConfigItem
-              icon={<Moon size={20} />}
-              title="Tema"
-              subtitle="Claro, escuro ou automático"
-            />
+          <ConfigItem
+            icon={<Globe size={18} />}
+            title="Idioma"
+            subtitle={LOCALE_LABELS[locale] ?? locale}
+            onClick={() => router.push("/profile/language")}
+          />
+        </ConfigSection>
+        <ConfigSection title="Sobre">
+          <ConfigItem
+            icon={<Info size={18} />}
+            title="Versão"
+            subtitle="LocalV1 1.0.0"
+            hideArrow
+          />
 
-            <Divider />
+          <Divider />
 
-            <ConfigItem
-              icon={<Globe size={20} />}
-              title="Idioma"
-              subtitle={LOCALE_LABELS[locale] ?? locale}
-              onClick={() => router.push("/profile/language")}
-            />
-          </div>
-        </div>
+          <div className="px-5 py-5">
+            <div className="flex items-center justify-between">
+              <span className="text-[8px] font-black tracking-[0.18em] text-[#8291A1] uppercase">
+                LocalV1
+              </span>
 
-        <div>
-          <h2 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
-            Sobre
-          </h2>
-
-          <div className="border-border bg-card overflow-hidden rounded-3xl border shadow-sm">
-            <ConfigItem
-              icon={<Info size={20} />}
-              title="Versão"
-              subtitle="PricePal 1.0.0"
-              hideArrow
-            />
-
-            <Divider />
-
-            <div className="px-5 py-4 text-center">
-              <p className="text-muted-foreground text-xs">
-                © {year} PricePal. Todos os direitos reservados.
-              </p>
+              <span className="text-[8px] font-bold tracking-wider text-[#B1AFA8] uppercase">
+                v1.0.0
+              </span>
             </div>
+
+            <p className="mt-3 text-[9px] leading-4 text-[#9AA5AE]">
+              Uma ferramenta colaborativa para viajantes encontrarem produtos,
+              mercados e melhores preços.
+            </p>
+
+            <p className="mt-4 border-t border-[#E8E3D8] pt-3 text-[8px] font-medium text-[#A5A9AC]">
+              © {year} LocalV1
+            </p>
           </div>
+        </ConfigSection>
+        <div className="pt-1 pb-4 text-center">
+          <p className="text-[8px] font-black tracking-[0.2em] text-[#C0B9AB] uppercase">
+            Built for travelers
+          </p>
         </div>
       </section>
 
@@ -135,6 +148,38 @@ export default function Config() {
     </main>
   )
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ConfigSection({
+  title,
+  children,
+}: {
+  title: string
+  children: ReactNode
+}) {
+  return (
+    <section>
+      <div className="mb-2 flex items-center justify-between">
+        <h2 className="text-[9px] font-black tracking-[0.18em] text-[#8291A1] uppercase">
+          {title}
+        </h2>
+
+        <span className="h-px w-12 bg-[#D8D1C1]" />
+      </div>
+
+      <div className="overflow-hidden border border-[#D8D1C1] bg-white">
+        {children}
+      </div>
+    </section>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Config Item
+// ─────────────────────────────────────────────────────────────────────────────
 
 function ConfigItem({
   icon,
@@ -149,29 +194,44 @@ function ConfigItem({
   hideArrow?: boolean
   onClick?: () => void
 }) {
+  const Component = onClick ? "button" : "div"
+
   return (
-    <button
+    <Component
+      type={onClick ? "button" : undefined}
       onClick={onClick}
-      className="hover:bg-secondary/50 flex w-full items-center gap-4 px-5 py-4 text-left transition-colors"
+      className={`group flex w-full items-center gap-4 px-4 py-4 text-left transition-colors duration-200 ${
+        onClick ? "hover:bg-[#F7F3E8] active:bg-[#EEE9DE]" : ""
+      } `}
     >
-      <div className="bg-primary/10 text-primary flex h-11 w-11 items-center justify-center rounded-2xl">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#F7F3E8] text-[#102A43] transition-colors duration-200 group-hover:bg-[#DDECE5] group-hover:text-[#467566]">
         {icon}
       </div>
 
-      <div className="flex-1">
-        <p className="font-medium">{title}</p>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-black text-[#102A43]">{title}</p>
+
         {subtitle && (
-          <p className="text-muted-foreground text-sm">{subtitle}</p>
+          <p className="mt-1 truncate text-[10px] leading-4 text-[#8291A1]">
+            {subtitle}
+          </p>
         )}
       </div>
 
       {!hideArrow && (
-        <ChevronRight size={18} className="text-muted-foreground" />
+        <ChevronRight
+          size={16}
+          className="shrink-0 text-[#A5AFB7] transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#102A43]"
+        />
       )}
-    </button>
+    </Component>
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Divider
+// ─────────────────────────────────────────────────────────────────────────────
+
 function Divider() {
-  return <div className="border-border mx-5 border-t" />
+  return <div className="ml-[72px] h-px bg-[#E8E3D8]" />
 }

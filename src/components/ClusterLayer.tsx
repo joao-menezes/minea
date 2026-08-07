@@ -52,6 +52,7 @@ export default function ClusterLayer({
 
     return {
       type: "FeatureCollection" as const,
+
       features: markets.map((market) => {
         const price = priceMap.get(String(market.id))
 
@@ -59,7 +60,7 @@ export default function ClusterLayer({
           type: "Feature" as const,
 
           properties: {
-            id: market.id,
+            id: String(market.id),
             name: market.name,
             price: price?.price ?? 0,
             product: price?.products?.[0]?.name ?? "",
@@ -87,7 +88,7 @@ export default function ClusterLayer({
       features.forEach((feature: any) => {
         const id = feature.properties?.id
 
-        if (typeof id === "string") {
+        if (id !== undefined && id !== null) {
           ids.add(String(id))
         }
       })
@@ -101,7 +102,7 @@ export default function ClusterLayer({
       const id = feature?.properties?.id
 
       if (id) {
-        onSelectMarket(id)
+        onSelectMarket(String(id))
       }
     }
 
@@ -114,7 +115,7 @@ export default function ClusterLayer({
 
       map.off("click", "market-points", handleMarketClick)
     }
-  }, [map, geojson, onVisibleMarketsChange, onSelectMarket])
+  }, [map, onVisibleMarketsChange, onSelectMarket])
 
   return (
     <Source
@@ -122,18 +123,31 @@ export default function ClusterLayer({
       type="geojson"
       data={geojson}
       cluster
-      clusterRadius={30}
-      clusterMaxZoom={13}
+      clusterMaxZoom={14}
+      clusterRadius={50}
     >
       <Layer
         id="clusters"
         type="circle"
         filter={["has", "point_count"]}
         paint={{
-          "circle-color": "#2563eb",
-          "circle-radius": ["step", ["get", "point_count"], 22, 10, 28, 50, 38],
+          "circle-color": [
+            "step",
+            ["get", "point_count"],
+            "#E8C766",
+            10,
+            "#D9A441",
+            50,
+            "#C87B32",
+          ],
+
+          "circle-radius": ["step", ["get", "point_count"], 22, 10, 28, 50, 36],
+
           "circle-stroke-width": 3,
-          "circle-stroke-color": "#fff",
+
+          "circle-stroke-color": "#FFF9EC",
+
+          "circle-opacity": 0.95,
         }}
       />
 
@@ -144,28 +158,82 @@ export default function ClusterLayer({
         layout={{
           "text-field": "{point_count_abbreviated}",
           "text-size": 14,
+          "text-font": ["DIN Pro Bold", "Arial Unicode MS Bold"],
         }}
         paint={{
-          "text-color": "#fff",
+          "text-color": "#102A43",
         }}
       />
+
+      <Layer
+        id="market-point-outline"
+        type="circle"
+        filter={["!", ["has", "point_count"]]}
+        paint={{
+          "circle-radius": ["case", ["==", ["get", "best"], true], 14, 11],
+
+          "circle-color": "#FFF9EC",
+
+          "circle-stroke-width": 0,
+        }}
+      />
+
+      {/* ─────────────────────────────
+          MARKET
+      ───────────────────────────── */}
 
       <Layer
         id="market-points"
         type="circle"
         filter={["!", ["has", "point_count"]]}
         paint={{
-          "circle-radius": 9,
+          "circle-radius": ["case", ["==", ["get", "best"], true], 9, 7],
 
           "circle-color": [
             "case",
             ["==", ["get", "best"], true],
-            "#16a34a",
-            "#2563eb",
+            "#467566",
+            "#102A43",
           ],
 
-          "circle-stroke-color": "#fff",
+          "circle-stroke-color": "#FFF9EC",
+
           "circle-stroke-width": 2,
+        }}
+      />
+
+      <Layer
+        id="market-price"
+        type="symbol"
+        filter={["!", ["has", "point_count"]]}
+        layout={{
+          "text-field": [
+            "concat",
+            "R$ ",
+            ["to-string", ["/", ["get", "price"], 100]],
+          ],
+
+          "text-size": 11,
+
+          "text-font": ["DIN Pro Bold", "Arial Unicode MS Bold"],
+
+          "text-offset": [0, 2.1],
+
+          "text-anchor": "top",
+
+          "text-allow-overlap": true,
+        }}
+        paint={{
+          "text-color": [
+            "case",
+            ["==", ["get", "best"], true],
+            "#467566",
+            "#102A43",
+          ],
+
+          "text-halo-color": "#FFF9EC",
+
+          "text-halo-width": 3,
         }}
       />
     </Source>

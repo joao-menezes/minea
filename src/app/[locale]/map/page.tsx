@@ -5,9 +5,16 @@ import "mapbox-gl/dist/mapbox-gl.css"
 import { useEffect, useRef, useState } from "react"
 
 import Map, { Marker, MapRef, Source, Layer } from "react-map-gl/mapbox"
-import { ChevronUp, LocateFixed, MapPin } from "lucide-react"
-import BackButton from "@/components/BackButton"
 
+import {
+  ChevronUp,
+  LocateFixed,
+  MapPin,
+  Navigation,
+  Compass,
+} from "lucide-react"
+
+import BackButton from "@/components/BackButton"
 import MapMarker from "@/components/MapMarker"
 import BottomNav from "@/components/BottomNav"
 
@@ -29,12 +36,17 @@ const MAP_CONFIG = {
 
 export default function MapPage() {
   const mapRef = useRef<MapRef | null>(null)
+
   const interactionTimer = useRef<NodeJS.Timeout | null>(null)
 
   const { location, loading, error } = useUserLocation()
+
   const [navVisible, setNavVisible] = useState(true)
+
   const [selectedId, setSelectedId] = useState<string | null>(null)
+
   const [markets, setMarkets] = useState<any[]>([])
+
   const [prices, setPrices] = useState<any[]>([])
 
   const [visibleMarketIds, setVisibleMarketIds] = useState(new Set<string>())
@@ -45,11 +57,13 @@ export default function MapPage() {
 
   useEffect(() => {
     getMarkets().then((data) => setMarkets(data))
+
     getPrices().then((data) => setPrices(data))
   }, [])
 
   useEffect(() => {
     if (!location) return
+
     mapRef.current?.flyTo({
       center: [location.longitude, location.latitude],
       zoom: MAP_CONFIG.zoom,
@@ -59,7 +73,9 @@ export default function MapPage() {
 
   useEffect(() => {
     return () => {
-      if (interactionTimer.current) clearTimeout(interactionTimer.current)
+      if (interactionTimer.current) {
+        clearTimeout(interactionTimer.current)
+      }
     }
   }, [])
 
@@ -68,16 +84,18 @@ export default function MapPage() {
       ? String(
           prices.reduce((best: any, curr: any) =>
             curr.price < best.price ? curr : best,
-          ).marketid,
+          ).marketId,
         )
       : null
 
   function getPriceForMarket(marketId: string) {
     const marketPrices = prices.filter(
-      (p) => String(p.marketId) === String(marketId),
+      (price) => String(price.marketId) === String(marketId),
     )
 
-    if (!marketPrices.length) return undefined
+    if (!marketPrices.length) {
+      return undefined
+    }
 
     const price = marketPrices.reduce((a, b) => (a.price < b.price ? a : b))
 
@@ -88,7 +106,10 @@ export default function MapPage() {
   }
 
   function scheduleAutoShow() {
-    if (interactionTimer.current) clearTimeout(interactionTimer.current)
+    if (interactionTimer.current) {
+      clearTimeout(interactionTimer.current)
+    }
+
     interactionTimer.current = setTimeout(() => {
       setNavVisible(true)
     }, MAP_CONFIG.navigationDelay)
@@ -96,16 +117,19 @@ export default function MapPage() {
 
   function handleMapInteraction() {
     setNavVisible(false)
+
     scheduleAutoShow()
   }
 
   function handleExpandNav() {
     setNavVisible(true)
+
     scheduleAutoShow()
   }
 
   function focusUserLocation() {
     if (!mapRef.current) return
+
     mapRef.current.flyTo({
       center: [userLocation.longitude, userLocation.latitude],
       zoom: MAP_CONFIG.zoom,
@@ -115,6 +139,7 @@ export default function MapPage() {
 
   async function getRoute(market: any) {
     const start = `${userLocation.longitude},${userLocation.latitude}`
+
     const end = `${market.coordinate.lng},${market.coordinate.lat}`
 
     const response = await fetch(
@@ -134,24 +159,36 @@ export default function MapPage() {
       : markets
 
   return (
-    <main className="relative h-screen w-full overflow-hidden">
+    <main className="fixed inset-0 overflow-hidden bg-[#E8E3D8]">
       <Map
         ref={mapRef}
+
         initialViewState={{
           latitude: userLocation.latitude,
+
           longitude: userLocation.longitude,
+
           zoom: MAP_CONFIG.zoom,
         }}
+
         mapboxAccessToken={Constants.MAPBOX_TOKEN}
+
         mapStyle="mapbox://styles/mapbox/streets-v12"
+
         onMoveStart={handleMapInteraction}
-        style={{ position: "absolute", inset: 0 }}
+
+        style={{
+          position: "absolute",
+          inset: 0,
+        }}
       >
         <ClusterLayer
           markets={markets}
           prices={prices}
           bestMarketId={bestMarketId}
+
           onVisibleMarketsChange={setVisibleMarketIds}
+
           onSelectMarket={(id) => setSelectedId(id)}
         />
 
@@ -168,9 +205,13 @@ export default function MapPage() {
               id="route-line"
               type="line"
               paint={{
-                "line-color": "#2563eb",
+                "line-color": "#467566",
+
                 "line-width": 5,
-                "line-opacity": 0.8,
+
+                "line-opacity": 0.85,
+
+                "line-dasharray": [1, 1.5],
               }}
             />
           </Source>
@@ -180,80 +221,145 @@ export default function MapPage() {
           latitude={userLocation.latitude}
           longitude={userLocation.longitude}
         >
-          <div className="h-5 w-5 rounded-full border-2 border-white bg-blue-500 shadow-lg ring-4 ring-blue-200" />
+          <div className="relative">
+            <div className="absolute -inset-3 rounded-full border border-[#467566]/30 bg-[#467566]/10" />
+
+            <div className="relative flex h-6 w-6 items-center justify-center rounded-full border-[3px] border-white bg-[#467566] shadow-lg">
+              <div className="h-1.5 w-1.5 rounded-full bg-white" />
+            </div>
+          </div>
         </Marker>
 
         {visibleMarkets.map((market) => {
           const product = getPriceForMarket(market.id)
 
-          if (!product) return null
+          if (!product) {
+            return null
+          }
 
           return (
             <MapMarker
               key={market.id}
+
               market={market}
+
               product={product}
+
               selected={selectedId === String(market.id)}
+
               best={String(market.id) === String(bestMarketId)}
+
               onSelect={() => setSelectedId(String(market.id))}
+
               onClose={() => setSelectedId(null)}
+
               onRoute={() => getRoute(market)}
             />
           )
         })}
       </Map>
 
-      {error && (
-        <LocationMessage>
-          <div className="flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100">
-              <MapPin size={12} className="text-blue-600" />
+      <div className="pointer-events-none fixed top-0 right-0 left-0 z-40 px-4 pt-5">
+        <div className="flex items-start justify-between">
+          <div className="pointer-events-auto">
+            <BackButton />
+          </div>
+          <div className="border border-[#D8D1C1] bg-[#F7F3E8]/95 px-4 py-2.5 shadow-lg backdrop-blur-md">
+            <div className="flex items-center gap-2">
+              <Compass size={15} className="text-[#467566]" />
+
+              <div>
+                <p className="text-[8px] font-black tracking-[0.2em] text-[#8291A1] uppercase">
+                  Explorando
+                </p>
+
+                <p className="text-[11px] font-black text-[#102A43]">
+                  Mercados próximos
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {(error || loading) && (
+        <div className="fixed top-4 left-1/2 z-40 -translate-x-1/2">
+          <div className="flex items-center gap-2 border border-[#D8D1C1] bg-[#F7F3E8]/95 px-3 py-2 shadow-lg backdrop-blur-md">
+            <span
+              className={`flex h-6 w-6 items-center justify-center ${
+                error
+                  ? "bg-[#F4E7C4] text-[#A47B20]"
+                  : "bg-[#DDECE5] text-[#467566]"
+              } `}
+            >
+              <MapPin size={13} />
             </span>
 
-            <span className="font-medium text-gray-700">
-              Localização padrão
+            <span className="text-[9px] font-bold text-[#102A43]">
+              {loading
+                ? "Localizando você..."
+                : "Usando localização aproximada"}
             </span>
           </div>
-        </LocationMessage>
-      )}
-      {loading && (
-        <LocationMessage>Buscando sua localização...</LocationMessage>
+        </div>
       )}
 
-      <div className="fixed top-5 left-4 z-50">
-        <BackButton />
+      <div className="fixed bottom-28 left-4 z-40">
+        <div className="border border-[#D8D1C1] bg-[#F7F3E8]/95 px-3 py-2.5 shadow-lg backdrop-blur-md">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#467566]" />
+
+              <span className="text-[8px] font-bold tracking-wider text-[#66737C] uppercase">
+                Você
+              </span>
+            </div>
+
+            <div className="h-3 w-px bg-[#D8D1C1]" />
+
+            <div className="flex items-center gap-1.5">
+              <span className="flex h-3 w-3 items-center justify-center rounded-full bg-[#102A43]">
+                <span className="h-1 w-1 rounded-full bg-white" />
+              </span>
+
+              <span className="text-[8px] font-bold tracking-wider text-[#66737C] uppercase">
+                Mercado
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
+      <div className="fixed right-4 bottom-28 z-50 flex flex-col gap-3">
+        <button
+          onClick={focusUserLocation}
+          aria-label="Minha localização"
 
+          className="flex h-12 w-12 items-center justify-center border border-[#D8D1C1] bg-[#F7F3E8] text-[#102A43] shadow-xl transition-all duration-200 hover:bg-white hover:text-[#467566] active:scale-95"
+        >
+          <LocateFixed size={20} strokeWidth={2.5} />
+        </button>
+
+        <button
+          onClick={handleExpandNav}
+
+          aria-label="Mostrar menu"
+
+          className={`flex h-12 w-12 items-center justify-center border border-[#D8D1C1] bg-[#102A43] text-white shadow-xl transition-all duration-300 active:scale-95 ${
+            navVisible
+              ? "pointer-events-none translate-y-3 scale-75 opacity-0"
+              : "translate-y-0 opacity-100"
+          } `}
+        >
+          <ChevronUp size={20} strokeWidth={2.5} />
+        </button>
+      </div>
       <div
         className={`fixed right-0 bottom-0 left-0 z-50 transition-all duration-300 ease-out ${
           navVisible
             ? "translate-y-0 opacity-100"
             : "pointer-events-none translate-y-24 opacity-0"
-        }`}
+        } `}
       >
         <BottomNav />
-      </div>
-
-      <div className="fixed right-4 bottom-6 z-50 flex flex-col items-center gap-3">
-        <button
-          onClick={focusUserLocation}
-          aria-label="Minha localização"
-          className="border-border bg-card/95 fixed right-4 bottom-25 z-50 flex h-12 w-12 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-105 active:scale-95"
-        >
-          <LocateFixed size={22} className="text-primary" strokeWidth={2.5} />
-        </button>
-
-        <button
-          onClick={handleExpandNav}
-          aria-label="Mostrar menu"
-          className={`border-border bg-card/95 fixed right-4 bottom-6 z-50 flex h-12 w-12 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-105 active:scale-95 ${
-            navVisible
-              ? "pointer-events-none translate-y-14 scale-75 opacity-0"
-              : "scale-100 opacity-100"
-          }`}
-        >
-          <ChevronUp size={20} className="text-primary" strokeWidth={2.5} />
-        </button>
       </div>
     </main>
   )
@@ -261,7 +367,7 @@ export default function MapPage() {
 
 function LocationMessage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="absolute top-4 left-1/2 flex -translate-x-1/2 items-center rounded-full border border-gray-200 bg-white/95 px-4 py-2 text-xs text-gray-600 shadow-md backdrop-blur-sm">
+    <div className="border border-[#D8D1C1] bg-[#F7F3E8] px-3 py-2 shadow-lg">
       {children}
     </div>
   )

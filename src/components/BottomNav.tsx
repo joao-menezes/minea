@@ -2,8 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-
-import { Search, Map, User, Heart } from "lucide-react"
+import { Search, Map, User, Plus } from "lucide-react"
 
 const ITEMS = [
   {
@@ -17,6 +16,12 @@ const ITEMS = [
     icon: Map,
   },
   {
+    href: "/report",
+    label: "Reportar",
+    icon: Plus,
+    action: true,
+  },
+  {
     href: "/profile",
     label: "Perfil",
     icon: User,
@@ -27,42 +32,67 @@ export default function BottomNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="border-border bg-card/90 fixed right-4 bottom-4 left-4 z-50 flex h-[74px] items-center justify-around rounded-3xl border px-2 shadow-xl backdrop-blur-xl md:right-6 md:left-auto md:w-[380px]">
-      {ITEMS.map((item) => {
-        const Icon = item.icon
+    <nav className="fixed right-0 bottom-0 left-0 z-50 border-t border-[#D8D1C1] bg-[#F7F3E8]/95 px-3 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+      <div className="mx-auto flex h-[68px] max-w-md items-center justify-around">
+        {ITEMS.map((item) => {
+          const Icon = item.icon
 
-        const active = pathname === item.href
+          const active =
+            item.href === "/"
+              ? pathname === "/"
+              : pathname.startsWith(item.href)
 
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`group flex h-14 min-w-[70px] flex-col items-center justify-center gap-1 rounded-2xl transition-all duration-200 ${
-              active
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-secondary"
-            } `}
-          >
-            <div
-              className={`flex h-7 w-7 items-center justify-center rounded-xl transition-all ${
-                active
-                  ? "bg-primary scale-110 text-white shadow-md"
-                  : "group-hover:scale-110"
-              } `}
+          /*
+           * Ação principal:
+           * Reportar preço.
+           */
+          if (item.action) {
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="relative -mt-6 flex flex-col items-center gap-1"
+              >
+                <div className="flex h-14 w-14 items-center justify-center border-4 border-[#F7F3E8] bg-[#E76F51] text-white shadow-lg transition-transform duration-200 active:scale-90">
+                  <Plus size={25} strokeWidth={2.8} />
+                </div>
+
+                <span className="text-[9px] font-black tracking-[0.12em] text-[#E76F51] uppercase">
+                  Reportar
+                </span>
+              </Link>
+            )
+          }
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex min-w-[64px] flex-col items-center justify-center gap-1 py-2"
             >
-              <Icon size={18} strokeWidth={active ? 2.8 : 2} />
-            </div>
+              <div
+                className={`flex h-8 w-8 items-center justify-center transition-all duration-200 ${
+                  active ? "bg-[#102A43] text-white" : "text-[#8291A1]"
+                } `}
+              >
+                <Icon size={17} strokeWidth={active ? 2.8 : 2} />
+              </div>
 
-            <span
-              className={`text-[11px] font-semibold ${
-                active ? "text-primary" : "text-muted-foreground"
-              } `}
-            >
-              {item.label}
-            </span>
-          </Link>
-        )
-      })}
+              <span
+                className={`text-[9px] font-black tracking-[0.08em] uppercase ${
+                  active ? "text-[#102A43]" : "text-[#8291A1]"
+                } `}
+              >
+                {item.label}
+              </span>
+
+              {active && (
+                <span className="absolute bottom-1 h-0.5 w-5 bg-[#E76F51]" />
+              )}
+            </Link>
+          )
+        })}
+      </div>
     </nav>
   )
 }

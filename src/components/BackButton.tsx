@@ -32,34 +32,59 @@ export default function BackButton({
     }
   }
 
-  const button = (
+  /*
+   * HEADER
+   *
+   * Usado em páginas internas onde o botão
+   * faz parte da barra superior.
+   */
+  if (isHeader) {
+    return (
+      <button
+        type="button"
+        onClick={handleBack}
+        aria-label={label ?? t("back")}
+        className={cn(
+          `group inline-flex items-center gap-2 py-2 text-[#8291A1] transition-colors duration-200 hover:text-[#102A43]`,
+          className,
+        )}
+      >
+        <span className="flex h-8 w-8 items-center justify-center border border-[#D8D1C1] bg-white transition-all duration-200 group-hover:border-[#102A43] group-hover:bg-[#102A43] group-hover:text-white">
+          <ArrowLeft size={16} strokeWidth={2.5} />
+        </span>
+
+        {(label || isHeader) && (
+          <span className="text-[10px] font-black tracking-[0.12em] uppercase">
+            {label ?? t("back")}
+          </span>
+        )}
+      </button>
+    )
+  }
+
+  /*
+   * BUTTON
+   *
+   * Usado como botão independente dentro
+   * de páginas ou cards.
+   */
+  return (
     <button
       type="button"
       onClick={handleBack}
       aria-label={label ?? t("back")}
       className={cn(
-        "transition-all duration-200",
-        isHeader
-          ? "text-muted-foreground hover:text-foreground inline-flex items-center gap-2"
-          : "border-border bg-card hover:bg-secondary flex h-11 w-11 items-center justify-center rounded-full border shadow-sm active:scale-95",
+        `group flex h-10 w-10 items-center justify-center border border-[#D8D1C1] bg-white text-[#102A43] shadow-sm transition-all duration-200 hover:border-[#102A43] hover:bg-[#102A43] hover:text-white active:translate-y-0.5`,
         className,
       )}
     >
-      <ArrowLeft size={20} />
+      <ArrowLeft
+        size={18}
+        strokeWidth={2.5}
+        className="transition-transform duration-200 group-hover:-translate-x-0.5"
+      />
 
-      {(label || isHeader) && (
-        <span className="text-sm font-medium">{label ?? t("back")}</span>
-      )}
+      {label && <span className="ml-2 text-xs font-bold">{label}</span>}
     </button>
-  )
-
-  if (!isHeader) {
-    return button
-  }
-
-  return (
-    <header className="border-border bg-card sticky top-0 z-10 border-b px-4 pt-6 pb-4">
-      {button}
-    </header>
   )
 }
