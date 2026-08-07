@@ -27,18 +27,18 @@ const PREFERENCES: ProfileMenuItem[] = [
   {
     icon: Bell,
     title: "Alertas de preço",
-    description: "Avisos quando houver economia",
+    description: "Receba avisos de economia",
   },
   {
     icon: Settings,
     title: "Configurações",
-    description: "Moeda, idioma e preferências",
+    description: "Moeda, idioma e privacidade",
     href: "/profile/configuration",
   },
   {
     icon: ShieldCheck,
     title: "Privacidade",
-    description: "Controle seus dados",
+    description: "Gerencie seus dados",
   },
 ]
 

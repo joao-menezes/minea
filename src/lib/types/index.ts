@@ -1,4 +1,6 @@
-﻿export type Coordinate = {
+﻿import { ElementType } from "react"
+
+export type Coordinate = {
   lat: number
   lng: number
 }
@@ -52,7 +54,7 @@ export type Price = {
 }
 
 export type ProfileMenuItem = {
-  icon: React.ReactNode
+  icon: ElementType
   title: string
   description: string
   href?: string
