@@ -18,6 +18,7 @@ import BackButton from "@/components/BackButton"
 
 import { useRouter } from "next/navigation"
 import { useLocale } from "next-intl"
+import { Divider } from "@/components/Divider"
 
 export default function Config() {
   const router = useRouter()
@@ -226,12 +227,4 @@ function ConfigItem({
       )}
     </Component>
   )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Divider
-// ─────────────────────────────────────────────────────────────────────────────
-
-function Divider() {
-  return <div className="ml-[72px] h-px bg-[#E8E3D8]" />
 }

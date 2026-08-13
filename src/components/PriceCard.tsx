@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   ChevronDown,
@@ -9,8 +8,6 @@ import {
   Navigation,
   TrendingDown,
 } from "lucide-react"
-
-import InfoSheet from "@/components/InfoSheet"
 
 import {
   DropdownMenu,
@@ -28,6 +25,7 @@ type PriceCardProps = {
   marketId: string
   lowestPriceText: string
   variant?: "row" | "grid"
+  onInfo?: () => void
 }
 
 export default function PriceCard({
@@ -36,10 +34,9 @@ export default function PriceCard({
   marketId,
   lowestPriceText,
   variant = "row",
+  onInfo,
 }: PriceCardProps) {
   const router = useRouter()
-
-  const [showInfo, setShowInfo] = useState(false)
 
   const isGrid = variant === "grid"
 
@@ -150,7 +147,7 @@ export default function PriceCard({
 
               <DropdownMenuItem
                 className="min-h-12 gap-3 rounded-none px-3 text-[#102A43] focus:bg-[#F7F3E8]"
-                onClick={() => setShowInfo(true)}
+                onClick={onInfo}
               >
                 <div className="flex h-9 w-9 items-center justify-center bg-[#E8E5F7] text-[#5E5982]">
                   <Info className="h-4 w-4" />
@@ -170,12 +167,6 @@ export default function PriceCard({
           </DropdownMenu>
         </div>
       </article>
-
-      <InfoSheet
-        open={showInfo}
-        onClose={() => setShowInfo(false)}
-        title={product}
-      />
     </>
   )
 }

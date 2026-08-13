@@ -60,3 +60,11 @@ export type ProfileMenuItem = {
   href?: string
   onClick?: () => void
 }
+
+export type Country = {
+  code: string
+  name: string
+  flag: string
+  reports: number
+  visible: boolean
+}

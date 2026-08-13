@@ -1,9 +1,10 @@
 "use client"
 
-import { Marker, Popup } from "react-map-gl/mapbox"
+import { MapRef, Marker, Popup } from "react-map-gl/mapbox"
 import { ArrowUpRight, MapPin, Navigation, ShoppingCart, X } from "lucide-react"
 
 import { formatPrice } from "@/lib/utils"
+import { useRef } from "react"
 
 type Props = {
   market: {
@@ -177,7 +178,10 @@ export default function MapMarker({
             </div>
             <button
               type="button"
-              onClick={onRoute}
+              onClick={(e) => {
+                e.stopPropagation()
+                onRoute?.()
+              }}
               className="mt-3 flex w-full items-center justify-center gap-2 bg-[#102A43] py-3 text-xs font-black tracking-wider text-white uppercase transition-all hover:bg-[#183B59] active:translate-y-0.5"
             >
               <Navigation size={14} />

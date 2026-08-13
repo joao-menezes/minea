@@ -5,6 +5,7 @@ import {
   ArrowUpRight,
   Camera,
   CheckCircle2,
+  ChevronDown,
   FileText,
   MapPin,
   Receipt,
@@ -19,7 +20,21 @@ import BottomNav from "@/components/BottomNav"
 import { useSearchParams } from "next/navigation"
 import { getMarkets } from "@/lib/api"
 
+import { searchAndRank, normalizeSearch } from "@/components/search"
+
 type ReportMode = "manual" | "scan"
+
+const PRODUCTS = [
+  { name: "Arroz Branco 5kg" },
+  { name: "Arroz Integral 1kg" },
+  { name: "Arroz Parboilizado 1kg" },
+  { name: "Feijão Carioca 1kg" },
+  { name: "Feijão Preto 1kg" },
+  { name: "Macarrão 500g" },
+  { name: "Leite Integral 1L" },
+  { name: "Açúcar Cristal 1kg" },
+  { name: "Café 500g" },
+]
 
 export default function ReportPrice() {
   const [mode, setMode] = useState<ReportMode>("manual")
@@ -27,6 +42,7 @@ export default function ReportPrice() {
   const [product, setProduct] = useState("")
   const [price, setPrice] = useState("")
   const [marketName, setMarketName] = useState("")
+  const [isOpen, setIsOpen] = useState(false)
 
   const searchParams = useSearchParams()
 
@@ -55,6 +71,14 @@ export default function ReportPrice() {
       marketId,
     })
   }
+
+  const filteredProducts = searchAndRank(PRODUCTS, product, {
+    fields: ["name"],
+  })
+
+  const hasExactMatch = filteredProducts.some(
+    (item: any) => normalizeSearch(item.name) === normalizeSearch(product),
+  )
 
   function uploadInvoice(file?: File) {
     if (!file) return
@@ -142,19 +166,43 @@ export default function ReportPrice() {
       {mode === "manual" ? (
         <section className="mt-5 px-4">
           <div className="border border-[#D8D1C1] bg-white p-5">
-            <div>
+            <div className="relative">
               <label className="text-[9px] font-black tracking-[0.15em] text-[#8291A1] uppercase">
                 Product
               </label>
 
-              <input
-                value={product}
-                onChange={(e) => setProduct(e.target.value)}
-                placeholder="Ex: Rice 5kg"
-                className="mt-2 w-full border border-[#D8D1C1] bg-[#F7F3E8] px-4 py-3 text-sm font-medium text-[#102A43] transition outline-none placeholder:text-[#A5A9AC] focus:border-[#6B9080]"
-              />
-            </div>
+              <div className="relative mt-2">
+                <input
+                  value={product}
+                  onChange={(e) => setProduct(e.target.value)}
+                  placeholder="Ex: Rice 5kg"
+                  className="w-full border border-[#D8D1C1] bg-[#F7F3E8] px-4 py-3 pr-10 text-sm font-medium text-[#102A43] transition outline-none placeholder:text-[#A5A9AC] focus:border-[#6B9080]"
+                />
 
+                <ChevronDown
+                  size={16}
+                  strokeWidth={2.5}
+                  className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[#8291A1]"
+                />
+              </div>
+
+              {product.trim() &&
+                filteredProducts.length > 0 &&
+                !hasExactMatch && (
+                  <div className="absolute top-full right-0 left-0 z-50 mt-1 overflow-hidden border border-[#D8D1C1] bg-[#F7F3E8] shadow-[0_8px_20px_rgba(16,42,67,0.12)]">
+                    {filteredProducts.map((item: any) => (
+                      <button
+                        key={item.name}
+                        type="button"
+                        onClick={() => setProduct(item.name)}
+                        className="block w-full border-b border-[#E8E2D5] px-4 py-3 text-left text-sm font-medium text-[#102A43] last:border-b-0 hover:bg-[#EEE9DD] active:bg-[#E5DFD1]"
+                      >
+                        {item.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+            </div>
             <div className="mt-5">
               <label className="text-[9px] font-black tracking-[0.15em] text-[#8291A1] uppercase">
                 Price
@@ -167,7 +215,10 @@ export default function ReportPrice() {
 
                 <input
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9,]/g, "")
+                    setPrice(value)
+                  }}
                   placeholder="25,90"
                   inputMode="decimal"
                   className="w-full border border-[#D8D1C1] bg-[#F7F3E8] py-3 pr-4 pl-12 text-lg font-black text-[#102A43] transition outline-none placeholder:text-[#B7B7B0] focus:border-[#6B9080]"
@@ -180,7 +231,7 @@ export default function ReportPrice() {
               </label>
 
               <div className="mt-2 flex items-center gap-3 border border-[#D8D1C1] bg-[#F7F3E8] px-4 py-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#DDECE5] text-[#467566]">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-[#DDECE5] text-[#467566]">
                   <MapPin size={15} />
                 </div>
 

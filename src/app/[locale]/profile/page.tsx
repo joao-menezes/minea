@@ -1,5 +1,7 @@
 "use client"
 
+import "flag-icons/css/flag-icons.min.css"
+
 import {
   Bell,
   ChevronRight,
@@ -13,10 +15,21 @@ import {
   Award,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 import BottomNav from "@/components/BottomNav"
 import { useUserLocation } from "@/hooks/useUserLocation"
 import { ProfileMenuItem } from "@/lib/types"
+import { Divider } from "@/components/Divider"
+import { VisitedCountries } from "@/components/VisitedCountries"
+
+const MOCK_COUNTRIES = [
+  { code: "BR", name: "Brasil", flag: "🇧🇷", reports: 34, visible: true },
+  { code: "IE", name: "Irlanda", flag: "🇮🇪", reports: 21, visible: true },
+  { code: "PT", name: "Portugal", flag: "🇵🇹", reports: 12, visible: true },
+  { code: "DE", name: "Alemanha", flag: "🇩🇪", reports: 8, visible: false },
+  { code: "JP", name: "Japão", flag: "🇯🇵", reports: 5, visible: true },
+]
 
 const PREFERENCES: ProfileMenuItem[] = [
   {
@@ -39,23 +52,58 @@ const PREFERENCES: ProfileMenuItem[] = [
     icon: ShieldCheck,
     title: "Privacidade",
     description: "Gerencie seus dados",
+    href: "/profile/privacy",
   },
 ]
 
 export default function ProfilePage() {
   const router = useRouter()
-
   const { location, loading, error } = useUserLocation()
+  const [countries, setCountries] = useState(MOCK_COUNTRIES)
+  const [privacy, setPrivacy] = useState({
+    showProfile: true,
+    showCountries: true,
+    showReports: true,
+    showLocation: false,
+  })
+
+  const totalReports = countries.reduce((acc, c) => acc + c.reports, 0)
+
+  useEffect(() => {
+    const savedPrivacy = localStorage.getItem("pricepal-privacy")
+
+    if (savedPrivacy) {
+      try {
+        setPrivacy(JSON.parse(savedPrivacy))
+      } catch {
+        console.error("Erro ao carregar preferências de privacidade")
+      }
+    }
+
+    const savedCountries = localStorage.getItem("pricepal-countries-visibility")
+
+    if (savedCountries) {
+      try {
+        const visibility = JSON.parse(savedCountries)
+
+        setCountries((prev) =>
+          prev.map((country) => ({
+            ...country,
+            visible: visibility[country.code] ?? country.visible,
+          })),
+        )
+      } catch {
+        console.error("Erro ao carregar visibilidade dos países")
+      }
+    }
+  }, [])
 
   function handleLogout() {
     // TODO: implementar logout
   }
 
   function handleMenuClick(item: ProfileMenuItem) {
-    if (item.href) {
-      router.push(item.href)
-    }
-
+    if (item.href) router.push(item.href)
     item.onClick?.()
   }
 
@@ -67,12 +115,10 @@ export default function ProfilePage() {
             <span className="block text-[9px] font-black tracking-[0.25em] text-[#8291A1] uppercase">
               LocalV1
             </span>
-
             <h1 className="mt-1 text-2xl font-black tracking-tight text-[#102A43]">
               Seu perfil
             </h1>
           </div>
-
           <div className="flex h-9 w-9 items-center justify-center border border-[#D8D1C1] bg-white text-[#8291A1]">
             <Compass size={17} />
           </div>
@@ -85,18 +131,22 @@ export default function ProfilePage() {
 
       <section className="px-4 pb-6">
         <div className="grid grid-cols-3 border border-[#D8D1C1] bg-white">
-          <Stat value="0" label="Relatos" />
-
-          <Stat value="0" label="Salvos" bordered />
-
+          <Stat value={String(totalReports)} label="Relatos" />
+          <Stat value={String(countries.length)} label="Países" bordered />
           <Stat value="0" label="Economia" bordered />
         </div>
       </section>
 
+      {privacy.showCountries && (
+        <VisitedCountries
+          visibleCountries={countries.filter((country) => country.visible)}
+          totalCountries={countries.length}
+        />
+      )}
+
       <section className="px-4 pb-5">
         <SectionLabel>Sua viagem</SectionLabel>
-
-        <div className="overflow-hidden border border-[#D8D1C1] bg-white">
+        <div className="overflow-hidden rounded border border-[#D8D1C1] bg-white">
           {PREFERENCES.map((item, index) => (
             <MenuItem
               key={item.title}
@@ -110,13 +160,11 @@ export default function ProfilePage() {
 
       <section className="px-4 pb-6">
         <div className="flex items-center gap-4 border border-[#D8D1C1] bg-[#102A43] p-4 text-white">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#F4C95D] text-[#102A43]">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#F4C95D] text-[#102A43]">
             <Award size={18} />
           </div>
-
           <div className="min-w-0">
             <p className="text-xs font-black">Contribua para a comunidade</p>
-
             <p className="mt-1 text-[10px] leading-4 text-[#B7C5D0]">
               Cada preço que você compartilha ajuda outro viajante a economizar.
             </p>
@@ -140,10 +188,7 @@ function UserCard({
 }: {
   loading: boolean
   error: boolean
-  location: {
-    latitude: number
-    longitude: number
-  } | null
+  location: { latitude: number; longitude: number } | null
 }) {
   const locationLabel = loading
     ? "Obtendo localização..."
@@ -154,27 +199,23 @@ function UserCard({
   const locationIsValid = !error && !!location
 
   return (
-    <div className="relative overflow-hidden border border-[#D8D1C1] bg-white p-5">
+    <div className="relative overflow-hidden rounded border border-[#D8D1C1] bg-white p-5">
       <div className="pointer-events-none absolute -top-5 -right-5 flex h-24 w-24 rotate-12 items-center justify-center">
-        <div className="absolute inset-0 animate-spin rounded-full border-2 border-dashed border-[#D8D1C1] [animation-duration:50s]" />
-
+        <div className="animation-duration-[50s] absolute inset-0 animate-spin rounded-full border-2 border-dashed border-[#D8D1C1]" />
         <Compass size={34} className="relative text-[#D8D1C1]" />
       </div>
 
       <div className="relative flex items-center gap-4">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center bg-[#102A43] text-white">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-4xl bg-[#102A43] text-white">
           <UserRound size={27} strokeWidth={2} />
         </div>
-
         <div className="min-w-0">
           <span className="block text-[8px] font-black tracking-[0.18em] text-[#8291A1] uppercase">
             Traveler
           </span>
-
           <h2 className="mt-1 truncate text-base font-black text-[#102A43]">
             Usuário LocalV1
           </h2>
-
           <p className="mt-0.5 text-[10px] font-medium text-[#8291A1]">
             Conta gratuita
           </p>
@@ -184,12 +225,10 @@ function UserCard({
       <div
         className={`mt-5 flex items-center gap-2 border-t border-[#E8E3D8] pt-4 text-[10px] font-bold ${
           locationIsValid ? "text-[#467566]" : "text-[#B85C5C]"
-        } `}
+        }`}
       >
         <MapPin size={13} />
-
         <span>{locationLabel}</span>
-
         {locationIsValid && <span className="ml-auto h-2 w-2 bg-[#6B9080]" />}
       </div>
     </div>
@@ -207,12 +246,9 @@ function Stat({
 }) {
   return (
     <div
-      className={`flex flex-col items-center justify-center py-4 ${
-        bordered ? "border-l border-[#D8D1C1]" : ""
-      } `}
+      className={`flex flex-col items-center justify-center py-4 ${bordered ? "border-l border-[#D8D1C1]" : ""}`}
     >
       <span className="text-lg font-black text-[#102A43]">{value}</span>
-
       <span className="mt-0.5 text-[8px] font-black tracking-wider text-[#8291A1] uppercase">
         {label}
       </span>
@@ -226,7 +262,6 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       <span className="text-[9px] font-black tracking-[0.18em] text-[#8291A1] uppercase">
         {children}
       </span>
-
       <span className="h-px w-12 bg-[#D8D1C1]" />
     </div>
   )
@@ -242,27 +277,23 @@ function MenuItem({
   last: boolean
 }) {
   const Icon = item.icon
-
   return (
     <button
       type="button"
       onClick={onClick}
       className={`group flex w-full items-center gap-4 px-4 py-4 text-left transition-colors duration-200 hover:bg-[#F7F3E8] ${
         !last ? "border-b border-[#E8E3D8]" : ""
-      } `}
+      }`}
     >
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#F7F3E8] text-[#102A43] transition-colors group-hover:bg-[#DDECE5] group-hover:text-[#467566]">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#F7F3E8] text-[#102A43] transition-colors group-hover:bg-[#DDECE5] group-hover:text-[#467566]">
         <Icon size={18} strokeWidth={2} />
       </div>
-
       <div className="min-w-0 flex-1">
         <p className="text-xs font-black text-[#102A43]">{item.title}</p>
-
         <p className="mt-1 truncate text-[10px] leading-4 text-[#8291A1]">
           {item.description}
         </p>
       </div>
-
       <ChevronRight
         size={16}
         className="shrink-0 text-[#A5AFB7] transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#102A43]"

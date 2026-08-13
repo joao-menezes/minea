@@ -71,6 +71,16 @@ export default function MapPage() {
     })
   }, [location])
 
+  async function handleRouteToMarket(market: any) {
+    mapRef.current?.flyTo({
+      center: [userLocation.longitude, userLocation.latitude],
+      zoom: MAP_CONFIG.zoom,
+      duration: 1000,
+    })
+
+    await getRoute(market)
+  }
+
   useEffect(() => {
     return () => {
       if (interactionTimer.current) {
@@ -240,20 +250,13 @@ export default function MapPage() {
           return (
             <MapMarker
               key={market.id}
-
               market={market}
-
               product={product}
-
               selected={selectedId === String(market.id)}
-
               best={String(market.id) === String(bestMarketId)}
-
               onSelect={() => setSelectedId(String(market.id))}
-
               onClose={() => setSelectedId(null)}
-
-              onRoute={() => getRoute(market)}
+              onRoute={() => handleRouteToMarket(market)}
             />
           )
         })}

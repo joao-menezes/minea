@@ -123,11 +123,10 @@ function TravelHeader({
 }) {
   return (
     <header className="relative overflow-hidden bg-[#102A43]">
-
       <div className="pointer-events-none absolute inset-0 opacity-[0.08]">
         <div className="absolute top-8 -right-10 h-40 w-40 rounded-full border border-white" />
         <div className="absolute top-20 -right-20 h-64 w-64 rounded-full border border-white" />
-        <div className="absolute top-[-80px] right-20 h-52 w-52 rounded-full border border-white" />
+        <div className="absolute -top-20 right-20 h-52 w-52 rounded-full border border-white" />
       </div>
 
       <div className="relative mx-auto max-w-5xl px-5 pt-7 pb-8">
@@ -359,15 +358,15 @@ function EmptyState({
         {search ? t("emptySearch", { search }) : t("emptyDefault")}
       </p>
 
-      {search && (
-        <button
-          type="button"
-          onClick={onClear}
-          className="mt-5 bg-[#E76F51] px-5 py-3 text-sm font-black text-white transition-transform active:translate-y-0.5"
-        >
-          {t("clearFilters")}
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={onClear}
+        className="mt-5 bg-[#E76F51] px-5 py-3 text-sm font-black text-white transition-transform active:translate-y-0.5"
+      >
+        {t("clearFilters")}
+      </button>
+
+      {search && <></>}
     </div>
   )
 }

@@ -9,19 +9,20 @@ import {
   List,
   MapPin,
   MapPinned,
-  Navigation,
   ShoppingCart,
   Users,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import ScoreBar from "@/components/ScoreBar"
 import BottomNav from "@/components/BottomNav"
 import BackButton from "@/components/BackButton"
+import InfoSheet from "@/components/InfoSheet"
+import { LoadSpinner } from "@/components/LoadSpinner"
 import PriceCard from "@/components/PriceCard"
 
 import { getMarkets, getPrices } from "@/lib/api"
-import { useTranslations } from "next-intl"
-import { LoadSpinner } from "@/components/LoadSpinner"
+import { useLongPress } from "@/hooks/useLongPress"
 
 type Score = {
   price: number
@@ -67,6 +68,7 @@ export default function MarketDetailsPage({ params }: Props) {
   const [loading, setLoading] = useState(true)
 
   const [viewMode, setViewMode] = useState<ViewMode>("row")
+  const [selectedPrice, setSelectedPrice] = useState<Price | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -79,7 +81,7 @@ export default function MarketDetailsPage({ params }: Props) {
         const found = markets.find((market: Market) => market.id === id)
 
         if (!found) {
-          setLoading(false)
+          setMarket(null)
           return
         }
 
@@ -128,12 +130,26 @@ export default function MarketDetailsPage({ params }: Props) {
     notFound()
   }
 
+  const scores = market.scores ?? {
+    price: 0,
+    quality: 0,
+    distance: 0,
+    availability: 0,
+  }
+
+  const handleReportPrice = () => {
+    router.push(`/report?marketId=${market.id}`)
+  }
+
+  const handleShowInfo = (price: Price) => {
+    setSelectedPrice(price)
+  }
+
   return (
     <main className="min-h-screen bg-[#F7F3E8] pb-24">
-      <header className="sticky top-0 z-30 border-b border-[#D8D1C1] bg-[#F7F3E8]/95 px-4 py-3 backdrop-blur">
-        <BackButton />
-      </header>
+      <BackButton />
 
+      {/* Market header */}
       <section className="px-4 pt-5">
         <div className="relative overflow-hidden border border-[#D8D1C1] bg-white">
           <div className="h-1 bg-[#6B9080]" />
@@ -144,6 +160,7 @@ export default function MarketDetailsPage({ params }: Props) {
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-[#DDECE5] text-[#467566]">
                   <ShoppingCart className="h-7 w-7" />
                 </div>
+
                 <div className="min-w-0">
                   <span className="block text-[9px] font-black tracking-[0.2em] text-[#8291A1] uppercase">
                     Market
@@ -164,6 +181,7 @@ export default function MarketDetailsPage({ params }: Props) {
                 </div>
               </div>
             </div>
+
             <div className="mt-5 grid grid-cols-2 divide-x border border-[#E8E2D5] bg-[#F7F3E8]">
               <div className="px-4 py-3">
                 <span className="block text-[8px] font-black tracking-wider text-[#8291A1] uppercase">
@@ -187,6 +205,7 @@ export default function MarketDetailsPage({ params }: Props) {
                 </strong>
               </div>
             </div>
+
             <div className="mt-4 grid grid-cols-2 gap-3">
               <Link
                 href={`/map?focus=${market.id}`}
@@ -199,7 +218,7 @@ export default function MarketDetailsPage({ params }: Props) {
 
               <button
                 type="button"
-                onClick={() => router.push(`/report?marketId=${market.id}`)}
+                onClick={handleReportPrice}
                 className="flex items-center justify-center gap-2 bg-[#E76F51] py-3 text-xs font-black tracking-wider text-white uppercase transition-all hover:bg-[#D85F47] active:translate-y-0.5"
               >
                 <Users size={14} />
@@ -209,6 +228,8 @@ export default function MarketDetailsPage({ params }: Props) {
           </div>
         </div>
       </section>
+
+      {/* Recommendation */}
       <section className="mt-6 px-4">
         <div className="mb-3">
           <span className="text-[9px] font-black tracking-[0.2em] text-[#8291A1] uppercase">
@@ -220,18 +241,10 @@ export default function MarketDetailsPage({ params }: Props) {
           </h2>
         </div>
 
-        <ScoreBar
-          scores={
-            market.scores ?? {
-              price: 0,
-              quality: 0,
-              distance: 0,
-              availability: 0,
-            }
-          }
-        />
+        <ScoreBar scores={scores} />
       </section>
 
+      {/* Prices */}
       <section className="mt-7 px-4">
         <div className="mb-4 flex items-end justify-between gap-3">
           <div>
@@ -250,16 +263,18 @@ export default function MarketDetailsPage({ params }: Props) {
             </p>
           </div>
 
+          {/* View mode */}
           <div className="flex border border-[#D8D1C1] bg-white p-1">
             <button
               type="button"
               onClick={() => setViewMode("row")}
               aria-label="List view"
+              aria-pressed={viewMode === "row"}
               className={`flex h-8 w-8 items-center justify-center transition-colors ${
                 viewMode === "row"
                   ? "bg-[#102A43] text-white"
                   : "text-[#8291A1]"
-              } `}
+              }`}
             >
               <List className="h-4 w-4" />
             </button>
@@ -268,16 +283,18 @@ export default function MarketDetailsPage({ params }: Props) {
               type="button"
               onClick={() => setViewMode("grid")}
               aria-label="Grid view"
+              aria-pressed={viewMode === "grid"}
               className={`flex h-8 w-8 items-center justify-center transition-colors ${
                 viewMode === "grid"
                   ? "bg-[#102A43] text-white"
                   : "text-[#8291A1]"
-              } `}
+              }`}
             >
               <LayoutGrid className="h-4 w-4" />
             </button>
           </div>
         </div>
+
         {prices.length > 0 ? (
           <div
             className={
@@ -287,42 +304,23 @@ export default function MarketDetailsPage({ params }: Props) {
             }
           >
             {prices.map((price) => (
-              <PriceCard
+              <PriceCardWithLongPress
                 key={price.id}
-                product={price.product}
-                price={price.price}
+                price={price}
                 marketId={market.id}
                 variant={viewMode}
                 lowestPriceText={t("lowestPriceReported")}
+                onLongPress={handleShowInfo}
+                onInfo={handleShowInfo}
               />
             ))}
           </div>
         ) : (
-          <div className="border border-dashed border-[#C8C0AF] bg-white px-5 py-10 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center bg-[#F7F3E8] text-[#8291A1]">
-              <ShoppingCart size={20} />
-            </div>
-
-            <h3 className="mt-4 text-sm font-black text-[#102A43]">
-              No prices yet
-            </h3>
-
-            <p className="mx-auto mt-1 max-w-xs text-xs leading-5 text-[#8291A1]">
-              Be the first traveler to report a price at this market.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => router.push(`/report?marketId=${market.id}`)}
-              className="mt-4 inline-flex items-center gap-2 bg-[#E76F51] px-4 py-2.5 text-xs font-black tracking-wider text-white uppercase"
-            >
-              Report a price
-              <ArrowUpRight size={13} />
-            </button>
-          </div>
+          <EmptyPricesState onReport={handleReportPrice} />
         )}
       </section>
 
+      {/* Help other travelers */}
       <section className="mt-7 px-4">
         <div className="border border-[#D8D1C1] bg-[#102A43] p-5 text-white">
           <div className="flex items-start gap-4">
@@ -346,7 +344,7 @@ export default function MarketDetailsPage({ params }: Props) {
 
           <button
             type="button"
-            onClick={() => router.push(`/report?marketId=${market.id}`)}
+            onClick={handleReportPrice}
             className="mt-4 flex w-full items-center justify-center gap-2 bg-[#F4C95D] py-3 text-xs font-black tracking-wider text-[#102A43] uppercase"
           >
             <Users size={14} />
@@ -355,7 +353,73 @@ export default function MarketDetailsPage({ params }: Props) {
         </div>
       </section>
 
+      {/* Navigation */}
       <BottomNav />
+
+      {/* Price info sheet */}
+      <InfoSheet
+        open={selectedPrice !== null}
+        onClose={() => setSelectedPrice(null)}
+        title={selectedPrice?.product}
+      />
     </main>
+  )
+}
+
+function PriceCardWithLongPress({
+  price,
+  marketId,
+  variant,
+  lowestPriceText,
+  onLongPress,
+  onInfo,
+}: {
+  price: Price
+  marketId: string
+  variant: ViewMode
+  lowestPriceText: string
+  onLongPress: (price: Price) => void
+  onInfo: (price: Price) => void
+}) {
+  const longPress = useLongPress(() => {
+    onLongPress(price)
+  }, 500)
+
+  return (
+    <div {...longPress} className="touch-manipulation select-none">
+      <PriceCard
+        product={price.product}
+        price={price.price}
+        marketId={marketId}
+        variant={variant}
+        lowestPriceText={lowestPriceText}
+        onInfo={() => onInfo(price)}
+      />
+    </div>
+  )
+}
+
+function EmptyPricesState({ onReport }: { onReport: () => void }) {
+  return (
+    <div className="border border-dashed border-[#C8C0AF] bg-white px-5 py-10 text-center">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center bg-[#F7F3E8] text-[#8291A1]">
+        <ShoppingCart size={20} />
+      </div>
+
+      <h3 className="mt-4 text-sm font-black text-[#102A43]">No prices yet</h3>
+
+      <p className="mx-auto mt-1 max-w-xs text-xs leading-5 text-[#8291A1]">
+        Be the first traveler to report a price at this market.
+      </p>
+
+      <button
+        type="button"
+        onClick={onReport}
+        className="mt-4 inline-flex items-center gap-2 bg-[#E76F51] px-4 py-2.5 text-xs font-black tracking-wider text-white uppercase"
+      >
+        Report a price
+        <ArrowUpRight size={13} />
+      </button>
+    </div>
   )
 }
