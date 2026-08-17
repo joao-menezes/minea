@@ -1,33 +1,34 @@
-'use client'
+'use client';
 
-import { FormEvent, useState } from 'react'
-import { ArrowLeft, Eye, EyeOff, LockKeyhole, Sparkles } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { FormEvent, useState } from 'react';
 
-const ADMIN_EMAIL = 'admin@mineabeauty.com'
-const ADMIN_PASSWORD = '123456'
+import { ArrowLeft, Eye, EyeOff, LockKeyhole, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
+const ADMIN_EMAIL = 'admin@mineabeauty.com';
+const ADMIN_PASSWORD = '123456';
 
 export default function AdminLoginPage() {
-  const router = useRouter()
+  const router = useRouter();
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setError('')
+    event.preventDefault();
+    setError('');
 
     if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
-      setError('E-mail ou senha incorretos.')
-      return
+      setError('E-mail ou senha incorretos.');
+      return;
     }
 
-    localStorage.setItem('aura_admin_authenticated', 'true')
+    localStorage.setItem('aura_admin_authenticated', 'true');
 
-    router.push('/admin')
+    router.push('/admin');
   }
 
   return (
@@ -177,5 +178,5 @@ export default function AdminLoginPage() {
         </section>
       </div>
     </main>
-  )
+  );
 }

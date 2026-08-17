@@ -1,27 +1,27 @@
-import type { SVGProps } from 'react'
+import type { SVGProps } from 'react';
 
 export function maskCPF(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 11)
+  const digits = value.replace(/\D/g, '').slice(0, 11);
 
-  if (digits.length <= 3) return digits
-  if (digits.length <= 6) return digits.replace(/(\d{3})(\d{0,3})/, '$1.$2')
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return digits.replace(/(\d{3})(\d{0,3})/, '$1.$2');
   if (digits.length <= 9) {
-    return digits.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3')
+    return digits.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
   }
 
-  return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4')
+  return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
 }
 
 export function maskDate(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 8)
+  const digits = value.replace(/\D/g, '').slice(0, 8);
 
-  if (digits.length <= 2) return digits
-  if (digits.length <= 4) return digits.replace(/(\d{2})(\d{0,2})/, '$1/$2')
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return digits.replace(/(\d{2})(\d{0,2})/, '$1/$2');
 
-  return digits.replace(/(\d{2})(\d{2})(\d{0,4})/, '$1/$2/$3')
+  return digits.replace(/(\d{2})(\d{2})(\d{0,4})/, '$1/$2/$3');
 }
 
-export const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'] as const
+export const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'] as const;
 
 export const MONTHS = [
   'janeiro',
@@ -36,14 +36,14 @@ export const MONTHS = [
   'outubro',
   'novembro',
   'dezembro',
-] as const
+] as const;
 
 export function buildWeekStrip(centerDate: Date): Date[] {
   return Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(centerDate)
-    date.setDate(date.getDate() + index - 3)
-    return date
-  })
+    const date = new Date(centerDate);
+    date.setDate(date.getDate() + index - 3);
+    return date;
+  });
 }
 
 export function sameDay(a: Date, b: Date): boolean {
@@ -51,12 +51,12 @@ export function sameDay(a: Date, b: Date): boolean {
     a.getFullYear() === b.getFullYear() &&
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate()
-  )
+  );
 }
 
 type IconProps = SVGProps<SVGSVGElement> & {
-  size?: number
-}
+  size?: number;
+};
 
 export function Bow({ size = 22, ...props }: IconProps) {
   return (
@@ -73,7 +73,7 @@ export function Bow({ size = 22, ...props }: IconProps) {
       />
       <circle cx="20" cy="20" r="3.4" fill="#B84B78" />
     </svg>
-  )
+  );
 }
 
 export function Sparkle({ size = 16, ...props }: IconProps) {
@@ -81,22 +81,19 @@ export function Sparkle({ size = 16, ...props }: IconProps) {
     <svg viewBox="0 0 24 24" width={size} height={size} fill="none" aria-hidden="true" {...props}>
       <path d="M12 0c0 5-1 9-5 12 4 3 5 7 5 12 0-5 1-9 5-12-4-3-5-7-5-12Z" fill="#F2B8D4" />
     </svg>
-  )
+  );
 }
 
-export function FlowerDivider() {
-  return (
-    <div className="flex items-center justify-center gap-2 py-1 select-none" aria-hidden="true">
-      <div className="h-px w-10 bg-[#f0c3d6]" />
-      <span className="text-[#e07fa8] text-sm">❀</span>
-      <div className="h-px w-10 bg-[#f0c3d6]" />
-    </div>
-  )
+export function formatDate(date: Date) {
+  return date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+  });
 }
 
-export const TAG_STYLES = {
-  rosa: 'bg-[#fde3ee] text-[#b84b78] border-[#f5b9d4]',
-  lilas: 'bg-[#efe4fb] text-[#7a4fae] border-[#d9c1f2]',
-  menta: 'bg-[#e0f7ee] text-[#288a63] border-[#b8e9d2]',
-  pessego: 'bg-[#ffe9db] text-[#c1702f] border-[#fac9a6]',
-} as const
+export function formatTime(date: Date) {
+  return date.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}

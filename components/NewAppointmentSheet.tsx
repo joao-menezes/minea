@@ -1,6 +1,7 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react';
+
 import {
   ArrowLeft,
   ArrowRight,
@@ -10,10 +11,11 @@ import {
   Heart,
   Sparkles,
   X,
-} from 'lucide-react'
+} from 'lucide-react';
 
-import { MONTHS, WEEKDAYS } from './decor'
-import type { Appointment, Service } from '@/types'
+import type { Appointment, Service } from '@/types';
+
+import { MONTHS, WEEKDAYS } from './decor';
 
 const SERVICES: Service[] = [
   {
@@ -44,7 +46,7 @@ const SERVICES: Service[] = [
     duration: 50,
     price: 100,
   },
-]
+];
 
 const TIMES = [
   '09:00',
@@ -57,76 +59,76 @@ const TIMES = [
   '16:00',
   '17:00',
   '18:00',
-]
+];
 
 type NewAppointmentSheetProps = {
-  onClose: () => void
-  onSave: (appointment: Appointment) => void
-}
+  onClose: () => void;
+  onSave: (appointment: Appointment) => void;
+};
 
 export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentSheetProps) {
-  const [step, setStep] = useState(1)
-  const [selectedServices, setSelectedServices] = useState<string[]>([])
-  const [selectedDate, setSelectedDate] = useState(new Date())
-  const [selectedTime, setSelectedTime] = useState('')
-  const [error, setError] = useState('')
+  const [step, setStep] = useState(1);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTime, setSelectedTime] = useState('');
+  const [error, setError] = useState('');
 
   const dates = useMemo(() => {
     return Array.from({ length: 7 }, (_, index) => {
-      const date = new Date()
+      const date = new Date();
 
-      date.setHours(0, 0, 0, 0)
-      date.setDate(date.getDate() + index)
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() + index);
 
-      return date
-    })
-  }, [])
+      return date;
+    });
+  }, []);
 
   const selectedServiceDetails = useMemo(() => {
     return selectedServices
       .map((id) => SERVICES.find((service) => service.id === id))
-      .filter((service): service is Service => Boolean(service))
-  }, [selectedServices])
+      .filter((service): service is Service => Boolean(service));
+  }, [selectedServices]);
 
-  const total = selectedServiceDetails.reduce((sum, service) => sum + service.price, 0)
+  const total = selectedServiceDetails.reduce((sum, service) => sum + service.price, 0);
 
-  const duration = selectedServiceDetails.reduce((sum, service) => sum + service.duration, 0)
+  const duration = selectedServiceDetails.reduce((sum, service) => sum + service.duration, 0);
 
-  const selectedServiceNames = selectedServiceDetails.map((service) => service.name).join(' + ')
+  const selectedServiceNames = selectedServiceDetails.map((service) => service.name).join(' + ');
 
   function toggleService(id: string) {
     setSelectedServices((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
-    )
+    );
 
-    setError('')
+    setError('');
   }
 
   function next() {
     if (!selectedServices.length) {
-      setError('Escolha pelo menos um procedimento para continuar.')
-      return
+      setError('Escolha pelo menos um procedimento para continuar.');
+      return;
     }
 
-    setError('')
-    setStep(2)
+    setError('');
+    setStep(2);
   }
 
   function back() {
-    setError('')
-    setStep(1)
+    setError('');
+    setStep(1);
   }
 
   function confirm() {
     if (!selectedTime) {
-      setError('Escolha um horário para continuar.')
-      return
+      setError('Escolha um horário para continuar.');
+      return;
     }
 
-    const date = new Date(selectedDate)
-    const [hours, minutes] = selectedTime.split(':').map(Number)
+    const date = new Date(selectedDate);
+    const [hours, minutes] = selectedTime.split(':').map(Number);
 
-    date.setHours(hours, minutes, 0, 0)
+    date.setHours(hours, minutes, 0, 0);
 
     onSave({
       id: Date.now(),
@@ -138,22 +140,12 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
       price: total,
       categoria: 'Autocuidado',
       cor: 'rosa',
-    })
+    });
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#332925]/45 backdrop-blur-[7px] sm:items-center sm:p-6">
-      <div
-        className="
-          relative flex w-full max-w-md flex-col
-          overflow-hidden
-          rounded-t-[36px] sm:rounded-[34px]
-          border border-white/80
-          bg-[#f9f6f3]
-          shadow-[0_35px_100px_-35px_rgba(40,29,25,.7)]
-          max-h-[94vh] sm:max-h-[90vh]
-        "
-      >
+      <div className="relative flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-[36px] border border-white/80 bg-[#f9f6f3] shadow-[0_35px_100px_-35px_rgba(40,29,25,.7)] sm:max-h-[90vh] sm:rounded-[34px]">
         {/* =========================================================
             HEADER
         ========================================================== */}
@@ -197,17 +189,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="
-              flex h-10 w-10 shrink-0 items-center justify-center
-              rounded-full
-              border border-[#e5dbd6]
-              bg-white
-              text-[#7d6962]
-              transition-all
-              hover:bg-[#f5efec]
-              hover:text-[#4e3d37]
-              active:scale-95
-            "
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#e5dbd6] bg-white text-[#7d6962] transition-all hover:bg-[#f5efec] hover:text-[#4e3d37] active:scale-95"
           >
             <X size={16} strokeWidth={1.6} />
           </button>
@@ -262,38 +244,25 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
               {/* Services */}
               <div className="space-y-2.5">
                 {SERVICES.map((service) => {
-                  const active = selectedServices.includes(service.id)
+                  const active = selectedServices.includes(service.id);
 
                   return (
                     <button
                       key={service.id}
                       type="button"
                       onClick={() => toggleService(service.id)}
-                      className={`
-                        group relative w-full overflow-hidden
-                        rounded-[22px]
-                        border
-                        p-4
-                        text-left
-                        transition-all duration-200
-                        ${
-                          active
-                            ? 'border-[#b49a90] bg-[#f1e7e2] shadow-[0_12px_30px_-25px_rgba(67,47,40,.7)]'
-                            : 'border-[#e7ded9] bg-white hover:-translate-y-[1px] hover:border-[#d9cbc5] hover:shadow-[0_12px_25px_-22px_rgba(67,47,40,.45)]'
-                        }
-                      `}
+                      className={`group relative w-full overflow-hidden rounded-[22px] border p-4 text-left transition-all duration-200 ${
+                        active
+                          ? 'border-[#b49a90] bg-[#f1e7e2] shadow-[0_12px_30px_-25px_rgba(67,47,40,.7)]'
+                          : 'border-[#e7ded9] bg-white hover:-translate-y-[1px] hover:border-[#d9cbc5] hover:shadow-[0_12px_25px_-22px_rgba(67,47,40,.45)]'
+                      } `}
                     >
                       {active && <div className="absolute inset-y-0 left-0 w-[3px] bg-[#80665c]" />}
 
                       <div className="flex items-center gap-3.5">
                         {/* Icon */}
                         <div
-                          className={`
-                            flex h-12 w-12 shrink-0 items-center justify-center
-                            rounded-[17px]
-                            transition-all
-                            ${active ? 'bg-[#80665c] text-white' : 'bg-[#f3ece8] text-[#95756b]'}
-                          `}
+                          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[17px] transition-all ${active ? 'bg-[#80665c] text-white' : 'bg-[#f3ece8] text-[#95756b]'} `}
                         >
                           {active ? (
                             <Check size={18} strokeWidth={2} />
@@ -325,20 +294,15 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
 
                         {/* Checkbox */}
                         <div
-                          className={`
-                            flex h-5 w-5 shrink-0 items-center justify-center
-                            rounded-full border
-                            transition-all
-                            ${
-                              active ? 'border-[#80665c] bg-[#80665c]' : 'border-[#d8c9c3] bg-white'
-                            }
-                          `}
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-all ${
+                            active ? 'border-[#80665c] bg-[#80665c]' : 'border-[#d8c9c3] bg-white'
+                          } `}
                         >
                           {active && <Check size={11} className="text-white" strokeWidth={2.5} />}
                         </div>
                       </div>
                     </button>
-                  )
+                  );
                 })}
               </div>
 
@@ -372,18 +336,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
               <button
                 type="button"
                 onClick={next}
-                className="
-                  group mt-5 flex h-[56px] w-full
-                  items-center justify-center gap-2
-                  rounded-[18px]
-                  bg-[#3f332f]
-                  text-[12px] font-bold text-white
-                  shadow-[0_18px_35px_-18px_rgba(45,32,27,.8)]
-                  transition-all
-                  hover:-translate-y-0.5
-                  hover:bg-[#342a27]
-                  active:scale-[.985]
-                "
+                className="group mt-5 flex h-[56px] w-full items-center justify-center gap-2 rounded-[18px] bg-[#3f332f] text-[12px] font-bold text-white shadow-[0_18px_35px_-18px_rgba(45,32,27,.8)] transition-all hover:-translate-y-0.5 hover:bg-[#342a27] active:scale-[.985]"
               >
                 Escolher data e horário
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
@@ -400,13 +353,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
               <button
                 type="button"
                 onClick={back}
-                className="
-                  mb-5 flex items-center gap-1.5
-                  text-[10px] font-bold
-                  text-[#80675f]
-                  transition-colors
-                  hover:text-[#4e3d37]
-                "
+                className="mb-5 flex items-center gap-1.5 text-[10px] font-bold text-[#80675f] transition-colors hover:text-[#4e3d37]"
               >
                 <ArrowLeft size={14} strokeWidth={1.8} />
                 Voltar aos procedimentos
@@ -435,29 +382,22 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
 
                 <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
                   {dates.map((date) => {
-                    const active = date.toDateString() === selectedDate.toDateString()
+                    const active = date.toDateString() === selectedDate.toDateString();
 
                     return (
                       <button
                         key={date.toISOString()}
                         type="button"
                         onClick={() => {
-                          setSelectedDate(date)
-                          setSelectedTime('')
-                          setError('')
+                          setSelectedDate(date);
+                          setSelectedTime('');
+                          setError('');
                         }}
-                        className={`
-                          min-w-[55px]
-                          rounded-[17px]
-                          border
-                          py-2.5
-                          transition-all
-                          ${
-                            active
-                              ? 'border-[#80665c] bg-[#80665c] text-white shadow-[0_10px_20px_-13px_rgba(65,45,38,.9)]'
-                              : 'border-transparent bg-[#f5eeeb] text-[#796159] hover:border-[#e2d4ce]'
-                          }
-                        `}
+                        className={`min-w-[55px] rounded-[17px] border py-2.5 transition-all ${
+                          active
+                            ? 'border-[#80665c] bg-[#80665c] text-white shadow-[0_10px_20px_-13px_rgba(65,45,38,.9)]'
+                            : 'border-transparent bg-[#f5eeeb] text-[#796159] hover:border-[#e2d4ce]'
+                        } `}
                       >
                         <span
                           className={`block text-[8px] font-bold uppercase tracking-[0.05em] ${
@@ -477,7 +417,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
                           {MONTHS[date.getMonth()].slice(0, 3)}
                         </span>
                       </button>
-                    )
+                    );
                   })}
                 </div>
               </section>
@@ -505,31 +445,25 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
 
                 <div className="grid grid-cols-3 gap-2">
                   {TIMES.map((time) => {
-                    const active = selectedTime === time
+                    const active = selectedTime === time;
 
                     return (
                       <button
                         key={time}
                         type="button"
                         onClick={() => {
-                          setSelectedTime(time)
-                          setError('')
+                          setSelectedTime(time);
+                          setError('');
                         }}
-                        className={`
-                          h-11 rounded-[15px]
-                          border
-                          text-[11px] font-bold
-                          transition-all
-                          ${
-                            active
-                              ? 'border-[#80665c] bg-[#80665c] text-white shadow-[0_10px_20px_-13px_rgba(65,45,38,.9)]'
-                              : 'border-[#e6ddd8] bg-white text-[#69554e] hover:border-[#cdbcb5] hover:bg-[#faf7f5]'
-                          }
-                        `}
+                        className={`h-11 rounded-[15px] border text-[11px] font-bold transition-all ${
+                          active
+                            ? 'border-[#80665c] bg-[#80665c] text-white shadow-[0_10px_20px_-13px_rgba(65,45,38,.9)]'
+                            : 'border-[#e6ddd8] bg-white text-[#69554e] hover:border-[#cdbcb5] hover:bg-[#faf7f5]'
+                        } `}
                       >
                         {time}
                       </button>
-                    )
+                    );
                   })}
                 </div>
               </section>
@@ -589,18 +523,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
               <button
                 type="button"
                 onClick={confirm}
-                className="
-                  group mt-4 flex h-[56px] w-full
-                  items-center justify-center gap-2
-                  rounded-[18px]
-                  bg-[#3f332f]
-                  text-[12px] font-bold text-white
-                  shadow-[0_18px_35px_-18px_rgba(45,32,27,.8)]
-                  transition-all
-                  hover:-translate-y-0.5
-                  hover:bg-[#342a27]
-                  active:scale-[.985]
-                "
+                className="group mt-4 flex h-[56px] w-full items-center justify-center gap-2 rounded-[18px] bg-[#3f332f] text-[12px] font-bold text-white shadow-[0_18px_35px_-18px_rgba(45,32,27,.8)] transition-all hover:-translate-y-0.5 hover:bg-[#342a27] active:scale-[.985]"
               >
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
                   <Check size={14} strokeWidth={2.2} />
@@ -616,5 +539,5 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
         </div>
       </div>
     </div>
-  )
+  );
 }

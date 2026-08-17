@@ -1,18 +1,19 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { CalendarDays, Check, Clock3, MapPin, Sparkles, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react';
 
-import type { Appointment } from '@/types'
-import { Modal } from '@/components/Modal'
+import { ArrowUpRight, CalendarDays, Check, Clock3, MapPin, Sparkles, Trash2 } from 'lucide-react';
+
+import { Modal } from '@/components/Modal';
+import type { Appointment } from '@/types';
 
 type AppointmentModalProps = {
-  appointment: Appointment | null
-  open: boolean
-  onClose: () => void
-  onSave?: (appointment: Appointment) => void
-  onCancel?: (appointment: Appointment) => void
-}
+  appointment: Appointment | null;
+  open: boolean;
+  onClose: () => void;
+  onSave?: (appointment: Appointment) => void;
+  onCancel?: (appointment: Appointment) => void;
+};
 
 export function AppointmentModal({
   appointment,
@@ -21,38 +22,38 @@ export function AppointmentModal({
   onSave,
   onCancel,
 }: AppointmentModalProps) {
-  const [date, setDate] = useState('')
-  const [time, setTime] = useState('')
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
 
   useEffect(() => {
-    if (!appointment) return
+    if (!appointment) return;
 
-    const appointmentDate = new Date(appointment.date)
+    const appointmentDate = new Date(appointment.date);
 
-    setDate(appointmentDate.toISOString().slice(0, 10))
+    setDate(appointmentDate.toISOString().slice(0, 10));
 
     setTime(
       appointmentDate.toLocaleTimeString('pt-BR', {
         hour: '2-digit',
         minute: '2-digit',
       }),
-    )
-  }, [appointment])
+    );
+  }, [appointment]);
 
-  if (!appointment) return null
+  if (!appointment) return null;
 
   function handleSave() {
-    if (!onSave || !appointment || !date || !time) return
+    if (!onSave || !appointment || !date || !time) return;
 
-    const [year, month, day] = date.split('-').map(Number)
-    const [hours, minutes] = time.split(':').map(Number)
+    const [year, month, day] = date.split('-').map(Number);
+    const [hours, minutes] = time.split(':').map(Number);
 
-    const newDate = new Date(year, month - 1, day, hours, minutes, 0, 0)
+    const newDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
 
     onSave({
       ...appointment,
       date: newDate,
-    })
+    });
   }
 
   return (
@@ -138,21 +139,43 @@ export function AppointmentModal({
           />
         </div>
 
-        {/* Location */}
         {appointment.local && (
-          <div className="flex items-center gap-3 rounded-xl bg-[#f4ece8] px-4 py-3.5">
-            <MapPin size={16} className="shrink-0 text-[#98766b]" />
+          <button
+            type="button"
+            onClick={() => {
+              const destination = encodeURIComponent(appointment.local ?? '');
+              window.open(
+                `https://www.google.com/maps/search/?api=1&query=${destination}`,
+                '_blank',
+                'noopener,noreferrer',
+              );
+            }}
+            className="group flex w-full items-center gap-3 rounded-xl bg-[#f4ece8] px-4 py-3.5 text-left transition-all hover:bg-[#efe4df] active:scale-[0.99]"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] bg-white/70 text-[#98766b]">
+              <MapPin size={16} strokeWidth={1.7} />
+            </div>
 
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#ad958b]">
-                Local
+                Local do atendimento
               </p>
 
-              <p className="mt-0.5 truncate text-xs font-medium text-[#68534b]">
+              <p className="mt-0.5 truncate text-xs font-semibold text-[#68534b]">
                 {appointment.local}
               </p>
+
+              <div className="mt-1 flex items-center gap-1.5">
+                <span className="text-[9px] font-bold text-[#98766b]">Ver como chegar</span>
+
+                <ArrowUpRight
+                  size={11}
+                  strokeWidth={2}
+                  className="text-[#98766b] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                />
+              </div>
             </div>
-          </div>
+          </button>
         )}
 
         {/* Cancel */}
@@ -174,5 +197,5 @@ export function AppointmentModal({
         )}
       </div>
     </Modal>
-  )
+  );
 }

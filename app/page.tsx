@@ -1,54 +1,76 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import LoginScreen from '@/components/LoginScreen'
-import SignupScreen from '@/components/SignupScreen'
-import HomeScreen from '@/components/HomeScreen'
-import NewAppointmentSheet from '@/components/NewAppointmentSheet'
-import type { Appointment, LoginUser, SignupUser, User } from '@/types'
+import { useState } from 'react';
 
-function seedAppointments(): Appointment[] {
-  const mk = (
-    h: number,
-    m: number,
+import HomeScreen from '@/components/HomeScreen/page';
+import LoginScreen from '@/components/LoginScreen';
+import NewAppointmentSheet from '@/components/NewAppointmentSheet';
+import SignupScreen from '@/components/SignupScreen';
+import type { Appointment, LoginUser, SignupUser, User } from '@/types';
+
+type Screen = 'login' | 'signup' | 'home';
+
+function createSeedAppointments(): Appointment[] {
+  const createAppointment = (
+    hour: number,
+    minute: number,
     title: string,
     local: string,
-    categoria: 'Autocuidado',
-    cor: 'rosa',
   ): Appointment => {
-    const d = new Date()
-    d.setHours(h, m, 0, 0)
-    return { id: Math.random(), title, date: d, local, categoria, cor }
-  }
+    const date = new Date();
+
+    date.setHours(hour, minute, 0, 0);
+
+    return {
+      id: Math.random(),
+      title,
+      date,
+      local,
+      categoria: 'Autocuidado',
+      cor: 'rosa',
+    };
+  };
+
   return [
-    mk(10, 0, 'Limpeza de pele', 'Studio Bella', 'Autocuidado', 'rosa'),
-    mk(15, 30, 'Design de sobrancelhas', 'Studio Bella', 'Autocuidado', 'rosa'),
-  ]
+    createAppointment(10, 0, 'Limpeza de pele', 'Studio Bella'),
+    createAppointment(15, 30, 'Design de sobrancelhas', 'Studio Bella'),
+  ];
 }
 
 export default function Page() {
-  type Screen = 'login' | 'signup' | 'home'
+  const [screen, setScreen] = useState<Screen>('login');
+  const [user, setUser] = useState<User | null>(null);
+  const [showNewAppointment, setShowNewAppointment] = useState(false);
 
-  const [screen, setScreen] = useState<Screen>('login')
-  const [user, setUser] = useState<User | null>(null)
-  const [showNew, setShowNew] = useState<boolean>(false)
-  const [appointments, setAppointments] = useState<Appointment[]>(seedAppointments)
+  const [appointments, setAppointments] = useState<Appointment[]>(createSeedAppointments);
 
-  function handleLogin(u: LoginUser) {
-    setUser(u)
-    setScreen('home')
+  function handleLogin(user: LoginUser) {
+    setUser(user);
+    setScreen('home');
   }
-  function handleCreated(u: SignupUser) {
-    setUser(u)
-    setScreen('home')
+
+  function handleSignup(user: SignupUser) {
+    setUser(user);
+    setScreen('home');
   }
+
   function handleLogout() {
-    setUser(null)
-    setScreen('login')
+    setUser(null);
+    setScreen('login');
   }
-  function handleSaveAppointment(appt: Appointment) {
-    setAppointments((prev) => [...prev, appt])
-    setShowNew(false)
+
+  function openNewAppointment() {
+    setShowNewAppointment(true);
+  }
+
+  function closeNewAppointment() {
+    setShowNewAppointment(false);
+  }
+
+  function handleSaveAppointment(appointment: Appointment) {
+    setAppointments((current) => [...current, appointment]);
+
+    closeNewAppointment();
   }
 
   return (
@@ -56,20 +78,23 @@ export default function Page() {
       {screen === 'login' && (
         <LoginScreen onLogin={handleLogin} goSignup={() => setScreen('signup')} />
       )}
+
       {screen === 'signup' && (
-        <SignupScreen onCreated={handleCreated} goBack={() => setScreen('login')} />
+        <SignupScreen onCreated={handleSignup} goBack={() => setScreen('login')} />
       )}
+
       {screen === 'home' && user && (
         <HomeScreen
           user={user}
           appointments={appointments}
           onLogout={handleLogout}
-          openNew={() => setShowNew(true)}
+          openNew={openNewAppointment}
         />
       )}
-      {showNew && (
-        <NewAppointmentSheet onClose={() => setShowNew(false)} onSave={handleSaveAppointment} />
+
+      {showNewAppointment && (
+        <NewAppointmentSheet onClose={closeNewAppointment} onSave={handleSaveAppointment} />
       )}
     </main>
-  )
+  );
 }

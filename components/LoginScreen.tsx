@@ -1,173 +1,173 @@
-'use client'
+'use client';
 
-import { useState, type FormEvent } from 'react'
-import { ArrowRight, Eye, EyeOff, Lock, ShieldCheck, User } from 'lucide-react'
-import { Sparkle, maskCPF } from './decor'
-import type { LoginUser } from '@/types'
+import { type FormEvent, useState } from 'react';
+
+import { ArrowRight, Eye, EyeOff, Lock, ShieldCheck, User } from 'lucide-react';
+
+import type { LoginUser } from '@/types';
+
+import { Sparkle, maskCPF } from './decor';
 
 type LoginScreenProps = {
-  onLogin: (user: LoginUser) => void
-  goSignup: () => void
-}
+  onLogin: (user: LoginUser) => void;
+  goSignup: () => void;
+};
 
 export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
-  const [cpf, setCpf] = useState('')
-  const [senha, setSenha] = useState('')
-  const [showSenha, setShowSenha] = useState(false)
-  const [erro, setErro] = useState('')
+  const [cpf, setCpf] = useState('');
+  const [senha, setSenha] = useState('');
+  const [showSenha, setShowSenha] = useState(false);
+  const [erro, setErro] = useState('');
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+    e.preventDefault();
 
     if (cpf.replace(/\D/g, '').length !== 11) {
-      setErro('Digite um CPF válido, com os 11 números.')
-      return
+      setErro('Digite um CPF válido, com os 11 números.');
+      return;
     }
 
     if (senha.length < 4) {
-      setErro('A senha precisa ter pelo menos 4 caracteres.')
-      return
+      setErro('A senha precisa ter pelo menos 4 caracteres.');
+      return;
     }
 
-    setErro('')
-    onLogin({ cpf, nome: 'Rebeca' })
+    setErro('');
+    onLogin({ cpf, nome: 'Rebeca' });
   }
 
   return (
-    <main className="min-h-screen bg-[#fbf8f6] text-[#403735] relative overflow-hidden">
-      <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full bg-[#ead8d2]/50 blur-3xl" />
-      <div className="absolute -bottom-40 -left-32 w-96 h-96 rounded-full bg-[#e8d7df]/40 blur-3xl" />
+    <main className="relative min-h-screen overflow-hidden bg-[#fbf8f6] text-[#403735]">
+      <div className="absolute -right-32 -top-32 h-80 w-80 rounded-full bg-[#ead8d2]/50 blur-3xl" />
+      <div className="absolute -bottom-40 -left-32 h-96 w-96 rounded-full bg-[#e8d7df]/40 blur-3xl" />
 
-      <div className="relative z-10 min-h-screen flex flex-col lg:flex-row">
-        <section className="hidden lg:flex lg:w-[46%] xl:w-1/2 relative items-center justify-center p-12">
+      <div className="relative z-10 flex min-h-screen flex-col lg:flex-row">
+        <section className="relative hidden items-center justify-center p-12 lg:flex lg:w-[46%] xl:w-1/2">
           <div className="absolute inset-8 rounded-[40px] bg-[#efe3de]" />
 
           <div className="relative w-full max-w-lg">
-            <div className="relative rounded-[36px] overflow-hidden bg-[#e6d4cd] aspect-[4/5] shadow-[0_30px_80px_-30px_rgba(91,63,55,0.35)]">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[36px] bg-[#e6d4cd] shadow-[0_30px_80px_-30px_rgba(91,63,55,0.35)]">
               <div className="absolute inset-0 bg-gradient-to-br from-[#eadbd5] via-[#e8d8d2] to-[#d9c4bc]" />
 
-              <div className="absolute top-10 left-10 w-28 h-28 rounded-full bg-white/30 blur-xl" />
-              <div className="absolute bottom-16 right-8 w-40 h-40 rounded-full bg-[#f7eee9]/40 blur-2xl" />
+              <div className="absolute left-10 top-10 h-28 w-28 rounded-full bg-white/30 blur-xl" />
+              <div className="absolute bottom-16 right-8 h-40 w-40 rounded-full bg-[#f7eee9]/40 blur-2xl" />
 
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-52 h-52 rounded-full border border-white/50 flex items-center justify-center">
-                  <div className="w-40 h-40 rounded-full bg-[#f7eee9]/70 backdrop-blur-sm flex items-center justify-center shadow-xl">
+                <div className="flex h-52 w-52 items-center justify-center rounded-full border border-white/50">
+                  <div className="flex h-40 w-40 items-center justify-center rounded-full bg-[#f7eee9]/70 shadow-xl backdrop-blur-sm">
                     <div className="text-center">
-                      <div className="text-[#9d766a] text-5xl font-serif italic">A</div>
-                      <div className="text-[#9d766a] text-[10px] tracking-[0.35em] uppercase mt-2">
-                        beauty
-                      </div>
+                      <div className="font-serif text-5xl italic text-[#9d766a]">M</div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="absolute bottom-8 left-8 right-8 bg-white/65 backdrop-blur-md rounded-3xl p-5 border border-white/60">
-                <p className="text-[#765a51] text-xs uppercase tracking-[0.22em] font-medium">
+              <div className="absolute bottom-8 left-8 right-8 rounded-3xl border border-white/60 bg-white/65 p-5 backdrop-blur-md">
+                <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#765a51]">
                   seu momento
                 </p>
 
-                <p className="font-serif text-2xl text-[#4d3c37] mt-2">
+                <p className="mt-2 font-serif text-2xl text-[#4d3c37]">
                   Cuidar de você também faz parte da rotina.
                 </p>
               </div>
             </div>
 
-            <div className="absolute -bottom-5 -right-5 w-20 h-20 rounded-3xl bg-[#fffaf8] shadow-xl flex items-center justify-center">
+            <div className="absolute -bottom-5 -right-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-[#fffaf8] shadow-xl">
               <Sparkle />
             </div>
           </div>
         </section>
 
-        <section className="flex-1 flex items-center justify-center px-6 py-10 sm:px-10 lg:px-16">
+        <section className="flex flex-1 items-center justify-center px-6 py-10 sm:px-10 lg:px-16">
           <div className="w-full max-w-md">
-            <div className="lg:hidden flex justify-center mb-10">
+            <div className="mb-10 flex justify-center lg:hidden">
               <div className="text-center">
                 <p className="mt-4 text-[10px] uppercase tracking-[0.35em] text-[#a78378]">
-                  beauty & care
+                  {/*beauty & care*/}
                 </p>
               </div>
             </div>
 
             <div className="mb-8">
-              <p className="text-[11px] uppercase tracking-[0.28em] text-[#a78378] font-semibold">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#a78378]">
                 Bem-vinda de volta
               </p>
 
-              <h1 className="font-serif text-4xl sm:text-5xl text-[#3e3431] mt-3 leading-tight">
+              <h1 className="mt-3 font-serif text-4xl leading-tight text-[#3e3431] sm:text-5xl">
                 Seu momento
                 <br />
                 começa aqui.
               </h1>
 
-              <p className="text-sm text-[#8f7b75] mt-4 leading-relaxed max-w-sm">
+              <p className="mt-4 max-w-sm text-sm leading-relaxed text-[#8f7b75]">
                 Entre na sua conta para acompanhar seus agendamentos e continuar cuidando de você.
               </p>
             </div>
 
             <form
               onSubmit={handleSubmit}
-              className="bg-white rounded-[30px] border border-[#eee4df] shadow-[0_20px_60px_-30px_rgba(76,55,48,0.25)] p-6 sm:p-8"
+              className="rounded-[30px] border border-[#eee4df] bg-white p-6 shadow-[0_20px_60px_-30px_rgba(76,55,48,0.25)] sm:p-8"
             >
               <div>
-                <label className="block text-[11px] uppercase tracking-[0.18em] font-semibold text-[#79665f] mb-2">
+                <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#79665f]">
                   CPF
                 </label>
 
-                <div className="group flex items-center gap-3 rounded-2xl border border-[#e9dfda] bg-[#fcfaf9] px-4 h-14 transition-all focus-within:border-[#b99386] focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgba(185,147,134,0.08)]">
-                  <div className="w-8 h-8 rounded-xl bg-[#f1e7e2] flex items-center justify-center shrink-0">
+                <div className="group flex h-14 items-center gap-3 rounded-2xl border border-[#e9dfda] bg-[#fcfaf9] px-4 transition-all focus-within:border-[#b99386] focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgba(185,147,134,0.08)]">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f1e7e2]">
                     <User size={16} className="text-[#9b766b]" />
                   </div>
 
                   <input
                     value={cpf}
                     onChange={(e) => {
-                      setCpf(maskCPF(e.target.value))
-                      setErro('')
+                      setCpf(maskCPF(e.target.value));
+                      setErro('');
                     }}
                     placeholder="000.000.000-00"
                     inputMode="numeric"
                     autoComplete="username"
-                    className="w-full bg-transparent outline-none text-sm text-[#453a36] placeholder:text-[#c5b5ae]"
+                    className="w-full bg-transparent text-sm text-[#453a36] outline-none placeholder:text-[#c5b5ae]"
                   />
                 </div>
               </div>
 
               <div className="mt-5">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-[11px] uppercase tracking-[0.18em] font-semibold text-[#79665f]">
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#79665f]">
                     Senha
                   </label>
 
                   <button
                     type="button"
-                    className="text-[11px] font-medium text-[#a17d72] hover:text-[#795b52] transition-colors"
+                    className="text-[11px] font-medium text-[#a17d72] transition-colors hover:text-[#795b52]"
                   >
                     Esqueci minha senha
                   </button>
                 </div>
 
-                <div className="group flex items-center gap-3 rounded-2xl border border-[#e9dfda] bg-[#fcfaf9] px-4 h-14 transition-all focus-within:border-[#b99386] focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgba(185,147,134,0.08)]">
-                  <div className="w-8 h-8 rounded-xl bg-[#f1e7e2] flex items-center justify-center shrink-0">
+                <div className="group flex h-14 items-center gap-3 rounded-2xl border border-[#e9dfda] bg-[#fcfaf9] px-4 transition-all focus-within:border-[#b99386] focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgba(185,147,134,0.08)]">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f1e7e2]">
                     <Lock size={16} className="text-[#9b766b]" />
                   </div>
 
                   <input
                     value={senha}
                     onChange={(e) => {
-                      setSenha(e.target.value)
-                      setErro('')
+                      setSenha(e.target.value);
+                      setErro('');
                     }}
                     type={showSenha ? 'text' : 'password'}
                     placeholder="Digite sua senha"
                     autoComplete="current-password"
-                    className="w-full bg-transparent outline-none text-sm text-[#453a36] placeholder:text-[#c5b5ae]"
+                    className="w-full bg-transparent text-sm text-[#453a36] outline-none placeholder:text-[#c5b5ae]"
                   />
 
                   <button
                     type="button"
                     onClick={() => setShowSenha((s) => !s)}
-                    className="w-8 h-8 rounded-xl flex items-center justify-center text-[#a68b83] hover:bg-[#f1e7e2] hover:text-[#795b52] transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-xl text-[#a68b83] transition-colors hover:bg-[#f1e7e2] hover:text-[#795b52]"
                     aria-label={showSenha ? 'Ocultar senha' : 'Mostrar senha'}
                   >
                     {showSenha ? <EyeOff size={17} /> : <Eye size={17} />}
@@ -176,8 +176,8 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
               </div>
 
               {erro && (
-                <div className="mt-4 flex items-start gap-3 rounded-2xl bg-[#fbefed] border border-[#f1d9d4] px-4 py-3">
-                  <div className="w-5 h-5 rounded-full bg-[#d98f82] text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                <div className="mt-4 flex items-start gap-3 rounded-2xl border border-[#f1d9d4] bg-[#fbefed] px-4 py-3">
+                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d98f82] text-[10px] text-white">
                     !
                   </div>
 
@@ -187,33 +187,33 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
 
               <button
                 type="submit"
-                className="group w-full mt-6 h-14 rounded-2xl bg-[#806057] hover:bg-[#71534b] text-white font-medium text-sm shadow-[0_12px_25px_-10px_rgba(92,68,60,0.55)] transition-all active:scale-[0.985] flex items-center justify-center gap-3"
+                className="group mt-6 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[#806057] text-sm font-medium text-white shadow-[0_12px_25px_-10px_rgba(92,68,60,0.55)] transition-all hover:bg-[#71534b] active:scale-[0.985]"
               >
                 <span>Entrar na minha conta</span>
 
-                <span className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center transition-transform group-hover:translate-x-0.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform group-hover:translate-x-0.5">
                   <ArrowRight size={15} />
                 </span>
               </button>
-              <div className="flex items-center gap-4 my-7">
-                <div className="h-px bg-[#eee5e1] flex-1" />
+              <div className="my-7 flex items-center gap-4">
+                <div className="h-px flex-1 bg-[#eee5e1]" />
 
                 <span className="text-[10px] uppercase tracking-[0.18em] text-[#b5a49e]">ou</span>
 
-                <div className="h-px bg-[#eee5e1] flex-1" />
+                <div className="h-px flex-1 bg-[#eee5e1]" />
               </div>
 
               <button
                 type="button"
                 onClick={goSignup}
-                className="group w-full h-12 rounded-2xl border border-[#dfd1cb] text-[#70564e] hover:bg-[#fbf7f5] transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                className="group flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-[#dfd1cb] text-sm font-medium text-[#70564e] transition-colors hover:bg-[#fbf7f5]"
               >
                 Criar minha conta
                 <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
               </button>
             </form>
 
-            <div className="flex items-center justify-center gap-2 mt-6 text-[#aa9790]">
+            <div className="mt-6 flex items-center justify-center gap-2 text-[#aa9790]">
               <ShieldCheck size={14} />
 
               <p className="text-[10px] tracking-wide">
@@ -224,5 +224,5 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
         </section>
       </div>
     </main>
-  )
+  );
 }

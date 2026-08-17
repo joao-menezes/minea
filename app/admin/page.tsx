@@ -4,13 +4,13 @@ import {
   CalendarDays,
   Clock3,
   DollarSign,
+  type LucideIcon,
   Sparkles,
   TrendingUp,
   Users,
-  type LucideIcon,
-} from 'lucide-react'
+} from 'lucide-react';
 
-import { AdminShell } from '@/components/admin/AdminShell'
+import { AdminShell } from '@/components/admin/AdminShell';
 
 const APPOINTMENTS = [
   {
@@ -37,7 +37,7 @@ const APPOINTMENTS = [
     service: 'Design + Henna',
     status: 'Confirmado',
   },
-]
+];
 
 const SERVICES = [
   {
@@ -56,7 +56,7 @@ const SERVICES = [
     name: 'Design de Sombrancelha',
     percentage: 14,
   },
-]
+];
 
 export default function AdminPage() {
   return (
@@ -64,7 +64,7 @@ export default function AdminPage() {
       <main className="min-h-screen bg-[#faf6f3] text-[#6b5850]">
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
           <div className="absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#f0e0d7]/45 blur-3xl" />
-          <div className="absolute top-[38%] -left-40 h-96 w-96 rounded-full bg-[#f4ede6]/60 blur-3xl" />
+          <div className="absolute -left-40 top-[38%] h-96 w-96 rounded-full bg-[#f4ede6]/60 blur-3xl" />
           <div className="absolute bottom-0 right-[18%] h-80 w-80 rounded-full bg-[#e9d9d0]/25 blur-3xl" />
         </div>
 
@@ -358,7 +358,7 @@ export default function AdminPage() {
         </div>
       </main>
     </AdminShell>
-  )
+  );
 }
 
 function PlusIcon() {
@@ -376,16 +376,16 @@ function PlusIcon() {
       <path d="M12 5v14" />
       <path d="M5 12h14" />
     </svg>
-  )
+  );
 }
 
 type StatCardProps = {
-  label: string
-  value: string
-  description: string
-  trend: string
-  icon: LucideIcon
-}
+  label: string;
+  value: string;
+  description: string;
+  trend: string;
+  icon: LucideIcon;
+};
 
 function StatCard({ label, value, description, trend, icon: Icon }: StatCardProps) {
   return (
@@ -408,5 +408,5 @@ function StatCard({ label, value, description, trend, icon: Icon }: StatCardProp
 
       <p className="mt-1 text-[9px] text-[#b49b90]">{description}</p>
     </div>
-  )
+  );
 }

@@ -1,14 +1,16 @@
-'use client'
+'use client';
 
-import { Bell, Menu, Search } from 'lucide-react'
+import { Menu, Search } from 'lucide-react';
+
+import { AdminNotifications } from './AdminNotifications';
 
 type AdminHeaderProps = {
-  onMenuClick?: () => void
-}
+  onMenuClick?: () => void;
+};
 
 export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   return (
-    <header className="flex h-[76px] items-center justify-between border-b border-[#e9e1dc] bg-white/80 px-5 backdrop-blur-xl lg:px-8">
+    <header className="relative z-[100] flex h-[76px] items-center justify-between border-b border-[#e9e1dc] bg-white/80 px-4 backdrop-blur-xl sm:px-5 lg:px-8">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -37,21 +39,13 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          aria-label="Notificações"
-          className="relative flex h-10 w-10 items-center justify-center rounded-xl text-[#806f68] transition hover:bg-[#f5efec]"
-        >
-          <Bell size={17} strokeWidth={1.7} />
-
-          <span className="absolute right-2.5 top-2 h-1.5 w-1.5 rounded-full bg-[#a86f64]" />
-        </button>
+        <AdminNotifications />
 
         <div className="hidden h-8 w-px bg-[#e9e1dc] sm:block" />
 
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#c9afa5] text-[10px] font-bold text-white">
-            JM
+            RE
           </div>
 
           <div className="hidden sm:block">
@@ -62,5 +56,5 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
         </div>
       </div>
     </header>
-  )
+  );
 }

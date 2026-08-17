@@ -1,30 +1,31 @@
-'use client'
+'use client';
 
-import { type ReactNode, useEffect, useId, useRef } from 'react'
-import { X } from 'lucide-react'
+import { type ReactNode, useEffect, useId, useRef } from 'react';
 
-type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full'
+import { X } from 'lucide-react';
+
+type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
 type ModalProps = {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
 
-  children: ReactNode
+  children: ReactNode;
 
-  title?: string
-  description?: string
+  title?: string;
+  description?: string;
 
-  footer?: ReactNode
+  footer?: ReactNode;
 
-  size?: ModalSize
+  size?: ModalSize;
 
-  closeOnOverlayClick?: boolean
-  closeOnEscape?: boolean
-  showCloseButton?: boolean
+  closeOnOverlayClick?: boolean;
+  closeOnEscape?: boolean;
+  showCloseButton?: boolean;
 
-  className?: string
-  contentClassName?: string
-}
+  className?: string;
+  contentClassName?: string;
+};
 
 const SIZE_CLASSES: Record<ModalSize, string> = {
   sm: 'max-w-sm',
@@ -32,7 +33,7 @@ const SIZE_CLASSES: Record<ModalSize, string> = {
   lg: 'max-w-lg',
   xl: 'max-w-xl',
   full: 'max-w-5xl',
-}
+};
 
 export function Modal({
   open,
@@ -48,55 +49,55 @@ export function Modal({
   className = '',
   contentClassName = '',
 }: ModalProps) {
-  const titleId = useId()
-  const descriptionId = useId()
-  const modalRef = useRef<HTMLDivElement>(null)
+  const titleId = useId();
+  const descriptionId = useId();
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
 
-    const previousOverflow = document.body.style.overflow
+    const previousOverflow = document.body.style.overflow;
 
-    document.body.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden';
 
     return () => {
-      document.body.style.overflow = previousOverflow
-    }
-  }, [open])
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
 
   useEffect(() => {
-    if (!open || !closeOnEscape) return
+    if (!open || !closeOnEscape) return;
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        onClose()
+        onClose();
       }
     }
 
-    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [open, closeOnEscape, onClose])
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, closeOnEscape, onClose]);
 
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
 
     const timer = window.setTimeout(() => {
-      modalRef.current?.focus()
-    }, 0)
+      modalRef.current?.focus();
+    }, 0);
 
     return () => {
-      window.clearTimeout(timer)
-    }
-  }, [open])
+      window.clearTimeout(timer);
+    };
+  }, [open]);
 
-  if (!open) return null
+  if (!open) return null;
 
   function handleOverlayClick(event: React.MouseEvent<HTMLDivElement>) {
     if (closeOnOverlayClick && event.target === event.currentTarget) {
-      onClose()
+      onClose();
     }
   }
 
@@ -167,5 +168,5 @@ export function Modal({
         )}
       </div>
     </div>
-  )
+  );
 }

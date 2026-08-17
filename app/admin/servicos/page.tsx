@@ -1,6 +1,7 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react';
+
 import {
   ArrowUpRight,
   CalendarDays,
@@ -13,22 +14,22 @@ import {
   TrendingUp,
   Users,
   X,
-} from 'lucide-react'
+} from 'lucide-react';
 
-import { AdminShell } from '@/components/admin/AdminShell'
+import { AdminShell } from '@/components/admin/AdminShell';
 
 type Service = {
-  id: number
-  name: string
-  category: string
-  description: string
-  duration: string
-  price: number
-  appointments: number
-  clients: number
-  active: boolean
-  popular?: boolean
-}
+  id: number;
+  name: string;
+  category: string;
+  description: string;
+  duration: string;
+  price: number;
+  appointments: number;
+  clients: number;
+  active: boolean;
+  popular?: boolean;
+};
 
 const SERVICES: Service[] = [
   {
@@ -77,38 +78,38 @@ const SERVICES: Service[] = [
     clients: 19,
     active: true,
   },
-]
+];
 
-const CATEGORIES = ['Todos', 'Sobrancelhas', 'Facial', 'Cílios']
+const CATEGORIES = ['Todos', 'Sobrancelhas', 'Facial', 'Cílios'];
 
 export default function AdminServicesPage() {
-  const [search, setSearch] = useState('')
-  const [category, setCategory] = useState('Todos')
-  const [selectedService, setSelectedService] = useState<Service | null>(null)
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('Todos');
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
 
-  const insight = false
+  const insight = false;
 
   const filteredServices = useMemo(() => {
-    const normalizedSearch = search.toLowerCase().trim()
+    const normalizedSearch = search.toLowerCase().trim();
 
     return SERVICES.filter((service) => {
       const matchesSearch =
         !normalizedSearch ||
         service.name.toLowerCase().includes(normalizedSearch) ||
-        service.category.toLowerCase().includes(normalizedSearch)
+        service.category.toLowerCase().includes(normalizedSearch);
 
-      const matchesCategory = category === 'Todos' || service.category === category
+      const matchesCategory = category === 'Todos' || service.category === category;
 
-      return matchesSearch && matchesCategory
-    })
-  }, [search, category])
+      return matchesSearch && matchesCategory;
+    });
+  }, [search, category]);
 
-  const activeServices = SERVICES.filter((service) => service.active).length
+  const activeServices = SERVICES.filter((service) => service.active).length;
 
-  const totalAppointments = SERVICES.reduce((total, service) => total + service.appointments, 0)
+  const totalAppointments = SERVICES.reduce((total, service) => total + service.appointments, 0);
 
   const averagePrice =
-    SERVICES.reduce((total, service) => total + service.price, 0) / SERVICES.length
+    SERVICES.reduce((total, service) => total + service.price, 0) / SERVICES.length;
 
   return (
     <AdminShell>
@@ -117,7 +118,7 @@ export default function AdminServicesPage() {
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
           <div className="absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#f0e0d7]/45 blur-3xl" />
 
-          <div className="absolute top-[38%] -left-40 h-96 w-96 rounded-full bg-[#f4ede6]/60 blur-3xl" />
+          <div className="absolute -left-40 top-[38%] h-96 w-96 rounded-full bg-[#f4ede6]/60 blur-3xl" />
 
           <div className="absolute bottom-0 right-[18%] h-80 w-80 rounded-full bg-[#e9d9d0]/25 blur-3xl" />
         </div>
@@ -247,7 +248,7 @@ export default function AdminServicesPage() {
             {/* Categories */}
             <div className="mt-6 flex gap-2 overflow-x-auto pb-1">
               {CATEGORIES.map((item) => {
-                const active = category === item
+                const active = category === item;
 
                 return (
                   <button
@@ -263,7 +264,7 @@ export default function AdminServicesPage() {
                   >
                     {item}
                   </button>
-                )
+                );
               })}
             </div>
 
@@ -445,7 +446,7 @@ export default function AdminServicesPage() {
         )}
       </main>
     </AdminShell>
-  )
+  );
 }
 
 function ServiceCard({ service, onClick }: { service: Service; onClick: () => void }) {
@@ -516,7 +517,7 @@ function ServiceCard({ service, onClick }: { service: Service; onClick: () => vo
         </div>
       </div>
     </button>
-  )
+  );
 }
 
 function ServiceStat({
@@ -525,10 +526,10 @@ function ServiceStat({
   description,
   icon: Icon,
 }: {
-  label: string
-  value: string
-  description: string
-  icon: typeof Sparkles
+  label: string;
+  value: string;
+  description: string;
+  icon: typeof Sparkles;
 }) {
   return (
     <div className="group rounded-[25px] border border-white/70 bg-white/85 p-4 shadow-[0_18px_40px_-30px_rgba(64,46,40,.28)] backdrop-blur transition-all hover:-translate-y-0.5 lg:p-5">
@@ -544,7 +545,7 @@ function ServiceStat({
 
       <p className="mt-1 text-[9px] text-[#b49b90]">{description}</p>
     </div>
-  )
+  );
 }
 
 function ServiceDetail({ label, value }: { label: string; value: string }) {
@@ -554,5 +555,5 @@ function ServiceDetail({ label, value }: { label: string; value: string }) {
 
       <p className="mt-1.5 truncate text-[11px] font-semibold text-[#80685e]">{value}</p>
     </div>
-  )
+  );
 }

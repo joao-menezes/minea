@@ -1,6 +1,7 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react';
+
 import {
   ArrowLeft,
   ArrowRight,
@@ -8,7 +9,7 @@ import {
   Check,
   ChevronDown,
   Clock3,
-  LucideIcon,
+  DollarSign,
   MapPin,
   MoreHorizontal,
   Plus,
@@ -16,23 +17,24 @@ import {
   Sparkles,
   UserRound,
   X,
-} from 'lucide-react'
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
-import { AdminShell } from '@/components/admin/AdminShell'
+import { AdminShell } from '@/components/admin/AdminShell';
 
-type AppointmentStatus = 'confirmed' | 'pending' | 'cancelled'
+type AppointmentStatus = 'confirmed' | 'pending' | 'cancelled';
 
 type Appointment = {
-  id: string
-  time: string
-  duration: string
-  client: string
-  service: string
-  professional: string
-  status: AppointmentStatus
-  price: string
-  location?: string
-}
+  id: string;
+  time: string;
+  duration: string;
+  client: string;
+  service: string;
+  professional: string;
+  status: AppointmentStatus;
+  price: string;
+  location?: string;
+};
 
 const APPOINTMENTS: Appointment[] = [
   {
@@ -95,7 +97,7 @@ const APPOINTMENTS: Appointment[] = [
     status: 'pending',
     price: 'R$ 85',
   },
-]
+];
 
 const DAYS = [
   { day: 'SEG', date: 17 },
@@ -105,41 +107,41 @@ const DAYS = [
   { day: 'SEX', date: 21 },
   { day: 'SÁB', date: 22 },
   { day: 'DOM', date: 23 },
-]
+];
 
 const STATUS_LABELS: Record<AppointmentStatus, string> = {
   confirmed: 'Confirmado',
   pending: 'Pendente',
   cancelled: 'Cancelado',
-}
+};
 
 export default function AdminAgendaPage() {
-  const [selectedDay, setSelectedDay] = useState(17)
-  const [statusFilter, setStatusFilter] = useState<'all' | AppointmentStatus>('all')
-  const [search, setSearch] = useState('')
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [selectedDay, setSelectedDay] = useState(17);
+  const [statusFilter, setStatusFilter] = useState<'all' | AppointmentStatus>('all');
+  const [search, setSearch] = useState('');
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
   const filteredAppointments = useMemo(() => {
     return APPOINTMENTS.filter((appointment) => {
-      const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter
+      const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
 
-      const searchValue = search.toLowerCase()
+      const searchValue = search.toLowerCase();
 
       const matchesSearch =
         !search ||
         appointment.client.toLowerCase().includes(searchValue) ||
-        appointment.service.toLowerCase().includes(searchValue)
+        appointment.service.toLowerCase().includes(searchValue);
 
-      return matchesStatus && matchesSearch
-    })
-  }, [search, statusFilter])
+      return matchesStatus && matchesSearch;
+    });
+  }, [search, statusFilter]);
 
   return (
     <AdminShell>
       <main className="min-h-screen bg-[#faf6f3] text-[#6b5850]">
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
           <div className="absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#f0e0d7]/45 blur-3xl" />
-          <div className="absolute top-[40%] -left-40 h-96 w-96 rounded-full bg-[#f4ede6]/60 blur-3xl" />
+          <div className="absolute -left-40 top-[40%] h-96 w-96 rounded-full bg-[#f4ede6]/60 blur-3xl" />
           <div className="absolute bottom-0 right-[15%] h-80 w-80 rounded-full bg-[#e9d9d0]/25 blur-3xl" />
         </div>
 
@@ -227,8 +229,8 @@ export default function AdminAgendaPage() {
             {/* DAYS */}
             <div className="mt-5 grid grid-cols-7 gap-1.5 lg:gap-2">
               {DAYS.map((day) => {
-                const selected = selectedDay === day.date
-                const isToday = day.date === 17
+                const selected = selectedDay === day.date;
+                const isToday = day.date === 17;
 
                 return (
                   <button
@@ -257,7 +259,7 @@ export default function AdminAgendaPage() {
                       <span className="absolute bottom-2 h-1 w-1 rounded-full bg-[#d4b6a8]" />
                     )}
                   </button>
-                )
+                );
               })}
             </div>
           </section>
@@ -275,7 +277,6 @@ export default function AdminAgendaPage() {
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row">
-              {/* Search */}
               <div className="relative">
                 <Search
                   size={14}
@@ -290,7 +291,6 @@ export default function AdminAgendaPage() {
                 />
               </div>
 
-              {/* Filter */}
               <div className="relative">
                 <select
                   value={statusFilter}
@@ -355,13 +355,13 @@ export default function AdminAgendaPage() {
                 </h2>
 
                 <div className="mt-7 space-y-4">
-                  <SummaryRow icon={CalendarCheckIcon} label="Agendamentos" value="6" />
+                  <SummaryRow icon={CalendarDays} label="Agendamentos" value="6" />
 
                   <SummaryRow icon={Check} label="Confirmados" value="4" />
 
                   <SummaryRow icon={Clock3} label="Pendentes" value="2" />
 
-                  <SummaryRow icon={DollarSignIcon} label="Faturamento previsto" value="R$ 650" />
+                  <SummaryRow icon={DollarSign} label="Faturamento previsto" value="R$ 650" />
                 </div>
               </div>
 
@@ -416,7 +416,7 @@ export default function AdminAgendaPage() {
         )}
       </main>
     </AdminShell>
-  )
+  );
 }
 
 /* -------------------------------------------------------------------------- */
@@ -427,10 +427,10 @@ function AppointmentRow({
   appointment,
   onClick,
 }: {
-  appointment: Appointment
-  onClick: () => void
+  appointment: Appointment;
+  onClick: () => void;
 }) {
-  const cancelled = appointment.status === 'cancelled'
+  const cancelled = appointment.status === 'cancelled';
 
   return (
     <button
@@ -498,7 +498,7 @@ function AppointmentRow({
         <MoreHorizontal size={15} />
       </span>
     </button>
-  )
+  );
 }
 
 /* -------------------------------------------------------------------------- */
@@ -510,7 +510,7 @@ function StatusBadge({ status }: { status: AppointmentStatus }) {
     confirmed: 'border-[#e2ebe4] bg-[#f1f6f2] text-[#718678]',
     pending: 'border-[#eee0d5] bg-[#faf3ed] text-[#9a775b]',
     cancelled: 'border-[#eee4df] bg-[#f8f3f0] text-[#ae9a91]',
-  }
+  };
 
   return (
     <span
@@ -521,7 +521,7 @@ function StatusBadge({ status }: { status: AppointmentStatus }) {
     >
       {STATUS_LABELS[status]}
     </span>
-  )
+  );
 }
 
 /* -------------------------------------------------------------------------- */
@@ -533,9 +533,9 @@ function SummaryRow({
   label,
   value,
 }: {
-  icon: LucideIcon
-  label: string
-  value: string
+  icon: LucideIcon;
+  label: string;
+  value: string;
 }) {
   return (
     <div className="flex items-center gap-3">
@@ -547,7 +547,7 @@ function SummaryRow({
 
       <span className="text-[11px] font-bold text-[#6b5850]">{value}</span>
     </div>
-  )
+  );
 }
 
 /* -------------------------------------------------------------------------- */
@@ -567,7 +567,7 @@ function EmptyState() {
         Não existem agendamentos que correspondam aos filtros selecionados.
       </p>
     </div>
-  )
+  );
 }
 
 /* -------------------------------------------------------------------------- */
@@ -578,8 +578,8 @@ function AppointmentDetails({
   appointment,
   onClose,
 }: {
-  appointment: Appointment
-  onClose: () => void
+  appointment: Appointment;
+  onClose: () => void;
 }) {
   return (
     <div
@@ -659,7 +659,7 @@ function AppointmentDetails({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function DetailItem({
@@ -667,9 +667,9 @@ function DetailItem({
   label,
   value,
 }: {
-  icon: LucideIcon
-  label: string
-  value: string
+  icon: LucideIcon;
+  label: string;
+  value: string;
 }) {
   return (
     <div className="rounded-[16px] bg-white/65 p-3">
@@ -681,19 +681,5 @@ function DetailItem({
 
       <p className="mt-1 truncate text-[9px] font-semibold text-[#80685e]">{value}</p>
     </div>
-  )
-}
-
-function CalendarCheckIcon({
-  size = 16,
-  strokeWidth = 1.7,
-}: {
-  size?: number
-  strokeWidth?: number
-}) {
-  return <CalendarDays size={size} strokeWidth={strokeWidth} />
-}
-
-function DollarSignIcon({ size = 16, strokeWidth = 1.7 }: { size?: number; strokeWidth?: number }) {
-  return <span className="text-[13px] font-bold leading-none">R$</span>
+  );
 }
