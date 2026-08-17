@@ -22,7 +22,6 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { FinancialStat } from '@/components/admin/financial/FinancialStat';
 import { MoneyBreakdown } from '@/components/admin/financial/MoneyBreakdown';
 import { PaymentMethod } from '@/components/admin/financial/PaymentMethod';
-import { financialMock } from '@/data/financial';
 import { exportFinancialReport } from '@/lib/exportFinancialReport';
 import {
   formatCurrency,
@@ -39,8 +38,8 @@ const PERIODS: Period[] = ['Hoje', '7 dias', 'Este mês', 'Últimos 6 meses'];
 
 const CHART_MAX_VALUE = 20_000;
 
-function formatTransactionDate(date: Date) {
-  return date.toLocaleDateString('pt-BR', {
+function formatTransactionDate(date: string) {
+  return new Date(date).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
   });
@@ -61,12 +60,10 @@ function getPaymentPercentage(
   return methods.find((item) => item.method === method)?.percentage ?? 0;
 }
 
-export default function FinanceiroPage() {
+export default async function FinanceiroPage() {
   const [period, setPeriod] = useState<Period>('Este mês');
 
-  const report = useMemo(() => {
-    return getFinancialReport();
-  }, []);
+  const report = await getFinancialReport();
 
   const margin = useMemo(() => getProfitMargin(report), [report]);
 
@@ -98,10 +95,6 @@ export default function FinanceiroPage() {
         </div>
 
         <div className="relative mx-auto max-w-[1500px] px-5 py-7 lg:px-8 lg:py-9">
-          {/* ================================================================ */}
-          {/* HEADER                                                           */}
-          {/* ================================================================ */}
-
           <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -151,10 +144,6 @@ export default function FinanceiroPage() {
             </div>
           </header>
 
-          {/* ================================================================ */}
-          {/* PERIOD                                                           */}
-          {/* ================================================================ */}
-
           <section className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-2">
               {PERIODS.map((item) => {
@@ -184,15 +173,11 @@ export default function FinanceiroPage() {
             >
               <CalendarDays size={12} />
 
-              {report.period}
+              {report.period.label}
 
               <ChevronRight size={12} />
             </button>
           </section>
-
-          {/* ================================================================ */}
-          {/* STATS                                                            */}
-          {/* ================================================================ */}
 
           <section className="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
             <FinancialStat
@@ -229,15 +214,7 @@ export default function FinanceiroPage() {
             />
           </section>
 
-          {/* ================================================================ */}
-          {/* MAIN GRID                                                        */}
-          {/* ================================================================ */}
-
           <section className="mt-6 grid gap-5 xl:grid-cols-[1.55fr_1fr]">
-            {/* ============================================================ */}
-            {/* REVENUE CHART                                                */}
-            {/* ============================================================ */}
-
             <section className="rounded-[30px] border border-white/70 bg-white/85 p-5 shadow-[0_22px_50px_-34px_rgba(64,46,40,.28)] backdrop-blur lg:p-6">
               <div className="flex items-start justify-between">
                 <div>

@@ -11,6 +11,9 @@ export type FinancialTransaction = {
   value: number;
   date: string;
   method: FinancialPaymentMethod;
+
+  client?: string;
+
   appointmentId?: string;
   clientId?: string;
   serviceId?: string;
@@ -18,22 +21,37 @@ export type FinancialTransaction = {
 
 export type FinancialAppointmentData = {
   date: string;
-  title: string;
-  price?: number;
+  client: string;
+  service: string;
+  value: number;
+  status: string;
 };
 
 export type FinancialPeriod = {
-  startDate?: Date;
-  endDate?: Date;
+  startDate: Date;
+  endDate: Date;
+  label: string;
+};
+
+export type FinancialMonthlyRevenue = {
+  month: string;
+  value: number;
 };
 
 export type FinancialReport = {
   period: FinancialPeriod;
+
   revenue: number;
   expenses: number;
   profit: number;
+
   appointments: number;
   averageTicket: number;
+
+  transactions: FinancialTransaction[];
+
+  monthlyRevenue: FinancialMonthlyRevenue[];
+
   appointmentsData: FinancialAppointmentData[];
 };
 

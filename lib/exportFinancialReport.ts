@@ -1,22 +1,41 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-export type FinancialAppointment = {
-  date: Date | string;
-  client: string;
-  service: string;
-  value: number;
-  status: string;
-};
+import type {
+  FinancialMonthlyRevenue,
+  FinancialPaymentMethod,
+  FinancialTransactionType,
+} from '@/types/financial';
 
 export type FinancialReportData = {
   period: string;
+
   revenue: number;
   expenses: number;
   profit: number;
-  appointments: number;
   averageTicket: number;
-  appointmentsData: FinancialAppointment[];
+  appointments: number;
+
+  transactions: {
+    id: string;
+    date: string;
+    description: string;
+    client: string;
+    method: FinancialPaymentMethod;
+    category: string;
+    value: number;
+    type: FinancialTransactionType;
+  }[];
+
+  monthlyRevenue: FinancialMonthlyRevenue[];
+
+  appointmentsData: {
+    date: string;
+    client: string;
+    service: string;
+    value: number;
+    status: string;
+  }[];
 };
 
 const COLORS = {
@@ -29,20 +48,18 @@ const COLORS = {
   green: [102, 128, 109] as [number, number, number],
 };
 
-function formatCurrency(value: number) {
+function formatCurrency(value: number): string {
   return value.toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
   });
 }
 
-function formatDate(value: Date | string) {
-  const date = value instanceof Date ? value : new Date(value);
-
-  return date.toLocaleDateString('pt-BR');
+function formatDate(value: string): string {
+  return new Date(value).toLocaleDateString('pt-BR');
 }
 
-export function exportFinancialReport(data: FinancialReportData) {
+export function exportFinancialReport(data: FinancialReportData): void {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -84,28 +101,16 @@ export function exportFinancialReport(data: FinancialReportData) {
   let y = 64;
 
   const cards = [
-    {
-      label: 'FATURAMENTO',
-      value: formatCurrency(data.revenue),
-    },
-    {
-      label: 'DESPESAS',
-      value: formatCurrency(data.expenses),
-    },
-    {
-      label: 'LUCRO',
-      value: formatCurrency(data.profit),
-    },
-    {
-      label: 'TICKET MÉDIO',
-      value: formatCurrency(data.averageTicket),
-    },
+    ['FATURAMENTO', data.revenue],
+    ['DESPESAS', data.expenses],
+    ['LUCRO', data.profit],
+    ['TICKET MÉDIO', data.averageTicket],
   ];
 
   const gap = 4;
   const cardWidth = (pageWidth - 30 - gap * 3) / 4;
 
-  cards.forEach((card, index) => {
+  cards.forEach(([label, value], index) => {
     const x = 15 + index * (cardWidth + gap);
 
     doc.setFillColor(...COLORS.white);
@@ -116,12 +121,11 @@ export function exportFinancialReport(data: FinancialReportData) {
     doc.setTextColor(...COLORS.muted);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6.5);
-    doc.text(card.label, x + 5, y + 8);
+    doc.text(String(label), x + 5, y + 8);
 
     doc.setTextColor(...COLORS.dark);
-    doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
-    doc.text(card.value, x + 5, y + 19);
+    doc.text(formatCurrency(Number(value)), x + 5, y + 19);
   });
 
   y += 38;
@@ -132,7 +136,6 @@ export function exportFinancialReport(data: FinancialReportData) {
   doc.text('INDICADORES', 15, y);
 
   doc.setTextColor(...COLORS.dark);
-  doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
   doc.text('Resumo do período', 15, y + 8);
 
@@ -172,6 +175,7 @@ export function exportFinancialReport(data: FinancialReportData) {
 
   autoTable(doc, {
     startY: y,
+
     margin: {
       left: 15,
       right: 15,
@@ -210,18 +214,10 @@ export function exportFinancialReport(data: FinancialReportData) {
     },
 
     columnStyles: {
-      0: {
-        cellWidth: 23,
-      },
-      1: {
-        cellWidth: 38,
-      },
-      2: {
-        cellWidth: 62,
-      },
-      3: {
-        cellWidth: 30,
-      },
+      0: { cellWidth: 23 },
+      1: { cellWidth: 38 },
+      2: { cellWidth: 62 },
+      3: { cellWidth: 30 },
       4: {
         halign: 'right',
         cellWidth: 28,
@@ -232,7 +228,7 @@ export function exportFinancialReport(data: FinancialReportData) {
       if (hookData.section === 'body' && hookData.column.index === 3) {
         const status = String(hookData.cell.raw);
 
-        if (status.toLowerCase().includes('confirm')) {
+        if (status.toLowerCase().includes('conclu')) {
           hookData.cell.styles.textColor = COLORS.green;
           hookData.cell.styles.fontStyle = 'bold';
         }
@@ -253,14 +249,17 @@ export function exportFinancialReport(data: FinancialReportData) {
 
   if (totalY < pageHeight - 35) {
     doc.setFillColor(...COLORS.dark);
+
     doc.roundedRect(15, totalY, pageWidth - 30, 24, 5, 5, 'F');
 
     doc.setTextColor(...COLORS.white);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
+
     doc.text('TOTAL DO PERÍODO', 22, totalY + 9);
 
     doc.setFontSize(13);
+
     doc.text(formatCurrency(data.revenue), pageWidth - 22, totalY + 10, { align: 'right' });
   }
 
@@ -270,6 +269,7 @@ export function exportFinancialReport(data: FinancialReportData) {
     doc.setPage(page);
 
     doc.setDrawColor(...COLORS.border);
+
     doc.line(15, pageHeight - 17, pageWidth - 15, pageHeight - 17);
 
     doc.setTextColor(...COLORS.muted);
