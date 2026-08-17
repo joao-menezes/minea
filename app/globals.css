@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.font-display {
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.font-body {
+  font-family: 'Quicksand', sans-serif;
+}
+
+body {
+  background: linear-gradient(
+          135deg,
+          #fbf2ee 0%,
+          #fdf8f5 48%,
+          #f1edf7 100%
+  );
+
+  min-height: 100vh;
+}
+
+/*@tailwind base;*/
+/*@tailwind components;*/
+/*@tailwind utilities;*/
+
+/*.font-display {*/
+/*  font-family: "Caveat", cursive;*/
+/*}*/
+
+/*.font-body {*/
+/*  font-family: "Quicksand", sans-serif;*/
+/*}*/
+
+.font-editorial {
+  font-family: "Fraunces", serif;
+}
+
+/*.font-sans-premium {*/
+/*  font-family: "Inter", sans-serif;*/
+/*}*/
+
+/*body {*/
+/*  background: linear-gradient(to bottom, #fff5f8, #fdeef4, #fbe4ee);*/
+/*  min-height: 100vh;*/
+/*}*/
