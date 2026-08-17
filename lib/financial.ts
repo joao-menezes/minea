@@ -37,18 +37,18 @@ export async function getFinancialReport(
     .from('transactions')
     .select(
       `
-      id,
-      date,
-      description,
-      client,
-      method,
-      category,
-      value,
-      type,
-      appointment_id,
-      client_id,
-      service_id
-    `,
+        id,
+        date,
+        description,
+        client,
+        method,
+        category,
+        value,
+        type,
+        appointment_id,
+        client_id,
+        service_id
+      `,
     )
     .gte('date', start.toISOString())
     .lte('date', end.toISOString())
@@ -61,11 +61,15 @@ export async function getFinancialReport(
   const transactions: FinancialTransaction[] = (data ?? []).map((transaction) => ({
     id: String(transaction.id),
     date: new Date(transaction.date).toISOString(),
+
     description: String(transaction.description ?? ''),
     client: String(transaction.client ?? ''),
-    method: normalizePaymentMethod(transaction.method),
     category: String(transaction.category ?? ''),
+
+    method: normalizePaymentMethod(transaction.method),
+
     value: Number(transaction.value ?? 0),
+
     type: transaction.type === 'expense' ? 'expense' : 'income',
 
     appointmentId: transaction.appointment_id ? String(transaction.appointment_id) : undefined,
@@ -87,7 +91,7 @@ export async function getFinancialReport(
 
   const averageTicket = appointments > 0 ? revenue / appointments : 0;
 
-  const monthlyRevenue = await getMonthlyRevenue();
+  const [monthlyRevenue] = await Promise.all([getMonthlyRevenue()]);
 
   const appointmentsData: FinancialAppointmentData[] = incomeTransactions.map((transaction) => ({
     date: transaction.date,
