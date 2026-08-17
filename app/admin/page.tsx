@@ -1,3 +1,7 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
 import {
   ArrowUpRight,
   CalendarCheck,
@@ -11,12 +15,15 @@ import {
 } from 'lucide-react';
 
 import { AdminShell } from '@/components/admin/AdminShell';
+import { formatCurrency } from '@/lib/financial';
+import { getServices } from '@/src/services/serviceService';
+import type { Service } from '@/types';
 
 const APPOINTMENTS = [
   {
     time: '09:00',
     client: 'Ana Silva',
-    service: 'Design de Sombrancelha',
+    service: 'Design de Sobrancelha',
     status: 'Confirmado',
   },
   {
@@ -39,36 +46,58 @@ const APPOINTMENTS = [
   },
 ];
 
-const SERVICES = [
-  {
-    name: 'Design + Henna',
-    percentage: 32,
-  },
-  {
-    name: 'Design + Tintura',
-    percentage: 24,
-  },
-  {
-    name: 'Manutenção de tintura',
-    percentage: 18,
-  },
-  {
-    name: 'Design de Sombrancelha',
-    percentage: 14,
-  },
-];
-
 export default function AdminPage() {
+  const [services, setServices] = useState<Service[]>([]);
+  const [loadingServices, setLoadingServices] = useState(true);
+  const [servicesError, setServicesError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadServices() {
+      try {
+        setLoadingServices(true);
+        setServicesError(null);
+
+        const data = await getServices();
+
+        if (mounted) {
+          setServices(data);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar serviços:', error);
+
+        if (mounted) {
+          setServicesError('Não foi possível carregar os serviços.');
+        }
+      } finally {
+        if (mounted) {
+          setLoadingServices(false);
+        }
+      }
+    }
+
+    loadServices();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <AdminShell>
       <main className="min-h-screen bg-[#faf6f3] text-[#6b5850]">
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
           <div className="absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#f0e0d7]/45 blur-3xl" />
+
           <div className="absolute -left-40 top-[38%] h-96 w-96 rounded-full bg-[#f4ede6]/60 blur-3xl" />
+
           <div className="absolute bottom-0 right-[18%] h-80 w-80 rounded-full bg-[#e9d9d0]/25 blur-3xl" />
         </div>
 
         <div className="relative mx-auto max-w-[1500px] px-5 py-7 lg:px-8 lg:py-9">
+          {/* HEADER */}
+
           <section className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -109,7 +138,8 @@ export default function AdminPage() {
             </button>
           </section>
 
-          {/* Stats */}
+          {/* STATS */}
+
           <section className="mt-8 grid grid-cols-2 gap-3 xl:grid-cols-4">
             <StatCard
               label="Agendamentos hoje"
@@ -144,9 +174,11 @@ export default function AdminPage() {
             />
           </section>
 
-          {/* Main content */}
+          {/* MAIN */}
+
           <section className="mt-7 grid gap-5 xl:grid-cols-[1.55fr_1fr]">
-            {/* Agenda */}
+            {/* AGENDA */}
+
             <div className="rounded-[30px] border border-white/70 bg-white/85 p-5 shadow-[0_22px_50px_-34px_rgba(64,46,40,.28)] backdrop-blur lg:p-6">
               <div className="flex items-end justify-between">
                 <div>
@@ -177,17 +209,14 @@ export default function AdminPage() {
                     key={`${appointment.time}-${appointment.client}`}
                     className="group flex items-center gap-4 py-4 first:pt-0 last:pb-0"
                   >
-                    {/* Time */}
                     <div className="w-12 shrink-0">
                       <p className="text-xs font-bold text-[#80685e]">{appointment.time}</p>
                     </div>
 
-                    {/* Icon */}
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] bg-[#f6ede8] text-[#ab8f83] transition-transform group-hover:scale-[1.03]">
                       <Sparkles size={17} strokeWidth={1.6} />
                     </div>
 
-                    {/* Info */}
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[12px] font-bold text-[#6b5850]">
                         {appointment.client}
@@ -198,7 +227,6 @@ export default function AdminPage() {
                       </p>
                     </div>
 
-                    {/* Status */}
                     <span
                       className={[
                         'hidden rounded-full px-3 py-1.5 text-[8px] font-bold sm:block',
@@ -221,7 +249,8 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Services */}
+            {/* SERVIÇOS */}
+
             <div className="rounded-[30px] border border-white/70 bg-white/85 p-5 shadow-[0_22px_50px_-34px_rgba(64,46,40,.28)] backdrop-blur lg:p-6">
               <div>
                 <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-[#c2a99d]">
@@ -233,32 +262,40 @@ export default function AdminPage() {
                 </h2>
               </div>
 
-              <div className="mt-8 space-y-6">
-                {SERVICES.map((service) => (
-                  <div key={service.name}>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-semibold text-[#80685e]">
-                        {service.name}
-                      </span>
+              <div className="mt-8 space-y-5">
+                {loadingServices && (
+                  <div className="space-y-5">
+                    {[1, 2, 3, 4].map((item) => (
+                      <div key={item} className="animate-pulse">
+                        <div className="h-3 w-32 rounded-full bg-[#eee3dd]" />
 
-                      <span className="text-[10px] font-bold text-[#a98d81]">
-                        {service.percentage}%
-                      </span>
-                    </div>
-
-                    <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-[#f2ebe7]">
-                      <div
-                        className="h-full rounded-full bg-[#a98d81]"
-                        style={{
-                          width: `${service.percentage * 2.5}%`,
-                        }}
-                      />
-                    </div>
+                        <div className="mt-3 h-2 w-full rounded-full bg-[#f2eae6]" />
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                {!loadingServices && servicesError && (
+                  <div className="rounded-[18px] border border-[#f1d9d4] bg-[#fbefed] px-4 py-3">
+                    <p className="text-[10px] font-medium text-[#9b5d53]">{servicesError}</p>
+                  </div>
+                )}
+
+                {!loadingServices && !servicesError && services.length === 0 && (
+                  <div className="rounded-[18px] bg-[#f8f1ed] px-4 py-5 text-center">
+                    <p className="text-[10px] font-medium text-[#a98d81]">
+                      Nenhum serviço cadastrado.
+                    </p>
+                  </div>
+                )}
+
+                {!loadingServices &&
+                  !servicesError &&
+                  services.map((service) => <ServiceRow key={service.id} service={service} />)}
               </div>
 
-              {/* Insight */}
+              {/* INSIGHT */}
+
               <div className="relative mt-8 overflow-hidden rounded-[21px] bg-[#f6ede8] p-4">
                 <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/50" />
 
@@ -268,10 +305,12 @@ export default function AdminPage() {
                   </div>
 
                   <div>
-                    <p className="text-[10px] font-bold text-[#80685e]">Crescimento saudável</p>
+                    <p className="text-[10px] font-bold text-[#80685e]">Serviços cadastrados</p>
 
                     <p className="mt-1 text-[9px] leading-relaxed text-[#b49b90]">
-                      Seus serviços cresceram 12% este mês.
+                      {services.length}{' '}
+                      {services.length === 1 ? 'serviço disponível' : 'serviços disponíveis'} no
+                      catálogo.
                     </p>
                   </div>
                 </div>
@@ -279,9 +318,11 @@ export default function AdminPage() {
             </div>
           </section>
 
-          {/* Bottom cards */}
+          {/* BOTTOM */}
+
           <section className="mt-5 grid gap-5 lg:grid-cols-2">
-            {/* Revenue */}
+            {/* REVENUE */}
+
             <div className="group relative min-h-[180px] overflow-hidden rounded-[30px] border border-white/30 bg-[#e8d4c9] p-6 shadow-[0_22px_50px_-34px_rgba(64,46,40,.35)]">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(255,255,255,.55),transparent_28%),linear-gradient(135deg,#f7eee9_0%,#ead7cd_52%,#dfc5b9_100%)]" />
 
@@ -316,7 +357,8 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Clients */}
+            {/* CLIENTS */}
+
             <div className="relative min-h-[180px] overflow-hidden rounded-[30px] border border-[#f1e8e2] bg-white/85 p-6 shadow-[0_22px_50px_-34px_rgba(64,46,40,.28)] backdrop-blur">
               <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-[#f4e9e3]/60 blur-2xl" />
 
@@ -358,6 +400,33 @@ export default function AdminPage() {
         </div>
       </main>
     </AdminShell>
+  );
+}
+
+function ServiceRow({ service }: { service: Service }) {
+  return (
+    <div className="group">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-[11px] font-bold text-[#6b5850]">{service.name}</p>
+
+          <p className="mt-1 text-[9px] text-[#b49b90]">{service.duration} min</p>
+        </div>
+
+        <p className="shrink-0 text-[11px] font-bold text-[#80685e]">
+          {formatCurrency(service.price)}
+        </p>
+      </div>
+
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#f1e8e2]">
+        <div
+          className="h-full rounded-full bg-[#b89a8e] transition-all duration-500"
+          style={{
+            width: '65%',
+          }}
+        />
+      </div>
+    </div>
   );
 }
 

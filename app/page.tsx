@@ -6,7 +6,7 @@ import HomeScreen from '@/components/HomeScreen/page';
 import LoginScreen from '@/components/LoginScreen';
 import NewAppointmentSheet from '@/components/NewAppointmentSheet';
 import SignupScreen from '@/components/SignupScreen';
-import { getCurrentUser, signIn, signOut, signUp } from '@/src/authService';
+import { getCurrentUser, signIn, signOut, signUp } from '@/src/services/authService';
 import type { Appointment, SignupUser, User } from '@/types';
 
 type Screen = 'login' | 'signup' | 'home';

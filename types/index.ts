@@ -33,9 +33,14 @@ export type Appointment = {
 };
 
 export type Service = {
-  id: string;
+  id: number;
   name: string;
-  desc: string;
-  duration: number;
+  category: string;
+  description: string;
+  duration: string;
   price: number;
+  appointments: number;
+  clients: number;
+  active: boolean;
+  popular?: boolean;
 };

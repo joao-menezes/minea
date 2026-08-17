@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   ArrowLeft,
@@ -21,83 +21,11 @@ import {
 import type { LucideIcon } from 'lucide-react';
 
 import { AdminShell } from '@/components/admin/AdminShell';
-
-type AppointmentStatus = 'confirmed' | 'pending' | 'cancelled';
-
-type Appointment = {
-  id: string;
-  time: string;
-  duration: string;
-  client: string;
-  service: string;
-  professional: string;
-  status: AppointmentStatus;
-  price: string;
-  location?: string;
-};
-
-const APPOINTMENTS: Appointment[] = [
-  {
-    id: '1',
-    time: '09:00',
-    duration: '45 min',
-    client: 'Ana Silva',
-    service: 'Design de Sobrancelha',
-    professional: 'Rebeca',
-    status: 'confirmed',
-    price: 'R$ 85',
-  },
-  {
-    id: '2',
-    time: '10:30',
-    duration: '60 min',
-    client: 'Mariana Costa',
-    service: 'Manutenção de Tintura',
-    professional: 'Rebeca',
-    status: 'pending',
-    price: 'R$ 120',
-  },
-  {
-    id: '3',
-    time: '12:00',
-    duration: '45 min',
-    client: '—',
-    service: '',
-    professional: '',
-    status: 'cancelled',
-    price: '',
-  },
-  {
-    id: '4',
-    time: '14:00',
-    duration: '60 min',
-    client: 'Camila Souza',
-    service: 'Design + Tintura',
-    professional: 'Rebeca',
-    status: 'confirmed',
-    price: 'R$ 145',
-  },
-  {
-    id: '5',
-    time: '15:30',
-    duration: '60 min',
-    client: 'Juliana Alves',
-    service: 'Design + Henna',
-    professional: 'Rebeca',
-    status: 'confirmed',
-    price: 'R$ 130',
-  },
-  {
-    id: '6',
-    time: '17:00',
-    duration: '45 min',
-    client: 'Beatriz Martins',
-    service: 'Design de Sobrancelha',
-    professional: 'Rebeca',
-    status: 'pending',
-    price: 'R$ 85',
-  },
-];
+import {
+  type Appointment,
+  type AppointmentStatus,
+  getAppointments,
+} from '@/src/services/appointmentService';
 
 const DAYS = [
   { day: 'SEG', date: 17 },
@@ -117,35 +45,116 @@ const STATUS_LABELS: Record<AppointmentStatus, string> = {
 
 export default function AdminAgendaPage() {
   const [selectedDay, setSelectedDay] = useState(17);
+
   const [statusFilter, setStatusFilter] = useState<'all' | AppointmentStatus>('all');
+
   const [search, setSearch] = useState('');
+
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
+  const [loading, setLoading] = useState(true);
+
+  const [error, setError] = useState('');
+
+  const selectedDate = useMemo(() => {
+    const date = new Date(2026, 7, selectedDay);
+
+    return date;
+  }, [selectedDay]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadAppointments() {
+      try {
+        setLoading(true);
+        setError('');
+
+        const data = await getAppointments(selectedDate);
+
+        if (mounted) {
+          setAppointments(data);
+        }
+      } catch (error) {
+        console.error(error);
+
+        if (mounted) {
+          setError('Não foi possível carregar a agenda.');
+          setAppointments([]);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadAppointments();
+
+    return () => {
+      mounted = false;
+    };
+  }, [selectedDate]);
+
   const filteredAppointments = useMemo(() => {
-    return APPOINTMENTS.filter((appointment) => {
+    const searchValue = search.trim().toLowerCase();
+
+    return appointments.filter((appointment) => {
       const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
 
-      const searchValue = search.toLowerCase();
-
       const matchesSearch =
-        !search ||
+        !searchValue ||
         appointment.client.toLowerCase().includes(searchValue) ||
         appointment.service.toLowerCase().includes(searchValue);
 
       return matchesStatus && matchesSearch;
     });
-  }, [search, statusFilter]);
+  }, [appointments, search, statusFilter]);
+
+  const confirmedCount = appointments.filter(
+    (appointment) => appointment.status === 'confirmed',
+  ).length;
+
+  const pendingCount = appointments.filter(
+    (appointment) => appointment.status === 'pending',
+  ).length;
+
+  const revenue = appointments.reduce((total, appointment) => {
+    const value = Number(
+      appointment.price
+        .replace(/[^\d,.-]/g, '')
+        .replace(/\./g, '')
+        .replace(',', '.'),
+    );
+
+    return Number.isFinite(value) ? total + value : total;
+  }, 0);
+
+  const formattedRevenue = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 0,
+  }).format(revenue);
+
+  const nextAppointment =
+    appointments.find((appointment) => appointment.status !== 'cancelled') ?? null;
 
   return (
     <AdminShell>
       <main className="min-h-screen bg-[#faf6f3] text-[#6b5850]">
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
           <div className="absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#f0e0d7]/45 blur-3xl" />
+
           <div className="absolute -left-40 top-[40%] h-96 w-96 rounded-full bg-[#f4ede6]/60 blur-3xl" />
+
           <div className="absolute bottom-0 right-[15%] h-80 w-80 rounded-full bg-[#e9d9d0]/25 blur-3xl" />
         </div>
 
         <div className="relative mx-auto max-w-[1500px] px-5 py-7 lg:px-8 lg:py-9">
+          {/* HEADER */}
+
           <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -188,7 +197,6 @@ export default function AdminAgendaPage() {
             </button>
           </header>
 
-          {/* DATE NAVIGATION */}
           <section className="mt-8 rounded-[30px] border border-white/70 bg-white/85 p-4 shadow-[0_22px_50px_-34px_rgba(64,46,40,.28)] backdrop-blur lg:p-5">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex items-center justify-between gap-4 lg:justify-start">
@@ -219,6 +227,7 @@ export default function AdminAgendaPage() {
 
               <button
                 type="button"
+                onClick={() => setSelectedDay(17)}
                 className="flex h-10 items-center justify-center gap-2 rounded-full border border-[#f1e8e2] bg-[#faf6f3] px-4 text-[10px] font-bold text-[#92766b] transition-all hover:bg-[#f6ede8]"
               >
                 <CalendarDays size={13} />
@@ -226,7 +235,6 @@ export default function AdminAgendaPage() {
               </button>
             </div>
 
-            {/* DAYS */}
             <div className="mt-5 grid grid-cols-7 gap-1.5 lg:gap-2">
               {DAYS.map((day) => {
                 const selected = selectedDay === day.date;
@@ -265,14 +273,15 @@ export default function AdminAgendaPage() {
           </section>
 
           {/* TOOLBAR */}
+
           <section className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-[#c2a99d]">
-                Segunda-feira, 17 de agosto
+                {selectedDay === 17 ? 'Segunda-feira, 17 de agosto' : `${selectedDay} de agosto`}
               </p>
 
               <h2 className="mt-2 font-display text-[28px] leading-none tracking-[-0.025em] text-[#6b5850]">
-                6 atendimentos
+                {loading ? 'Carregando...' : `${filteredAppointments.length} atendimentos`}
               </h2>
             </div>
 
@@ -313,9 +322,13 @@ export default function AdminAgendaPage() {
             </div>
           </section>
 
-          {/* CONTENT */}
+          {error && (
+            <div className="mt-5 rounded-[20px] border border-[#f1d9d4] bg-[#fbefed] px-4 py-3 text-xs text-[#9b5d53]">
+              {error}
+            </div>
+          )}
+
           <section className="mt-5 grid gap-5 xl:grid-cols-[1.5fr_.8fr]">
-            {/* TIMELINE */}
             <div className="rounded-[30px] border border-white/70 bg-white/85 p-5 shadow-[0_22px_50px_-34px_rgba(64,46,40,.28)] backdrop-blur lg:p-6">
               <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -330,21 +343,27 @@ export default function AdminAgendaPage() {
               </div>
 
               <div className="divide-y divide-[#f3ebe7]">
-                {filteredAppointments.map((appointment) => (
-                  <AppointmentRow
-                    key={appointment.id}
-                    appointment={appointment}
-                    onClick={() => setSelectedAppointment(appointment)}
-                  />
-                ))}
+                {loading ? (
+                  <div className="py-16 text-center text-[10px] text-[#b49b90]">
+                    Carregando agenda...
+                  </div>
+                ) : (
+                  <>
+                    {filteredAppointments.map((appointment) => (
+                      <AppointmentRow
+                        key={appointment.id}
+                        appointment={appointment}
+                        onClick={() => setSelectedAppointment(appointment)}
+                      />
+                    ))}
 
-                {filteredAppointments.length === 0 && <EmptyState />}
+                    {filteredAppointments.length === 0 && <EmptyState />}
+                  </>
+                )}
               </div>
             </div>
 
-            {/* SIDE PANEL */}
             <aside className="space-y-5">
-              {/* Summary */}
               <div className="rounded-[30px] border border-white/70 bg-white/85 p-5 shadow-[0_22px_50px_-34px_rgba(64,46,40,.28)] backdrop-blur lg:p-6">
                 <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-[#c2a99d]">
                   Resumo do dia
@@ -355,17 +374,24 @@ export default function AdminAgendaPage() {
                 </h2>
 
                 <div className="mt-7 space-y-4">
-                  <SummaryRow icon={CalendarDays} label="Agendamentos" value="6" />
+                  <SummaryRow
+                    icon={CalendarDays}
+                    label="Agendamentos"
+                    value={String(appointments.length)}
+                  />
 
-                  <SummaryRow icon={Check} label="Confirmados" value="4" />
+                  <SummaryRow icon={Check} label="Confirmados" value={String(confirmedCount)} />
 
-                  <SummaryRow icon={Clock3} label="Pendentes" value="2" />
+                  <SummaryRow icon={Clock3} label="Pendentes" value={String(pendingCount)} />
 
-                  <SummaryRow icon={DollarSign} label="Faturamento previsto" value="R$ 650" />
+                  <SummaryRow
+                    icon={DollarSign}
+                    label="Faturamento previsto"
+                    value={formattedRevenue}
+                  />
                 </div>
               </div>
 
-              {/* Next appointment */}
               <div className="relative overflow-hidden rounded-[30px] border border-white/30 bg-[#e8d4c9] p-6 shadow-[0_22px_50px_-34px_rgba(64,46,40,.35)]">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(255,255,255,.55),transparent_28%),linear-gradient(135deg,#f7eee9_0%,#ead7cd_52%,#dfc5b9_100%)]" />
 
@@ -380,34 +406,47 @@ export default function AdminAgendaPage() {
                     <Sparkles size={14} className="text-[#a98d81]" />
                   </div>
 
-                  <div className="mt-7">
-                    <p className="text-[10px] font-bold text-[#a98d81]">09:00 · Hoje</p>
+                  {nextAppointment ? (
+                    <>
+                      <div className="mt-7">
+                        <p className="text-[10px] font-bold text-[#a98d81]">
+                          {nextAppointment.time} · Hoje
+                        </p>
 
-                    <p className="mt-2 font-display text-[27px] tracking-[-0.025em] text-[#6b5850]">
-                      Ana Silva
-                    </p>
+                        <p className="mt-2 font-display text-[27px] tracking-[-0.025em] text-[#6b5850]">
+                          {nextAppointment.client}
+                        </p>
 
-                    <p className="mt-1 text-[10px] text-[#a48a7f]">Design de Sobrancelha</p>
-                  </div>
+                        <p className="mt-1 text-[10px] text-[#a48a7f]">{nextAppointment.service}</p>
+                      </div>
 
-                  <div className="mt-6 flex items-center gap-2">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-white/45 text-[#9d7e70]">
-                      <Clock3 size={14} />
+                      <div className="mt-6 flex items-center gap-2">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-white/45 text-[#9d7e70]">
+                          <Clock3 size={14} />
+                        </div>
+
+                        <div>
+                          <p className="text-[9px] font-bold text-[#80685e]">Duração</p>
+
+                          <p className="text-[9px] text-[#a48a7f]">{nextAppointment.duration}</p>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="mt-7">
+                      <p className="font-display text-[24px] text-[#80685e]">Agenda livre</p>
+
+                      <p className="mt-2 text-[10px] text-[#a48a7f]">
+                        Nenhum próximo atendimento encontrado.
+                      </p>
                     </div>
-
-                    <div>
-                      <p className="text-[9px] font-bold text-[#80685e]">Duração</p>
-
-                      <p className="text-[9px] text-[#a48a7f]">45 minutos</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </aside>
           </section>
         </div>
 
-        {/* APPOINTMENT DETAIL */}
         {selectedAppointment && (
           <AppointmentDetails
             appointment={selectedAppointment}
@@ -418,10 +457,6 @@ export default function AdminAgendaPage() {
     </AdminShell>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/* Appointment row                                                           */
-/* -------------------------------------------------------------------------- */
 
 function AppointmentRow({
   appointment,
@@ -438,7 +473,6 @@ function AppointmentRow({
       onClick={onClick}
       className="group flex w-full items-center gap-4 py-4 text-left transition-all first:pt-3 last:pb-3 hover:px-2"
     >
-      {/* TIME */}
       <div className="w-12 shrink-0">
         <p
           className={['text-xs font-bold', cancelled ? 'text-[#c8b9b2]' : 'text-[#80685e]'].join(
@@ -451,14 +485,12 @@ function AppointmentRow({
         <p className="mt-1 text-[8px] text-[#c7b3aa]">{appointment.duration}</p>
       </div>
 
-      {/* CONNECTOR */}
       <div className="relative hidden w-5 self-stretch sm:block">
         <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-[#f1e8e2]" />
 
         <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[#c8aea3]" />
       </div>
 
-      {/* ICON */}
       <div
         className={[
           'flex h-12 w-12 shrink-0 items-center justify-center rounded-[17px]',
@@ -484,10 +516,8 @@ function AppointmentRow({
         )}
       </div>
 
-      {/* STATUS */}
       {!cancelled && <StatusBadge status={appointment.status} />}
 
-      {/* PRICE */}
       {!cancelled && (
         <span className="hidden text-[10px] font-bold text-[#80685e] md:block">
           {appointment.price}
@@ -500,10 +530,6 @@ function AppointmentRow({
     </button>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/* Status                                                                     */
-/* -------------------------------------------------------------------------- */
 
 function StatusBadge({ status }: { status: AppointmentStatus }) {
   const styles = {
@@ -523,10 +549,6 @@ function StatusBadge({ status }: { status: AppointmentStatus }) {
     </span>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/* Summary                                                                    */
-/* -------------------------------------------------------------------------- */
 
 function SummaryRow({
   icon: Icon,
@@ -550,10 +572,6 @@ function SummaryRow({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Empty                                                                      */
-/* -------------------------------------------------------------------------- */
-
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -569,10 +587,6 @@ function EmptyState() {
     </div>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/* Detail modal                                                               */
-/* -------------------------------------------------------------------------- */
 
 function AppointmentDetails({
   appointment,

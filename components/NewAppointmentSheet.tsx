@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   ArrowLeft,
@@ -13,40 +13,10 @@ import {
   X,
 } from 'lucide-react';
 
+import { getServices } from '@/src/services/serviceService';
 import type { Appointment, Service } from '@/types';
 
 import { MONTHS, WEEKDAYS } from './decor';
-
-const SERVICES: Service[] = [
-  {
-    id: 'manutencao-tintura',
-    name: 'Manutenção de tintura',
-    desc: 'Retoque da cor para manter o resultado uniforme e elegante',
-    duration: 60,
-    price: 120,
-  },
-  {
-    id: 'design-sobrancelhas',
-    name: 'Design de sobrancelhas',
-    desc: 'Modelagem personalizada para valorizar o formato do seu rosto',
-    duration: 30,
-    price: 55,
-  },
-  {
-    id: 'design-tintura',
-    name: 'Design + Tintura',
-    desc: 'Design personalizado com coloração para realçar o olhar',
-    duration: 75,
-    price: 145,
-  },
-  {
-    id: 'design-henna',
-    name: 'Design + Henna',
-    desc: 'Modelagem com henna para sobrancelhas mais definidas e preenchidas',
-    duration: 50,
-    price: 100,
-  },
-];
 
 const TIMES = [
   '09:00',
@@ -68,10 +38,49 @@ type NewAppointmentSheetProps = {
 
 export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentSheetProps) {
   const [step, setStep] = useState(1);
+
+  const [services, setServices] = useState<Service[]>([]);
+  const [loadingServices, setLoadingServices] = useState(true);
+  const [servicesError, setServicesError] = useState('');
+
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState('');
+
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadServices() {
+      try {
+        setLoadingServices(true);
+        setServicesError('');
+
+        const data = await getServices();
+
+        if (mounted) {
+          setServices(data);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar serviços:', error);
+
+        if (mounted) {
+          setServicesError('Não foi possível carregar os procedimentos. Tente novamente.');
+        }
+      } finally {
+        if (mounted) {
+          setLoadingServices(false);
+        }
+      }
+    }
+
+    loadServices();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const dates = useMemo(() => {
     return Array.from({ length: 7 }, (_, index) => {
@@ -86,9 +95,9 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
 
   const selectedServiceDetails = useMemo(() => {
     return selectedServices
-      .map((id) => SERVICES.find((service) => service.id === id))
+      .map((id) => services.find((service) => service.id === id))
       .filter((service): service is Service => Boolean(service));
-  }, [selectedServices]);
+  }, [selectedServices, services]);
 
   const total = selectedServiceDetails.reduce((sum, service) => sum + service.price, 0);
 
@@ -146,9 +155,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#332925]/45 backdrop-blur-[7px] sm:items-center sm:p-6">
       <div className="relative flex max-h-[94vh] w-full max-w-md flex-col overflow-hidden rounded-t-[36px] border border-white/80 bg-[#f9f6f3] shadow-[0_35px_100px_-35px_rgba(40,29,25,.7)] sm:max-h-[90vh] sm:rounded-[34px]">
-        {/* =========================================================
-            HEADER
-        ========================================================== */}
+        {/* HEADER */}
 
         <div className="relative shrink-0 px-5 pt-3 sm:pt-5">
           <div className="mx-auto h-1 w-10 rounded-full bg-[#d8c7c0] sm:hidden" />
@@ -195,9 +202,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
           </button>
         </header>
 
-        {/* =========================================================
-            PROGRESS
-        ========================================================== */}
+        {/* PROGRESS */}
 
         <div className="flex items-center gap-2 px-6 pb-5">
           <div className="relative h-[3px] flex-1 overflow-hidden rounded-full bg-[#e5dcd7]">
@@ -217,14 +222,11 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
           </div>
         </div>
 
-        {/* =========================================================
-            CONTENT
-        ========================================================== */}
+        {/* CONTENT */}
 
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-7">
           {step === 1 ? (
             <>
-              {/* Intro */}
               <div className="mb-5 flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-semibold text-[#857069]">
@@ -241,72 +243,126 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
                 </div>
               </div>
 
-              {/* Services */}
-              <div className="space-y-2.5">
-                {SERVICES.map((service) => {
-                  const active = selectedServices.includes(service.id);
+              {/* LOADING */}
 
-                  return (
-                    <button
-                      key={service.id}
-                      type="button"
-                      onClick={() => toggleService(service.id)}
-                      className={`group relative w-full overflow-hidden rounded-[22px] border p-4 text-left transition-all duration-200 ${
-                        active
-                          ? 'border-[#b49a90] bg-[#f1e7e2] shadow-[0_12px_30px_-25px_rgba(67,47,40,.7)]'
-                          : 'border-[#e7ded9] bg-white hover:-translate-y-[1px] hover:border-[#d9cbc5] hover:shadow-[0_12px_25px_-22px_rgba(67,47,40,.45)]'
-                      } `}
-                    >
-                      {active && <div className="absolute inset-y-0 left-0 w-[3px] bg-[#80665c]" />}
+              {loadingServices && (
+                <div className="space-y-2.5">
+                  {[1, 2, 3, 4].map((item) => (
+                    <div
+                      key={item}
+                      className="h-[94px] animate-pulse rounded-[22px] border border-[#e7ded9] bg-white"
+                    />
+                  ))}
+                </div>
+              )}
 
-                      <div className="flex items-center gap-3.5">
-                        {/* Icon */}
-                        <div
-                          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[17px] transition-all ${active ? 'bg-[#80665c] text-white' : 'bg-[#f3ece8] text-[#95756b]'} `}
-                        >
-                          {active ? (
-                            <Check size={18} strokeWidth={2} />
-                          ) : (
-                            <Sparkles size={17} strokeWidth={1.5} />
-                          )}
-                        </div>
+              {/* ERROR */}
 
-                        {/* Content */}
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[13px] font-bold tracking-[-0.01em] text-[#4b3b36]">
-                            {service.name}
-                          </p>
+              {!loadingServices && servicesError && (
+                <div className="rounded-[20px] border border-[#edd4ce] bg-[#faece8] p-5">
+                  <p className="text-[11px] font-bold text-[#a34f43]">{servicesError}</p>
 
-                          <p className="mt-1 truncate text-[10px] text-[#9a837b]">{service.desc}</p>
+                  <button
+                    type="button"
+                    onClick={() => window.location.reload()}
+                    className="mt-3 text-[10px] font-bold text-[#80665c] underline"
+                  >
+                    Tentar novamente
+                  </button>
+                </div>
+              )}
 
-                          <div className="mt-2 flex items-center gap-2">
-                            <span className="text-[9px] font-bold uppercase tracking-[0.08em] text-[#a38379]">
-                              {service.duration} min
-                            </span>
+              {/* EMPTY */}
 
-                            <span className="h-1 w-1 rounded-full bg-[#c6aea5]" />
+              {!loadingServices && !servicesError && services.length === 0 && (
+                <div className="flex flex-col items-center rounded-[22px] border border-[#e7ded9] bg-white px-5 py-10 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f3ece8] text-[#95756b]">
+                    <Sparkles size={18} />
+                  </div>
 
-                            <span className="text-[10px] font-bold text-[#775b52]">
-                              R$ {service.price}
-                            </span>
+                  <p className="mt-4 text-[12px] font-bold text-[#55433d]">
+                    Nenhum procedimento disponível
+                  </p>
+
+                  <p className="mt-1 text-[10px] text-[#aa9790]">
+                    Os serviços ainda não foram cadastrados.
+                  </p>
+                </div>
+              )}
+
+              {/* SERVICES */}
+
+              {!loadingServices && !servicesError && services.length > 0 && (
+                <div className="space-y-2.5">
+                  {services.map((service) => {
+                    const active = selectedServices.includes(service.id);
+
+                    return (
+                      <button
+                        key={service.id}
+                        type="button"
+                        onClick={() => toggleService(service.id)}
+                        className={`group relative w-full overflow-hidden rounded-[22px] border p-4 text-left transition-all duration-200 ${
+                          active
+                            ? 'border-[#b49a90] bg-[#f1e7e2] shadow-[0_12px_30px_-25px_rgba(67,47,40,.7)]'
+                            : 'border-[#e7ded9] bg-white hover:-translate-y-[1px] hover:border-[#d9cbc5] hover:shadow-[0_12px_25px_-22px_rgba(67,47,40,.45)]'
+                        }`}
+                      >
+                        {active && (
+                          <div className="absolute inset-y-0 left-0 w-[3px] bg-[#80665c]" />
+                        )}
+
+                        <div className="flex items-center gap-3.5">
+                          <div
+                            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[17px] transition-all ${
+                              active ? 'bg-[#80665c] text-white' : 'bg-[#f3ece8] text-[#95756b]'
+                            }`}
+                          >
+                            {active ? (
+                              <Check size={18} strokeWidth={2} />
+                            ) : (
+                              <Sparkles size={17} strokeWidth={1.5} />
+                            )}
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[13px] font-bold tracking-[-0.01em] text-[#4b3b36]">
+                              {service.name}
+                            </p>
+
+                            <p className="mt-1 truncate text-[10px] text-[#9a837b]">
+                              {service.description}
+                            </p>
+
+                            <div className="mt-2 flex items-center gap-2">
+                              <span className="text-[9px] font-bold uppercase tracking-[0.08em] text-[#a38379]">
+                                {service.duration} min
+                              </span>
+
+                              <span className="h-1 w-1 rounded-full bg-[#c6aea5]" />
+
+                              <span className="text-[10px] font-bold text-[#775b52]">
+                                R$ {service.price}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div
+                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-all ${
+                              active ? 'border-[#80665c] bg-[#80665c]' : 'border-[#d8c9c3] bg-white'
+                            }`}
+                          >
+                            {active && <Check size={11} className="text-white" strokeWidth={2.5} />}
                           </div>
                         </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
-                        {/* Checkbox */}
-                        <div
-                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-all ${
-                            active ? 'border-[#80665c] bg-[#80665c]' : 'border-[#d8c9c3] bg-white'
-                          } `}
-                        >
-                          {active && <Check size={11} className="text-white" strokeWidth={2.5} />}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+              {/* SELECTED SUMMARY */}
 
-              {/* Selected summary */}
               {selectedServices.length > 0 && (
                 <div className="mt-4 flex items-center justify-between border-y border-[#e8ddd8] py-4">
                   <div>
@@ -325,18 +381,19 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
                 </div>
               )}
 
-              {/* Error */}
+              {/* ERROR */}
+
               {error && (
                 <div className="mt-4 rounded-[14px] border border-[#edd4ce] bg-[#faece8] px-3.5 py-2.5">
                   <p className="text-[10px] font-semibold text-[#a34f43]">{error}</p>
                 </div>
               )}
 
-              {/* CTA */}
               <button
                 type="button"
                 onClick={next}
-                className="group mt-5 flex h-[56px] w-full items-center justify-center gap-2 rounded-[18px] bg-[#3f332f] text-[12px] font-bold text-white shadow-[0_18px_35px_-18px_rgba(45,32,27,.8)] transition-all hover:-translate-y-0.5 hover:bg-[#342a27] active:scale-[.985]"
+                disabled={loadingServices || !services.length}
+                className="group mt-5 flex h-[56px] w-full items-center justify-center gap-2 rounded-[18px] bg-[#3f332f] text-[12px] font-bold text-white shadow-[0_18px_35px_-18px_rgba(45,32,27,.8)] transition-all hover:-translate-y-0.5 hover:bg-[#342a27] active:scale-[.985] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Escolher data e horário
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
@@ -349,7 +406,8 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
             </>
           ) : (
             <>
-              {/* Back */}
+              {/* BACK */}
+
               <button
                 type="button"
                 onClick={back}
@@ -359,9 +417,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
                 Voltar aos procedimentos
               </button>
 
-              {/* =====================================================
-                  DATE
-              ====================================================== */}
+              {/* DATE */}
 
               <section className="rounded-[25px] border border-[#e6ddd8] bg-white p-4">
                 <div className="flex items-center gap-3">
@@ -397,7 +453,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
                           active
                             ? 'border-[#80665c] bg-[#80665c] text-white shadow-[0_10px_20px_-13px_rgba(65,45,38,.9)]'
                             : 'border-transparent bg-[#f5eeeb] text-[#796159] hover:border-[#e2d4ce]'
-                        } `}
+                        }`}
                       >
                         <span
                           className={`block text-[8px] font-bold uppercase tracking-[0.05em] ${
@@ -422,9 +478,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
                 </div>
               </section>
 
-              {/* =====================================================
-                  TIME
-              ====================================================== */}
+              {/* TIME */}
 
               <section className="mt-6">
                 <div className="mb-3 flex items-center gap-3">
@@ -459,7 +513,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
                           active
                             ? 'border-[#80665c] bg-[#80665c] text-white shadow-[0_10px_20px_-13px_rgba(65,45,38,.9)]'
                             : 'border-[#e6ddd8] bg-white text-[#69554e] hover:border-[#cdbcb5] hover:bg-[#faf7f5]'
-                        } `}
+                        }`}
                       >
                         {time}
                       </button>
@@ -468,9 +522,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
                 </div>
               </section>
 
-              {/* =====================================================
-                  SUMMARY
-              ====================================================== */}
+              {/* SUMMARY */}
 
               <section className="mt-6 overflow-hidden rounded-[25px] border border-[#e3d7d1] bg-[#f2e9e5]">
                 <div className="px-5 py-4">
@@ -513,7 +565,6 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
                 </div>
               </section>
 
-              {/* Error */}
               {error && (
                 <div className="mt-4 rounded-[14px] border border-[#edd4ce] bg-[#faece8] px-3.5 py-2.5">
                   <p className="text-[10px] font-semibold text-[#a34f43]">{error}</p>

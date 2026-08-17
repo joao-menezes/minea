@@ -1,44 +1,46 @@
-export type FinancialAppointmentStatus = 'Confirmado' | 'Pendente' | 'Cancelado';
+export type FinancialTransactionType = 'income' | 'expense';
 
-export type FinancialAppointment = {
-  date: Date;
-  client: string;
-  service: string;
-  status: FinancialAppointmentStatus;
-  value: number;
-};
+export type FinancialPaymentMethod =
+  'cash' | 'credit_card' | 'debit_card' | 'pix' | 'transfer' | 'other';
 
 export type FinancialTransaction = {
   id: string;
-  date: string;
+  type: FinancialTransactionType;
+  category: string;
   description: string;
-  client: string;
-  category: 'Serviço' | 'Despesa';
-  method: 'Pix' | 'Cartão' | 'Dinheiro';
   value: number;
-  type: 'income' | 'expense';
+  date: string;
+  method: FinancialPaymentMethod;
+  appointmentId?: string;
+  clientId?: string;
+  serviceId?: string;
 };
 
-export type MonthlyRevenue = {
-  month: string;
-  value: number;
+export type FinancialAppointmentData = {
+  date: string;
+  title: string;
+  price?: number;
+};
+
+export type FinancialPeriod = {
+  startDate?: Date;
+  endDate?: Date;
 };
 
 export type FinancialReport = {
-  period: string;
-
+  period: FinancialPeriod;
   revenue: number;
   expenses: number;
   profit: number;
-
   appointments: number;
   averageTicket: number;
+  appointmentsData: FinancialAppointmentData[];
+};
 
-  currentMonth: string;
-
-  monthlyRevenue: MonthlyRevenue[];
-
-  appointmentsData: FinancialAppointment[];
-
-  transactions: FinancialTransaction[];
+export type FinancialSummary = {
+  revenue: number;
+  expenses: number;
+  balance: number;
+  transactionCount: number;
+  averageTransaction: number;
 };
