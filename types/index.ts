@@ -3,6 +3,18 @@ export type AppointmentCategory = 'Autocuidado';
 export type AppointmentColor = 'rosa' | 'lilas' | 'menta' | 'pessego';
 
 export type User = {
+  id?: string;
+  nome: string;
+  cpf: string;
+  aniversario?: string | null;
+};
+
+export type LoginUser = {
+  cpf: string;
+  nome: string;
+};
+
+export type SignupUser = {
   nome: string;
   cpf: string;
   aniversario?: string | null;
@@ -19,13 +31,6 @@ export type Appointment = {
   categoria: AppointmentCategory;
   cor: AppointmentColor;
 };
-
-export type LoginUser = {
-  cpf: string;
-  nome: string;
-};
-
-export type SignupUser = User;
 
 export type Service = {
   id: string;

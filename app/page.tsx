@@ -1,62 +1,78 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import HomeScreen from '@/components/HomeScreen/page';
 import LoginScreen from '@/components/LoginScreen';
 import NewAppointmentSheet from '@/components/NewAppointmentSheet';
 import SignupScreen from '@/components/SignupScreen';
-import type { Appointment, LoginUser, SignupUser, User } from '@/types';
+import { getCurrentUser, signIn, signOut, signUp } from '@/src/authService';
+import type { Appointment, SignupUser, User } from '@/types';
 
 type Screen = 'login' | 'signup' | 'home';
 
-function createSeedAppointments(): Appointment[] {
-  const createAppointment = (
-    hour: number,
-    minute: number,
-    title: string,
-    local: string,
-  ): Appointment => {
-    const date = new Date();
-
-    date.setHours(hour, minute, 0, 0);
-
-    return {
-      id: Math.random(),
-      title,
-      date,
-      local,
-      categoria: 'Autocuidado',
-      cor: 'rosa',
-    };
-  };
-
-  return [
-    createAppointment(10, 0, 'Limpeza de pele', 'Studio Bella'),
-    createAppointment(15, 30, 'Design de sobrancelhas', 'Studio Bella'),
-  ];
-}
-
 export default function Page() {
   const [screen, setScreen] = useState<Screen>('login');
+
   const [user, setUser] = useState<User | null>(null);
+
   const [showNewAppointment, setShowNewAppointment] = useState(false);
 
-  const [appointments, setAppointments] = useState<Appointment[]>(createSeedAppointments);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
-  function handleLogin(user: LoginUser) {
-    setUser(user);
-    setScreen('home');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadSession() {
+      try {
+        const currentUser = await getCurrentUser();
+
+        if (currentUser) {
+          setUser(currentUser);
+          setScreen('home');
+        }
+      } catch (error) {
+        console.error('Erro ao recuperar sessão:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadSession();
+  }, []);
+
+  async function handleLogin(cpf: string, password: string) {
+    try {
+      const authenticatedUser = await signIn(cpf, password);
+
+      setUser(authenticatedUser);
+      setScreen('home');
+    } catch (error) {
+      console.error('Erro ao fazer login:', error);
+    }
   }
 
-  function handleSignup(user: SignupUser) {
-    setUser(user);
-    setScreen('home');
+  async function handleSignup(input: SignupUser, password: string) {
+    try {
+      const createdUser = await signUp(input, password);
+
+      setUser(createdUser);
+      setScreen('home');
+    } catch (error) {
+      console.error('Erro ao criar conta:', error);
+    }
   }
 
-  function handleLogout() {
-    setUser(null);
-    setScreen('login');
+  async function handleLogout() {
+    try {
+      await signOut();
+
+      setUser(null);
+      setScreen('login');
+      setAppointments([]);
+    } catch (error) {
+      console.error('Erro ao sair:', error);
+    }
   }
 
   function openNewAppointment() {
@@ -71,6 +87,14 @@ export default function Page() {
     setAppointments((current) => [...current, appointment]);
 
     closeNewAppointment();
+  }
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <span>Carregando...</span>
+      </main>
+    );
   }
 
   return (

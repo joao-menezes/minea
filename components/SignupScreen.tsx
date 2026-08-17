@@ -9,7 +9,7 @@ import type { SignupUser } from '@/types';
 import { Bow, maskCPF, maskDate } from './decor';
 
 type SignupScreenProps = {
-  onCreated: (user: SignupUser) => void;
+  onCreated: (user: SignupUser, password: string) => void | Promise<void>;
   goBack: () => void;
 };
 
@@ -43,11 +43,14 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
 
     setErro('');
 
-    onCreated({
-      nome,
-      cpf,
-      aniversario: querAniversario ? aniversario : null,
-    });
+    onCreated(
+      {
+        nome,
+        cpf,
+        aniversario,
+      },
+      senha,
+    );
   }
 
   return (
