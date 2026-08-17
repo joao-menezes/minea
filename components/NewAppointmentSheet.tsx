@@ -29,7 +29,7 @@ const TIMES = [
   '16:00',
   '17:00',
   '18:00',
-];
+] as const;
 
 type NewAppointmentSheetProps = {
   onClose: () => void;
@@ -37,15 +37,22 @@ type NewAppointmentSheetProps = {
 };
 
 export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentSheetProps) {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState<1 | 2>(1);
 
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
   const [servicesError, setServicesError] = useState('');
 
-  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  /**
+   * Service.id é number.
+   *
+   * Antes estava string[], causando:
+   * number === string
+   */
+  const [selectedServices, setSelectedServices] = useState<number[]>([]);
+
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState('');
+  const [selectedTime, setSelectedTime] = useState<string>('');
 
   const [error, setError] = useState('');
 
@@ -59,9 +66,11 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
 
         const data = await getServices();
 
-        if (mounted) {
-          setServices(data);
+        if (!mounted) {
+          return;
         }
+
+        setServices(data);
       } catch (error) {
         console.error('Erro ao carregar serviços:', error);
 
@@ -75,7 +84,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
       }
     }
 
-    loadServices();
+    void loadServices();
 
     return () => {
       mounted = false;
@@ -99,22 +108,32 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
       .filter((service): service is Service => Boolean(service));
   }, [selectedServices, services]);
 
-  const total = selectedServiceDetails.reduce((sum, service) => sum + service.price, 0);
+  const total = useMemo(() => {
+    return selectedServiceDetails.reduce((sum, service) => sum + Number(service.price ?? 0), 0);
+  }, [selectedServiceDetails]);
 
-  const duration = selectedServiceDetails.reduce((sum, service) => sum + service.duration, 0);
+  const duration = useMemo(() => {
+    return selectedServiceDetails.reduce((sum, service) => sum + Number(service.duration ?? 0), 0);
+  }, [selectedServiceDetails]);
 
-  const selectedServiceNames = selectedServiceDetails.map((service) => service.name).join(' + ');
+  const selectedServiceNames = useMemo(() => {
+    return selectedServiceDetails.map((service) => service.name).join(' + ');
+  }, [selectedServiceDetails]);
 
-  function toggleService(id: string) {
-    setSelectedServices((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
-    );
+  function toggleService(id: number) {
+    setSelectedServices((current) => {
+      if (current.includes(id)) {
+        return current.filter((item) => item !== id);
+      }
+
+      return [...current, id];
+    });
 
     setError('');
   }
 
   function next() {
-    if (!selectedServices.length) {
+    if (selectedServices.length === 0) {
       setError('Escolha pelo menos um procedimento para continuar.');
       return;
     }
@@ -134,6 +153,12 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
       return;
     }
 
+    if (selectedServices.length === 0) {
+      setError('Escolha pelo menos um procedimento.');
+      setStep(1);
+      return;
+    }
+
     const date = new Date(selectedDate);
     const [hours, minutes] = selectedTime.split(':').map(Number);
 
@@ -144,7 +169,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
       title: selectedServiceNames,
       date,
       local: 'Studio Bella',
-      services: selectedServices,
+      services: selectedServices.map(String),
       duration,
       price: total,
       categoria: 'Autocuidado',
@@ -377,7 +402,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
                     </p>
                   </div>
 
-                  <p className="font-display text-[20px] text-[#55413a]">R$ {total}</p>
+                  <p className="font-display text-[20px] text-[#55413a]">{formatCurrency(total)}</p>
                 </div>
               )}
 
@@ -392,7 +417,7 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
               <button
                 type="button"
                 onClick={next}
-                disabled={loadingServices || !services.length}
+                disabled={loadingServices || services.length === 0}
                 className="group mt-5 flex h-[56px] w-full items-center justify-center gap-2 rounded-[18px] bg-[#3f332f] text-[12px] font-bold text-white shadow-[0_18px_35px_-18px_rgba(45,32,27,.8)] transition-all hover:-translate-y-0.5 hover:bg-[#342a27] active:scale-[.985] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Escolher data e horário
@@ -560,16 +585,20 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
                   </span>
 
                   <strong className="font-display text-[22px] tracking-[-0.02em] text-[#493831]">
-                    R$ {total}
+                    {formatCurrency(total)}
                   </strong>
                 </div>
               </section>
+
+              {/* ERROR */}
 
               {error && (
                 <div className="mt-4 rounded-[14px] border border-[#edd4ce] bg-[#faece8] px-3.5 py-2.5">
                   <p className="text-[10px] font-semibold text-[#a34f43]">{error}</p>
                 </div>
               )}
+
+              {/* CONFIRM */}
 
               <button
                 type="button"
@@ -591,4 +620,11 @@ export default function NewAppointmentSheet({ onClose, onSave }: NewAppointmentS
       </div>
     </div>
   );
+}
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value);
 }
