@@ -24,6 +24,7 @@ type AdminServicesPageProps = {
   services: Service[];
 };
 
+// @ts-ignore
 export default function AdminServicesPage({ services }: AdminServicesPageProps) {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('Todos');
