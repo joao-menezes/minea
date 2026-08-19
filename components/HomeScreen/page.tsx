@@ -63,7 +63,8 @@ export default function Page({
         <AppointmentCalendar
           selected={selected}
           week={week}
-          appointmentCount={dayAppointments.length}
+          appointmentCount={appointments.length}
+          appointmentDates={appointments.map((appointment) => new Date(appointment.date))}
           onSelect={setSelected}
         />
 

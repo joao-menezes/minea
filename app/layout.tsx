@@ -9,6 +9,9 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Minea — seu momento de cuidado',
   description: 'Agende seus procedimentos de beleza e autocuidado.',
+  icons: {
+    icon: '/icon.ico',
+  },
 };
 
 const cormorant = Cormorant_Garamond({

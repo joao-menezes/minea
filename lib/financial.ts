@@ -21,7 +21,7 @@ export async function getFinancialReport(
 
   const query = params.toString();
 
-  return apiFetch<FinancialReportResponse>(`/api/financial/report${query ? `?${query}` : ''}`);
+  return apiFetch<FinancialReportResponse>(`/financial/report${query ? `?${query}` : ''}`);
 }
 
 export function formatCurrency(value: number): string {

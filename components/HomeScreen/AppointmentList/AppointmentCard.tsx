@@ -9,7 +9,6 @@ type AppointmentCardProps = {
 };
 
 export function AppointmentCard({ appointment, onClick }: AppointmentCardProps) {
-  console.log(appointment);
   return (
     <button
       type="button"

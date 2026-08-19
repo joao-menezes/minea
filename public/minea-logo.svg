@@ -1,0 +1,123 @@
+<svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 900 300"
+        role="img"
+        aria-labelledby="title desc"
+>
+  <title id="title">Minea — agenda de cuidado</title>
+
+  <desc id="desc">
+    Logotipo minimalista e elegante da Minea, com símbolo orgânico inspirado em uma flor e tipografia suave.
+  </desc>
+
+  <defs>
+    <linearGradient
+            id="mineaStroke"
+            x1="0"
+            y1="0"
+            x2="1"
+            y2="1"
+    >
+      <stop offset="0%" stop-color="#9E8176" />
+      <stop offset="100%" stop-color="#C9A99B" />
+    </linearGradient>
+
+    <linearGradient
+            id="mineaText"
+            x1="0"
+            y1="0"
+            x2="1"
+            y2="0"
+    >
+      <stop offset="0%" stop-color="#5F4D46" />
+      <stop offset="100%" stop-color="#765F56" />
+    </linearGradient>
+  </defs>
+
+  <!-- SÍMBOLO -->
+  <g
+          transform="translate(145 150) scale(1.35)"
+          fill="none"
+          stroke="url(#mineaStroke)"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+  >
+    <!-- haste -->
+    <path
+            d="M0 58 C2 32 2 5 0 -38"
+            stroke-width="5.5"
+    />
+
+    <!-- pétala esquerda -->
+    <path
+            d="M0 -7
+         C-29 -16 -48 -42 -41 -72
+         C-13 -71 5 -52 9 -28
+         C11 -17 7 -9 0 -7Z"
+            stroke-width="5.5"
+    />
+
+    <!-- pétala direita -->
+    <path
+            d="M2 -7
+         C31 -16 48 -42 41 -72
+         C14 -71 -5 -52 -9 -28
+         C-11 -17 -7 -9 2 -7Z"
+            stroke-width="5.5"
+    />
+
+    <!-- pétala central -->
+    <path
+            d="M0 -13
+         C-16 -31 -17 -59 0 -84
+         C17 -59 16 -31 0 -13Z"
+            stroke-width="5.5"
+    />
+
+    <!-- detalhe orgânico -->
+    <path
+            d="M0 24
+         C-16 11 -33 13 -47 27
+         C-28 30 -11 32 0 24Z"
+            stroke-width="4"
+    />
+  </g>
+
+  <!-- NOME -->
+  <text
+          x="260"
+          y="155"
+          fill="url(#mineaText)"
+          font-family="Georgia, 'Times New Roman', serif"
+          font-size="100"
+          font-weight="400"
+          letter-spacing="-3"
+  >
+    minea
+  </text>
+
+  <!-- LINHA DECORATIVA -->
+  <line
+          x1="265"
+          y1="178"
+          x2="315"
+          y2="178"
+          stroke="#C3AAA0"
+          stroke-width="2"
+          stroke-linecap="round"
+  />
+
+  <!-- ASSINATURA -->
+  <text
+          x="330"
+          y="184"
+          fill="#9A8178"
+          font-family="Arial, Helvetica, sans-serif"
+          font-size="18"
+          font-weight="600"
+          letter-spacing="2.5"
+  >
+    SEU MOMENTO DE CUIDADO
+  </text>
+
+</svg>

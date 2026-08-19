@@ -66,12 +66,20 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
               <div className="absolute bottom-16 right-8 h-40 w-40 rounded-full bg-[#f7eee9]/40 blur-2xl" />
 
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="flex h-52 w-52 items-center justify-center rounded-full border border-white/50">
-                  <div className="flex h-40 w-40 items-center justify-center rounded-full bg-[#f7eee9]/70 shadow-xl backdrop-blur-sm">
-                    <div className="text-center">
-                      <div className="font-serif text-5xl italic text-[#9d766a]">M</div>
-                    </div>
+                <div className="relative flex h-[26rem] w-[26rem] items-center justify-center">
+                  <div className="absolute inset-6 rounded-full bg-[#d9b8aa]/20 blur-3xl" />
+                  <div className="absolute inset-0 rounded-full border border-white/60 bg-white/10 shadow-[0_30px_80px_-30px_rgba(91,63,55,0.35)] backdrop-blur-[2px]" />
+                  <div className="absolute inset-5 rounded-full border border-[#b99588]/20" />
+                  <div className="relative flex h-72 w-72 items-center justify-center rounded-full border border-white/70 bg-[#f7eee9]/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_25px_60px_-25px_rgba(91,63,55,0.45)] backdrop-blur-xl">
+                    <div className="absolute left-10 top-8 h-20 w-32 rounded-full bg-white/40 blur-2xl" />
+                    <img
+                      src="/minea-logo.svg"
+                      alt="Minea"
+                      className="relative z-10 h-auto w-[30rem] max-w-none translate-x-8 scale-[1] object-contain drop-shadow-[0_12px_18px_rgba(91,63,55,0.18)]"
+                    />
                   </div>
+                  <span className="absolute right-8 top-16 h-2 w-2 rounded-full bg-white/80 shadow-[0_0_15px_rgba(255,255,255,0.9)]" />
+                  <span className="absolute bottom-20 left-8 h-1.5 w-1.5 rounded-full bg-[#b99588]/50" />
                 </div>
               </div>
 
