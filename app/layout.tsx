@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import type { Metadata } from 'next';
 import { Cormorant_Garamond, Inter } from 'next/font/google';
+import { Toaster } from 'sonner';
 
 import './globals.css';
 
@@ -25,7 +26,10 @@ const inter = Inter({
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body className={`${cormorant.variable} ${inter.variable}`}>{children}</body>
+      <body className={`${cormorant.variable} ${inter.variable}`}>
+        {children}
+        <Toaster position="top-right" richColors />
+      </body>
     </html>
   );
 }

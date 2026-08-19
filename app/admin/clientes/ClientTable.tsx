@@ -1,6 +1,6 @@
 import { ClientCard } from '@/app/admin/clientes/ClientCard';
 import { DesktopTable } from '@/app/admin/clientes/DesktopTable';
-import { Client } from '@/types/client';
+import { Client } from '@/types';
 
 export function ClientTable({
   clients,

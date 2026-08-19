@@ -9,6 +9,7 @@ import { AppointmentModal } from '@/components/HomeScreen/AppointmentList/Appoin
 import { NewAppointmentButton } from '@/components/HomeScreen/AppointmentList/NewAppointmentButton';
 import { HomeHeader } from '@/components/HomeScreen/HomeHeader';
 import { buildWeekStrip, sameDay } from '@/components/decor';
+import { deleteAppointment, updateAppointment } from '@/lib/api/appointments';
 import type { Appointment, User } from '@/types';
 
 import { HomeHero } from './HomeHero';
@@ -16,30 +17,36 @@ import { HomeHero } from './HomeHero';
 type HomeScreenProps = {
   user: User;
   appointments: Appointment[];
+  setAppointments: React.Dispatch<React.SetStateAction<Appointment[]>>;
   onLogout: () => void;
   openNew: () => void;
 };
 
-export default function Page({ user, appointments, onLogout, openNew }: HomeScreenProps) {
+export default function Page({
+  user,
+  appointments,
+  setAppointments,
+  onLogout,
+  openNew,
+}: HomeScreenProps) {
   const [selected, setSelected] = useState(new Date());
+
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
   const week = useMemo(() => buildWeekStrip(new Date()), []);
 
-  const dayAppointments = useMemo(
-    () =>
-      appointments
-        .filter((appointment) => sameDay(appointment.date, selected))
-        .sort((a, b) => a.date.getTime() - b.date.getTime()),
-    [appointments, selected],
-  );
+  const dayAppointments = useMemo(() => {
+    return appointments
+      .filter((appointment) => sameDay(new Date(appointment.date), selected))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [appointments, selected]);
 
   const nextAppointment = useMemo(() => {
     const now = new Date();
 
     return [...appointments]
-      .sort((a, b) => a.date.getTime() - b.date.getTime())
-      .find((appointment) => appointment.date >= now);
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .find((appointment) => new Date(appointment.date) >= now);
   }, [appointments]);
 
   return (
@@ -67,14 +74,29 @@ export default function Page({ user, appointments, onLogout, openNew }: HomeScre
         />
       </div>
 
-      <NewAppointmentButton onClick={openNew} variant="bottom" />
-
       <AppointmentModal
         appointment={selectedAppointment}
         open={selectedAppointment !== null}
         onClose={() => setSelectedAppointment(null)}
-        onSave={(updatedAppointment) => {
-          console.log(updatedAppointment);
+
+        onSave={async (updatedAppointment) => {
+          const updated = await updateAppointment(updatedAppointment.id, {
+            date: updatedAppointment.date,
+            time: updatedAppointment.time,
+          });
+
+          setAppointments((current) =>
+            current.map((item) => (item.id === updated.id ? updated : item)),
+          );
+
+          setSelectedAppointment(null);
+        }}
+
+        onCancel={async (appointment) => {
+          await deleteAppointment(appointment.id);
+
+          setAppointments((current) => current.filter((item) => item.id !== appointment.id));
+
           setSelectedAppointment(null);
         }}
       />

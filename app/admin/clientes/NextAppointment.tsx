@@ -1,15 +1,28 @@
+'use client';
+
 import { CalendarDays } from 'lucide-react';
 
-import { getAppointmentParts } from '@/lib/clients';
-
 type Props = {
-  appointment: string;
+  appointment?: string | null;
 };
 
 export function NextAppointment({ appointment }: Props) {
-  const { date, time } = getAppointmentParts(appointment);
+  if (!appointment) return null;
 
-  if (!date) return null;
+  const date = new Date(appointment);
+
+  if (Number.isNaN(date.getTime())) return null;
+
+  const formattedDate = date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+
+  const formattedTime = date.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
   return (
     <section className="mt-4 rounded-[21px] bg-[#f6ede8] p-4">
@@ -19,11 +32,10 @@ export function NextAppointment({ appointment }: Props) {
         </div>
 
         <div className="min-w-0">
-          <p className="text-[10px] font-bold text-[#80685e]">Próximo atendimento</p>
+          <p className="text-[10px] font-bold text-[#80685e]">Atendimento</p>
 
           <p className="mt-1 text-[10px] text-[#b49b90]">
-            {date}
-            {time && ` · ${time}`}
+            {formattedDate} · {formattedTime}
           </p>
         </div>
       </div>

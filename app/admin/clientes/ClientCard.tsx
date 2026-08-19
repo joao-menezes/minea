@@ -1,6 +1,6 @@
 import { CalendarDays, ChevronRight } from 'lucide-react';
 
-import type { Client } from '@/types/client';
+import type { Client } from '@/types';
 
 type Props = {
   client: Client;
@@ -8,6 +8,13 @@ type Props = {
 };
 
 export function ClientCard({ client, onClick }: Props) {
+  const getInitials = (client: string) => {
+    return client
+      .split(' ')
+      .map((word: string) => word.charAt(0).toUpperCase())
+      .join('');
+  };
+
   return (
     <button
       type="button"
@@ -16,13 +23,13 @@ export function ClientCard({ client, onClick }: Props) {
     >
       <div className="relative shrink-0">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#d6beb5] text-[9px] font-bold text-white">
-          {client.initials}
+          {getInitials(client.name)}
         </div>
 
         <span
           className={[
             'absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white',
-            client.status === 'Ativa' ? 'bg-[#91a695]' : 'bg-[#d3c7c1]',
+            client.isActive ? 'bg-[#91a695]' : 'bg-[#d3c7c1]',
           ].join(' ')}
         />
       </div>
@@ -34,12 +41,10 @@ export function ClientCard({ client, onClick }: Props) {
           <span
             className={[
               'shrink-0 rounded-full px-2 py-1 text-[7px] font-bold',
-              client.status === 'Ativa'
-                ? 'bg-[#f3e9e4] text-[#8f7165]'
-                : 'bg-[#f5f1ee] text-[#b4a098]',
+              client.isActive ? 'bg-[#f3e9e4] text-[#8f7165]' : 'bg-[#f5f1ee] text-[#b4a098]',
             ].join(' ')}
           >
-            {client.status}
+            {client.isActive ? 'Ativa' : 'Inativa'}
           </span>
         </div>
 
@@ -49,7 +54,11 @@ export function ClientCard({ client, onClick }: Props) {
             {client.appointments} atendimentos
           </span>
 
-          <span className="truncate text-[9px] text-[#b49b90]">{client.favoriteService}</span>
+          <span className="truncate text-[9px] text-[#b49b90]">
+            {client.favoriteServices?.length
+              ? client.favoriteServices.map((service) => service.name).join(', ')
+              : 'Nenhum serviço'}
+          </span>
         </div>
       </div>
 

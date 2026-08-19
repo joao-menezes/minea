@@ -13,7 +13,7 @@ type LoginScreenProps = {
 
 export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
   const [cpf, setCpf] = useState('');
-  const [senha, setSenha] = useState('');
+  const [password, setPassword] = useState('');
   const [showSenha, setShowSenha] = useState(false);
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
       return;
     }
 
-    if (senha.length < 6) {
+    if (password.length < 1) {
       setErro('A senha precisa ter pelo menos 6 caracteres.');
       return;
     }
@@ -37,7 +37,7 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
       setErro('');
       setLoading(true);
 
-      await onLogin(cpf, senha);
+      await onLogin(cpf, password);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Não foi possível entrar.';
 
@@ -120,7 +120,6 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
               onSubmit={handleSubmit}
               className="rounded-[30px] border border-[#eee4df] bg-white p-6 shadow-[0_20px_60px_-30px_rgba(76,55,48,0.25)] sm:p-8"
             >
-              {/* CPF */}
               <div>
                 <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#79665f]">
                   CPF
@@ -146,7 +145,6 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
                 </div>
               </div>
 
-              {/* SENHA */}
               <div className="mt-5">
                 <div className="mb-2 flex items-center justify-between">
                   <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#79665f]">
@@ -168,9 +166,9 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
                   </div>
 
                   <input
-                    value={senha}
+                    value={password}
                     onChange={(e) => {
-                      setSenha(e.target.value);
+                      setPassword(e.target.value);
                       setErro('');
                     }}
                     type={showSenha ? 'text' : 'password'}
@@ -192,7 +190,6 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
                 </div>
               </div>
 
-              {/* ERRO */}
               {erro && (
                 <div className="mt-4 flex items-start gap-3 rounded-2xl border border-[#f1d9d4] bg-[#fbefed] px-4 py-3">
                   <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d98f82] text-[10px] text-white">
@@ -203,7 +200,6 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
                 </div>
               )}
 
-              {/* LOGIN */}
               <button
                 type="submit"
                 disabled={loading}
@@ -218,7 +214,6 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
                 )}
               </button>
 
-              {/* CADASTRO */}
               <div className="my-7 flex items-center gap-4">
                 <div className="h-px flex-1 bg-[#eee5e1]" />
 

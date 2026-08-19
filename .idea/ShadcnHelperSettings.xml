@@ -3366,6 +3366,18 @@
         <option name="homepage" value="https://remotionui.com" />
         <option name="urlTemplate" value="https://remotionui.com/r/{name}.json" />
       </RegistryConfigState>
+      <RegistryConfigState>
+        <option name="id" value="central-velobits" />
+        <option name="name" value="Velobits" />
+        <option name="namespace" value="@velobits" />
+        <option name="baseUrl" value="https://ui.velobits.dev/r" />
+        <option name="stylePath" value="/{name}.json" />
+        <option name="type" value="community" />
+        <option name="enabled" value="false" />
+        <option name="description" value="An open source collection of accessible, contrast-gated React components on a warm neutral palette and a two-tier glass material — the VeloBits design system, authored once and shipped both as an npm package and as this registry." />
+        <option name="homepage" value="https://ui.velobits.dev" />
+        <option name="urlTemplate" value="https://ui.velobits.dev/r/{name}.json" />
+      </RegistryConfigState>
     </registryConfigs>
   </component>
 </project>

@@ -1,6 +1,6 @@
 import { ChevronRight, Clock3, MapPin, Sparkles } from 'lucide-react';
 
-import { formatTime } from '@/components/decor';
+import { formatDate, formatTimeData } from '@/components/decor';
 import type { Appointment } from '@/types';
 
 type AppointmentCardProps = {
@@ -9,6 +9,7 @@ type AppointmentCardProps = {
 };
 
 export function AppointmentCard({ appointment, onClick }: AppointmentCardProps) {
+  console.log(appointment);
   return (
     <button
       type="button"
@@ -20,12 +21,14 @@ export function AppointmentCard({ appointment, onClick }: AppointmentCardProps) 
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[13px] font-bold text-[#6b5850]">{appointment.title}</p>
+        <p className="truncate text-[13px] font-bold text-[#6b5850]">
+          {appointment.title} | {appointment.duration} Min
+        </p>
 
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="flex items-center gap-1 text-[10px] text-[#b49b90]">
             <Clock3 size={11} />
-            {formatTime(appointment.date)}
+            {formatDate(appointment.date)} | {formatTimeData(appointment.time)}
           </span>
 
           {appointment.local && (

@@ -10,7 +10,7 @@ type AdminHeaderProps = {
 
 export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   return (
-    <header className="relative z-[100] flex h-[76px] items-center justify-between border-b border-[#e9e1dc] bg-white/80 px-4 backdrop-blur-xl sm:px-5 lg:px-8">
+    <header className="relative z-[1] flex h-[76px] items-center justify-between border-b border-[#e9e1dc] bg-white/80 px-4 backdrop-blur-xl sm:px-5 lg:px-8">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -39,7 +39,7 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <AdminNotifications />
+        {/*<AdminNotifications />*/}
 
         <div className="hidden h-8 w-px bg-[#e9e1dc] sm:block" />
 

@@ -15,74 +15,79 @@ import {
 } from 'lucide-react';
 
 import { AdminShell } from '@/components/admin/AdminShell';
+import { getAppointments } from '@/lib/api/appointments';
+import { getServices } from '@/lib/api/services';
 import { formatCurrency } from '@/lib/financial';
-import { getServices } from '@/src/services/serviceService';
-import type { Service } from '@/types';
-
-const APPOINTMENTS = [
-  {
-    time: '09:00',
-    client: 'Ana Silva',
-    service: 'Design de Sobrancelha',
-    status: 'Confirmado',
-  },
-  {
-    time: '10:30',
-    client: 'Mariana Costa',
-    service: 'Manutenção de tintura',
-    status: 'Pendente',
-  },
-  {
-    time: '14:00',
-    client: 'Camila Souza',
-    service: 'Design + Tintura',
-    status: 'Confirmado',
-  },
-  {
-    time: '15:30',
-    client: 'Juliana Alves',
-    service: 'Design + Henna',
-    status: 'Confirmado',
-  },
-];
+import type { Appointment, AppointmentStatus, Service } from '@/types';
 
 export default function AdminPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
   const [servicesError, setServicesError] = useState<string | null>(null);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loadingAppointments, setLoadingAppointments] = useState(true);
+  const [appointmentsError, setAppointmentsError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
 
-    async function loadServices() {
+    async function loadData() {
       try {
         setLoadingServices(true);
+        setLoadingAppointments(true);
+
         setServicesError(null);
+        setAppointmentsError(null);
 
-        const data = await getServices();
+        const [servicesData, appointmentsData] = await Promise.all([
+          getServices(),
+          getAppointments(),
+        ]);
 
-        if (mounted) {
-          setServices(data);
-        }
+        if (!mounted) return;
+
+        setServices(servicesData);
+        setAppointments(appointmentsData);
       } catch (error) {
-        console.error('Erro ao carregar serviços:', error);
+        console.error('Erro ao carregar dashboard:', error);
 
         if (mounted) {
           setServicesError('Não foi possível carregar os serviços.');
+          setAppointmentsError('Não foi possível carregar a agenda.');
         }
       } finally {
         if (mounted) {
           setLoadingServices(false);
+          setLoadingAppointments(false);
         }
       }
     }
 
-    loadServices();
+    loadData();
 
     return () => {
       mounted = false;
     };
   }, []);
+
+  function getAppointmentStatusLabel(status: AppointmentStatus): string {
+    switch (status) {
+      case 'scheduled':
+        return 'Agendado';
+
+      case 'confirmed':
+        return 'Confirmado';
+
+      case 'completed':
+        return 'Concluído';
+
+      case 'cancelled':
+        return 'Cancelado';
+
+      case 'no_show':
+        return 'Não compareceu';
+    }
+  }
 
   return (
     <AdminShell>
@@ -96,9 +101,7 @@ export default function AdminPage() {
         </div>
 
         <div className="relative mx-auto max-w-[1500px] px-5 py-7 lg:px-8 lg:py-9">
-          {/* HEADER */}
-
-          <section className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+           <section className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[9px] font-bold uppercase tracking-[0.34em] text-[#c2a99d]">
@@ -138,8 +141,6 @@ export default function AdminPage() {
             </button>
           </section>
 
-          {/* STATS */}
-
           <section className="mt-8 grid grid-cols-2 gap-3 xl:grid-cols-4">
             <StatCard
               label="Agendamentos hoje"
@@ -174,11 +175,7 @@ export default function AdminPage() {
             />
           </section>
 
-          {/* MAIN */}
-
           <section className="mt-7 grid gap-5 xl:grid-cols-[1.55fr_1fr]">
-            {/* AGENDA */}
-
             <div className="rounded-[30px] border border-white/70 bg-white/85 p-5 shadow-[0_22px_50px_-34px_rgba(64,46,40,.28)] backdrop-blur lg:p-6">
               <div className="flex items-end justify-between">
                 <div>
@@ -204,52 +201,84 @@ export default function AdminPage() {
               </div>
 
               <div className="mt-6 divide-y divide-[#f1e8e2]">
-                {APPOINTMENTS.map((appointment) => (
-                  <div
-                    key={`${appointment.time}-${appointment.client}`}
-                    className="group flex items-center gap-4 py-4 first:pt-0 last:pb-0"
-                  >
-                    <div className="w-12 shrink-0">
-                      <p className="text-xs font-bold text-[#80685e]">{appointment.time}</p>
-                    </div>
+                {loadingAppointments && (
+                  <div className="space-y-4">
+                    {[1, 2, 3, 4].map((item) => (
+                      <div key={item} className="flex animate-pulse items-center gap-4 py-4">
+                        <div className="h-3 w-10 rounded-full bg-[#eee3dd]" />
+                        <div className="h-11 w-11 rounded-[16px] bg-[#f2eae6]" />
 
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] bg-[#f6ede8] text-[#ab8f83] transition-transform group-hover:scale-[1.03]">
-                      <Sparkles size={17} strokeWidth={1.6} />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[12px] font-bold text-[#6b5850]">
-                        {appointment.client}
-                      </p>
-
-                      <p className="mt-1 truncate text-[10px] text-[#b49b90]">
-                        {appointment.service}
-                      </p>
-                    </div>
-
-                    <span
-                      className={[
-                        'hidden rounded-full px-3 py-1.5 text-[8px] font-bold sm:block',
-                        appointment.status === 'Confirmado'
-                          ? 'border border-[#dce9df] bg-[#edf4ee] text-[#66806d]'
-                          : 'border border-[#eee0d5] bg-[#f8f0e8] text-[#9a775b]',
-                      ].join(' ')}
-                    >
-                      {appointment.status}
-                    </span>
-
-                    <button
-                      type="button"
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#d0beb5] transition-all hover:bg-[#faf4f1] hover:text-[#a98d81]"
-                    >
-                      <ArrowUpRight size={14} />
-                    </button>
+                        <div className="flex-1">
+                          <div className="h-3 w-28 rounded-full bg-[#eee3dd]" />
+                          <div className="mt-2 h-2 w-20 rounded-full bg-[#f2eae6]" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                {!loadingAppointments && appointmentsError && (
+                  <div className="rounded-[18px] border border-[#f1d9d4] bg-[#fbefed] px-4 py-3">
+                    <p className="text-[10px] font-medium text-[#9b5d53]">{appointmentsError}</p>
+                  </div>
+                )}
+
+                {!loadingAppointments && !appointmentsError && appointments.length === 0 && (
+                  <div className="rounded-[18px] bg-[#f8f1ed] px-4 py-5 text-center">
+                    <p className="text-[10px] font-medium text-[#a98d81]">
+                      Nenhum agendamento para hoje.
+                    </p>
+                  </div>
+                )}
+
+                {!loadingAppointments &&
+                  !appointmentsError &&
+                  appointments.map((appointment) => (
+                    <div
+                      key={appointment.id}
+                      className="group flex items-center gap-4 py-4 first:pt-0 last:pb-0"
+                    >
+                      {/*<div className="w-12 shrink-0">*/}
+                      {/*  <p className="text-xs font-bold text-[#80685e]">{appointment.date}</p>*/}
+                      {/*</div>*/}
+
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] bg-[#f6ede8] text-[#ab8f83] transition-transform group-hover:scale-[1.03]">
+                        <Sparkles size={17} strokeWidth={1.6} />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[12px] font-bold text-[#6b5850]">
+                          {appointment.clientName ?? 'Cliente não informado'}
+                        </p>
+
+                        <p className="mt-1 truncate text-[10px] text-[#b49b90]">
+                          {appointment.title}
+                        </p>
+                      </div>
+
+                      <span
+                        className={[
+                          'hidden rounded-full px-3 py-1.5 text-[8px] font-bold sm:block',
+                          appointment.status === 'confirmed'
+                            ? 'border border-[#dce9df] bg-[#edf4ee] text-[#66806d]'
+                            : appointment.status === 'cancelled'
+                              ? 'border border-[#f1d9d4] bg-[#fbefed] text-[#9b5d53]'
+                              : 'border border-[#eee0d5] bg-[#f8f0e8] text-[#9a775b]',
+                        ].join(' ')}
+                      >
+                        {getAppointmentStatusLabel(appointment.status)}
+                      </span>
+
+                      <button
+                        type="button"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#d0beb5] transition-all hover:bg-[#faf4f1] hover:text-[#a98d81]"
+                      >
+                        <ArrowUpRight size={14} />
+                      </button>
+                    </div>
+                  ))}
               </div>
             </div>
-
-            {/* SERVIÇOS */}
 
             <div className="rounded-[30px] border border-white/70 bg-white/85 p-5 shadow-[0_22px_50px_-34px_rgba(64,46,40,.28)] backdrop-blur lg:p-6">
               <div>

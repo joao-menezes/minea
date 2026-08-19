@@ -208,7 +208,6 @@ function NotificationItem({
         !notification.read ? 'bg-[#fdf9f7]' : 'bg-white',
       ].join(' ')}
     >
-      {/* Icon */}
       <div
         className={[
           'flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px]',

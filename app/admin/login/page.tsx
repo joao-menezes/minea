@@ -34,7 +34,6 @@ export default function AdminLoginPage() {
   return (
     <main className="min-h-screen bg-[#f7f4f2]">
       <div className="flex min-h-screen">
-        {/* Branding */}
         <section className="relative hidden flex-1 overflow-hidden bg-[#493a35] lg:flex">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(201,175,165,.2),transparent_35%)]" />
 

@@ -2,7 +2,7 @@
 
 import { Search, X } from 'lucide-react';
 
-import { ClientFilter } from '@/types/client';
+import { ClientFilter } from '@/types';
 
 type Props = {
   search: string;

@@ -4,63 +4,66 @@ import { type FormEvent, useState } from 'react';
 
 import { ArrowLeft, ArrowRight, Cake, Eye, EyeOff, Lock, ShieldCheck, User } from 'lucide-react';
 
-import type { SignupUser } from '@/types';
-
 import { Bow, maskCPF, maskDate } from './decor';
 
+type SignupData = {
+  name: string;
+  cpf: string;
+  password: string;
+};
+
 type SignupScreenProps = {
-  onCreated: (user: SignupUser, password: string) => void | Promise<void>;
+  onCreated: (user: SignupData, password: string) => void | Promise<void>;
   goBack: () => void;
 };
 
 export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
   const [nome, setNome] = useState('');
   const [cpf, setCpf] = useState('');
-  const [senha, setSenha] = useState('');
-  const [showSenha, setShowSenha] = useState(false);
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [querAniversario, setQuerAniversario] = useState(false);
-  const [aniversario, setAniversario] = useState('');
-  const [erro, setErro] = useState('');
+  const [birthday, setBirthday] = useState('');
+  const [error, setError] = useState('');
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    1;
 
     if (!nome.trim()) {
-      return setErro('Conta pra gente como podemos te chamar.');
+      return setError('Conta pra gente como podemos te chamar.');
     }
 
     if (cpf.replace(/\D/g, '').length !== 11) {
-      return setErro('Digite um CPF válido, com os 11 números.');
+      return setError('Digite um CPF válido, com os 11 números.');
     }
 
-    if (senha.length < 4) {
-      return setErro('A senha precisa ter pelo menos 4 caracteres.');
+    if (password.length < 4) {
+      return setError('A senha precisa ter pelo menos 4 caracteres.');
     }
 
-    if (querAniversario && aniversario.replace(/\D/g, '').length !== 8) {
-      return setErro('Preencha a data de aniversário completa ou desative a opção.');
+    if (querAniversario && birthday.replace(/\D/g, '').length !== 8) {
+      return setError('Preencha a data de aniversário completa ou desative a opção.');
     }
 
-    setErro('');
+    setError('');
 
     onCreated(
       {
-        nome,
+        name: nome,
         cpf,
-        aniversario,
+        password,
       },
-      senha,
+      password,
     );
   }
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#f8f6f4] text-[#403632]">
-      {/* Background */}
       <div className="absolute -right-32 -top-40 h-96 w-96 rounded-full bg-[#eadbd5]/60 blur-3xl" />
       <div className="absolute -bottom-48 -left-32 h-96 w-96 rounded-full bg-[#e4d9dc]/50 blur-3xl" />
 
       <div className="relative z-10 flex min-h-screen flex-col lg:flex-row">
-        {/* Visual / brand */}
         <section className="hidden items-center justify-center p-10 lg:flex lg:w-[43%] xl:w-1/2">
           <div className="relative w-full max-w-lg">
             <div className="absolute inset-5 rounded-[42px] bg-[#eee2dd]" />
@@ -71,7 +74,6 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
               <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-white/20" />
               <div className="absolute -left-16 bottom-10 h-48 w-48 rounded-full bg-[#bda198]/20 blur-2xl" />
 
-              {/* Central brand */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="flex h-56 w-56 items-center justify-center rounded-full border border-white/40">
                   <div className="flex h-44 w-44 flex-col items-center justify-center rounded-full bg-white/35 shadow-xl backdrop-blur-md">
@@ -86,7 +88,6 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
                 </div>
               </div>
 
-              {/* Bottom message */}
               <div className="absolute bottom-7 left-7 right-7 rounded-[26px] border border-white/50 bg-white/60 p-5 backdrop-blur-lg">
                 <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#8b6d63]">
                   um novo ritual começa aqui
@@ -110,10 +111,8 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
           </div>
         </section>
 
-        {/* Form */}
         <section className="flex flex-1 items-center justify-center px-6 py-8 sm:px-10 lg:px-14">
           <div className="w-full max-w-md">
-            {/* Back */}
             <button
               onClick={goBack}
               className="group mb-8 flex items-center gap-2 text-xs font-semibold text-[#927a71] transition-colors hover:text-[#665149]"
@@ -124,7 +123,6 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
               Voltar
             </button>
 
-            {/* Mobile brand */}
             <div className="mb-8 lg:hidden">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eadbd5]">
                 <Bow size={30} />
@@ -150,12 +148,10 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
               </p>
             </div>
 
-            {/* Card */}
             <form
               onSubmit={handleSubmit}
               className="rounded-[30px] border border-[#ebe3df] bg-white p-6 shadow-[0_25px_65px_-35px_rgba(68,50,43,.35)] sm:p-8"
             >
-              {/* Name */}
               <div>
                 <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#79665e]">
                   Como podemos te chamar?
@@ -170,7 +166,7 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
                     value={nome}
                     onChange={(e) => {
                       setNome(e.target.value);
-                      setErro('');
+                      setError('');
                     }}
                     placeholder="Seu nome completo"
                     autoComplete="name"
@@ -179,7 +175,6 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
                 </div>
               </div>
 
-              {/* CPF */}
               <div className="mt-5">
                 <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#79665e]">
                   CPF
@@ -194,7 +189,7 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
                     value={cpf}
                     onChange={(e) => {
                       setCpf(maskCPF(e.target.value));
-                      setErro('');
+                      setError('');
                     }}
                     placeholder="000.000.000-00"
                     inputMode="numeric"
@@ -203,7 +198,6 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
                 </div>
               </div>
 
-              {/* Password */}
               <div className="mt-5">
                 <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#79665e]">
                   Crie uma senha
@@ -215,12 +209,12 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
                   </div>
 
                   <input
-                    value={senha}
+                    value={password}
                     onChange={(e) => {
-                      setSenha(e.target.value);
-                      setErro('');
+                      setPassword(e.target.value);
+                      setError('');
                     }}
-                    type={showSenha ? 'text' : 'password'}
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Mínimo de 4 caracteres"
                     autoComplete="new-password"
                     className="w-full bg-transparent text-sm text-[#443834] outline-none placeholder:text-[#c0b1aa]"
@@ -228,15 +222,14 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
 
                   <button
                     type="button"
-                    onClick={() => setShowSenha((s) => !s)}
+                    onClick={() => setShowPassword((s) => !s)}
                     className="flex h-8 w-8 items-center justify-center rounded-xl text-[#a28a82] transition-colors hover:bg-[#f0e7e3] hover:text-[#70574f]"
                   >
-                    {showSenha ? <EyeOff size={17} /> : <Eye size={17} />}
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                   </button>
                 </div>
               </div>
 
-              {/* Birthday */}
               <div className="mt-6 rounded-[22px] border border-[#ebe2de] bg-[#f7f3f1] p-4">
                 <button
                   type="button"
@@ -255,7 +248,6 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
                     </div>
                   </div>
 
-                  {/* Toggle */}
                   <span
                     className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${querAniversario ? 'justify-end bg-[#806057]' : 'justify-start bg-[#d9cec9]'} `}
                   >
@@ -270,10 +262,10 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
                 {querAniversario && (
                   <div className="mt-4 pl-12">
                     <input
-                      value={aniversario}
+                      value={birthday}
                       onChange={(e) => {
-                        setAniversario(maskDate(e.target.value));
-                        setErro('');
+                        setBirthday(maskDate(e.target.value));
+                        setError('');
                       }}
                       placeholder="DD/MM/AAAA"
                       inputMode="numeric"
@@ -283,18 +275,16 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
                 )}
               </div>
 
-              {/* Error */}
-              {erro && (
+              {error && (
                 <div className="mt-4 flex items-start gap-3 rounded-2xl border border-[#f0d9d4] bg-[#fbefed] px-4 py-3">
                   <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#c98579] text-[10px] text-white">
                     !
                   </div>
 
-                  <p className="text-xs leading-relaxed text-[#965d54]">{erro}</p>
+                  <p className="text-xs leading-relaxed text-[#965d54]">{error}</p>
                 </div>
               )}
 
-              {/* Submit */}
               <button
                 type="submit"
                 className="group mt-6 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[#55443e] text-sm font-semibold text-white shadow-[0_14px_30px_-12px_rgba(65,48,42,.7)] transition-all hover:bg-[#493933] active:scale-[.985]"
@@ -307,7 +297,6 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
               </button>
             </form>
 
-            {/* Privacy */}
             <div className="mt-6 flex items-center justify-center gap-2 text-[#a4948d]">
               <ShieldCheck size={14} />
 

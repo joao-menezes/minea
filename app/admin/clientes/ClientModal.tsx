@@ -1,9 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-
-import { openWhatsApp } from '@/lib/clients';
-import type { Client } from '@/types/client';
+import type { Client } from '@/types';
 
 import { ClientActions } from './ClientActions';
 import { ClientDetails } from './ClientDetails';
@@ -31,7 +28,7 @@ export function ClientModal({ client, onClose }: Props) {
         <div className="min-h-0 overflow-y-auto p-5 sm:p-6">
           <ClientDetails client={client} />
 
-          {client.nextAppointment && <NextAppointment appointment={client.nextAppointment} />}
+          {client.lastAppointmentAt && <NextAppointment appointment={client.lastAppointmentAt} />}
 
           <ClientActions />
         </div>

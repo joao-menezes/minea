@@ -97,14 +97,10 @@ export function AdminShell({ children }: AdminShellProps) {
   return (
     <div className="min-h-screen bg-[#f7f4f2] text-[#493a35]">
       <div className="flex min-h-screen">
-        {/* DESKTOP SIDEBAR */}
         <AdminSidebar />
 
-        {/* MOBILE DRAWER */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-[100] lg:hidden">
-            {/* BACKDROP */}
-
             <button
               type="button"
               aria-label="Fechar menu"
@@ -112,11 +108,7 @@ export function AdminShell({ children }: AdminShellProps) {
               className="absolute inset-0 bg-[#352c29]/25 backdrop-blur-[2px]"
             />
 
-            {/* DRAWER */}
-
             <aside className="relative z-10 flex h-full w-[82vw] max-w-[310px] flex-col border-r border-[#e9e1dc] bg-[#fcfaf9] shadow-[20px_0_60px_-30px_rgba(54,39,34,.35)]">
-              {/* HEADER */}
-
               <div className="flex h-[76px] shrink-0 items-center justify-between border-b border-[#e9e1dc] px-5">
                 <div>
                   <div className="flex items-center gap-2">
@@ -143,8 +135,6 @@ export function AdminShell({ children }: AdminShellProps) {
                   <X size={17} strokeWidth={1.7} />
                 </button>
               </div>
-
-              {/* NAVIGATION */}
 
               <nav className="flex-1 overflow-y-auto px-4 py-7">
                 <p className="mb-3 px-2 text-[8px] font-bold uppercase tracking-[0.28em] text-[#b09a91]">

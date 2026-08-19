@@ -17,31 +17,37 @@ const NAVIGATION = [
     label: 'Dashboard',
     href: '/admin',
     icon: BarChart3,
+    enabled: true,
   },
   {
     label: 'Agenda',
     href: '/admin/agenda',
     icon: CalendarDays,
+    enabled: true,
   },
   {
     label: 'Clientes',
     href: '/admin/clientes',
     icon: Users,
+    enabled: true,
   },
   {
     label: 'Serviços',
     href: '/admin/servicos',
     icon: Sparkles,
+    enabled: true,
   },
   {
     label: 'Financeiro',
     href: '/admin/financeiro',
     icon: CircleDollarSign,
+    enabled: true,
   },
   {
     label: 'Notificações',
     href: '/admin/notifications',
     icon: Bell,
+    enabled: false,
   },
 ] as const;
 
@@ -51,7 +57,6 @@ export function AdminSidebar() {
   return (
     <aside className="sticky top-0 hidden h-dvh w-[250px] shrink-0 overflow-hidden border-r border-[#e9e1dc] bg-[#fcfaf9] lg:flex lg:flex-col">
       <div className="flex h-full min-h-0 flex-col px-5 py-7">
-        {/* Brand */}
         <div className="shrink-0 px-3">
           <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-[#80655b]">Minea</p>
 
@@ -66,7 +71,7 @@ export function AdminSidebar() {
           </p>
 
           <div className="space-y-1">
-            {NAVIGATION.map((item) => {
+            {NAVIGATION.filter((item) => item.enabled).map((item) => {
               const Icon = item.icon;
 
               const active =

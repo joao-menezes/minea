@@ -27,7 +27,7 @@ export function NewAppointmentButton({ onClick, variant }: NewAppointmentButtonP
     <button
       type="button"
       onClick={onClick}
-      className="group mt-4 flex h-[58px] w-full items-center justify-between rounded-[20px] bg-[#8a6f63] px-5 text-white shadow-[0_18px_35px_-18px_rgba(138,111,99,.55)] transition-all hover:-translate-y-0.5 hover:bg-[#7c6156] active:scale-[.985]"
+      className="group sticky top-4 z-20 mt-4 flex h-[58px] w-full items-center justify-between rounded-[20px] bg-[#8a6f63] px-5 text-white shadow-[0_18px_35px_-18px_rgba(138,111,99,.55)] transition-all hover:-translate-y-0.5 hover:bg-[#7c6156] active:scale-[.985]"
     >
       <span className="flex items-center gap-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-white/15">

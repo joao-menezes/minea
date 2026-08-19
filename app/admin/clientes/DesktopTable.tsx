@@ -1,8 +1,8 @@
 import { ChevronRight } from 'lucide-react';
 
 import { StatusBadge } from '@/components/badge';
-import { getAppointmentParts } from '@/lib/clients';
-import type { Client } from '@/types/client';
+import { formatDateShort, formatTime } from '@/components/decor';
+import { Appointment, Client } from '@/types';
 
 type Props = {
   clients: Client[];
@@ -40,7 +40,17 @@ function TableHeader({ children }: { children: React.ReactNode }) {
 }
 
 function ClientRow({ client, onClick }: { client: Client; onClick: () => void }) {
-  const { date, time } = getAppointmentParts(client.nextAppointment);
+  const lastAppointment = client.lastAppointmentAt ? new Date(client.lastAppointmentAt) : null;
+
+  const date = lastAppointment ? formatDateShort(lastAppointment) : null;
+  const time = lastAppointment ? formatTime(lastAppointment) : null;
+
+  const getInitials = (client: string) => {
+    return client
+      .split(' ')
+      .map((word: string) => word.charAt(0).toUpperCase())
+      .join('');
+  };
 
   return (
     <button
@@ -51,13 +61,13 @@ function ClientRow({ client, onClick }: { client: Client; onClick: () => void })
       <div className="flex min-w-0 items-center gap-3">
         <div className="relative shrink-0">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d6beb5] text-[9px] font-bold text-white shadow-sm">
-            {client.initials}
+            {getInitials(client.name)}
           </div>
 
           <span
             className={[
               'absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white',
-              client.status === 'Ativa' ? 'bg-[#91a695]' : 'bg-[#d3c7c1]',
+              client.isActive ? 'bg-[#91a695]' : 'bg-[#d3c7c1]',
             ].join(' ')}
           />
         </div>
@@ -70,7 +80,7 @@ function ClientRow({ client, onClick }: { client: Client; onClick: () => void })
       </div>
 
       <div>
-        <p className="text-[10px] font-semibold text-[#80685e]">{client.lastAppointment}</p>
+        <p className="text-[10px] font-semibold text-[#80685e]">{client.lastAppointmentAt}</p>
 
         <p className="mt-1 text-[8px] text-[#c0aaa0]">último atendimento</p>
       </div>
@@ -88,12 +98,14 @@ function ClientRow({ client, onClick }: { client: Client; onClick: () => void })
       </div>
 
       <div className="min-w-0 pr-4">
-        <p className="truncate text-[10px] font-medium text-[#a48a7f]">{client.favoriteService}</p>
+        <p className="truncate text-[10px] font-medium text-[#a48a7f]">
+          {client.favoriteServices?.map((service) => service.name).join(', ') || 'Nenhum serviço'}
+        </p>
 
         <p className="mt-1 text-[8px] text-[#c0aaa0]">mais utilizado</p>
       </div>
 
-      <StatusBadge status={client.status} />
+      <StatusBadge status={client.isActive} />
 
       <span
         className={[
@@ -109,4 +121,21 @@ function ClientRow({ client, onClick }: { client: Client; onClick: () => void })
       </span>
     </button>
   );
+}
+
+function getAppointmentParts(appointment?: Appointment | null): {
+  date: string | null;
+  time: string | null;
+} {
+  if (!appointment?.date) {
+    return { date: null, time: null };
+  }
+  const parsedDate = new Date(appointment.date);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return { date: null, time: null };
+  }
+  return {
+    date: parsedDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+    time: parsedDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+  };
 }

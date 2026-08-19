@@ -9,12 +9,19 @@ import { ClientTable } from '@/app/admin/clientes/ClientTable';
 import { ClientToolbar } from '@/app/admin/clientes/ClientToolbar';
 import { EmptyClients } from '@/app/admin/clientes/EmptyClients';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { normalize } from '@/lib/clients';
-import type { Client, ClientFilter } from '@/types/client';
+import type { Client, ClientFilter } from '@/types';
 
 type AdminClientsPageProps = {
   clients: Client[];
 };
+
+function normalize(value: string | null | undefined): string {
+  return (value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
 
 export default function AdminClientsPage({ clients: initialClients }: AdminClientsPageProps) {
   const [search, setSearch] = useState('');
@@ -25,28 +32,29 @@ export default function AdminClientsPage({ clients: initialClients }: AdminClien
     const query = normalize(search);
 
     return initialClients.filter((client) => {
-      const content = [client.name, client.phone, client.email, client.cpf]
+      const searchableContent = [client.name, client.phone, client.email, client.cpf]
         .filter(Boolean)
-        .map(normalize)
+        .map((value) => normalize(value))
         .join(' ');
 
-      const matchesSearch = !query || content.includes(query);
+      const matchesSearch = query.length === 0 || searchableContent.includes(query);
 
-      const matchesStatus = status === 'Todos' || client.status === status;
+      const matchesStatus =
+        status === 'Todos' ||
+        (status === 'Ativa' && client.isActive) ||
+        (status === 'Inativa' && !client.isActive);
 
       return matchesSearch && matchesStatus;
     });
   }, [initialClients, search, status]);
 
-  const activeClients = useMemo(
-    () => initialClients.filter((client) => client.status === 'Ativa').length,
-    [initialClients],
-  );
+  const activeClients = useMemo(() => {
+    return initialClients.filter((client) => client.isActive);
+  }, [initialClients]);
 
-  const debtClients = useMemo(
-    () => initialClients.filter((client) => client.inDebt).length,
-    [initialClients],
-  );
+  const debtClients = useMemo(() => {
+    return initialClients.filter((client) => client.inDebt);
+  }, [initialClients]);
 
   return (
     <AdminShell>
@@ -63,7 +71,7 @@ export default function AdminClientsPage({ clients: initialClients }: AdminClien
           <ClientHeader />
 
           <div className="mt-8">
-            <ClientStats activeClients={activeClients} debtClients={debtClients} />
+            <ClientStats activeClients={activeClients.length} debtClients={debtClients.length} />
           </div>
 
           <section className="mt-7 rounded-[30px] border border-white/70 bg-white/85 p-5 shadow-[0_22px_50px_-34px_rgba(64,46,40,.28)] backdrop-blur lg:p-6">

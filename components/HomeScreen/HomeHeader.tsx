@@ -8,7 +8,7 @@ type HomeHeaderProps = {
 };
 
 export function HomeHeader({ user, onLogout }: HomeHeaderProps) {
-  const firstName = user.nome?.split(' ')[0] || 'você';
+  const firstName = user.name?.split(' ')[0] || 'você';
 
   return (
     <header className="flex items-center justify-between">

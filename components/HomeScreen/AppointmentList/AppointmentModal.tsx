@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { ArrowUpRight, CalendarDays, Check, Clock3, MapPin, Sparkles, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Modal } from '@/components/Modal';
 import type { Appointment } from '@/types';
@@ -11,8 +12,8 @@ type AppointmentModalProps = {
   appointment: Appointment | null;
   open: boolean;
   onClose: () => void;
-  onSave?: (appointment: Appointment) => void;
-  onCancel?: (appointment: Appointment) => void;
+  onSave?: (appointment: Appointment) => Promise<void>;
+  onCancel?: (appointment: Appointment) => Promise<void>;
 };
 
 export function AppointmentModal({
@@ -25,6 +26,9 @@ export function AppointmentModal({
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
 
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
   useEffect(() => {
     if (!appointment) return;
 
@@ -33,27 +37,57 @@ export function AppointmentModal({
     setDate(appointmentDate.toISOString().slice(0, 10));
 
     setTime(
-      appointmentDate.toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+      appointment.time?.slice(0, 5) ??
+        appointmentDate.toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
     );
   }, [appointment]);
 
   if (!appointment) return null;
 
-  function handleSave() {
+  async function handleSave() {
     if (!onSave || !appointment || !date || !time) return;
 
-    const [year, month, day] = date.split('-').map(Number);
-    const [hours, minutes] = time.split(':').map(Number);
+    try {
+      setSaving(true);
+      setError('');
 
-    const newDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+      const [year, month, day] = date.split('-').map(Number);
+      const [hours, minutes] = time.split(':').map(Number);
 
-    onSave({
-      ...appointment,
-      date: newDate,
-    });
+      const newDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+
+      await onSave({
+        ...appointment,
+        date: newDate.toISOString(),
+        time,
+      });
+      toast.success('Agendamento atualizado com sucesso!');
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar agendamento');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleCancel() {
+    if (!onCancel || !appointment) return;
+
+    try {
+      setSaving(true);
+      setError('');
+
+      await onCancel(appointment);
+
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao cancelar agendamento');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -77,10 +111,11 @@ export function AppointmentModal({
           <button
             type="button"
             onClick={handleSave}
+            disabled={saving}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#493a35] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#3f322e]"
           >
             <Check size={16} />
-            Salvar alterações
+            {saving ? 'Salvando...' : 'Salvar alterações'}
           </button>
         </div>
       }
@@ -183,7 +218,8 @@ export function AppointmentModal({
           <div className="border-t border-[#eadfd9] pt-5">
             <button
               type="button"
-              onClick={() => onCancel(appointment)}
+              onClick={handleCancel}
+              disabled={saving}
               className="group flex w-full items-center justify-center gap-2 rounded-xl border border-[#ead3cf] bg-[#fffafa] px-4 py-3 text-xs font-bold text-[#a45f59] transition hover:border-[#dfbcb7] hover:bg-[#fff4f2]"
             >
               <Trash2 size={15} className="transition-transform group-hover:scale-105" />

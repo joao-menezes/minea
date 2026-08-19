@@ -2,35 +2,51 @@
 
 import { useEffect, useState } from 'react';
 
+import { BookingFlow } from '@/components/HomeScreen/AppointmentList/NewAppointmentSheet';
 import HomeScreen from '@/components/HomeScreen/page';
 import LoginScreen from '@/components/LoginScreen';
-import NewAppointmentSheet from '@/components/NewAppointmentSheet';
 import SignupScreen from '@/components/SignupScreen';
-import { getCurrentUser, signIn, signOut, signUp } from '@/src/services/authService';
-import type { Appointment, SignupUser, User } from '@/types';
+import { getAppointments } from '@/lib/api/appointments';
+import { getCurrentUser, signIn, signOut, signUp } from '@/lib/api/auth';
+import { getServices } from '@/lib/api/services';
+import type { Appointment, Service, User } from '@/types';
+
+type SignupData = {
+  cpf: string;
+  name: string;
+  password: string;
+};
 
 type Screen = 'login' | 'signup' | 'home';
 
 export default function Page() {
   const [screen, setScreen] = useState<Screen>('login');
-
   const [user, setUser] = useState<User | null>(null);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
   const [showNewAppointment, setShowNewAppointment] = useState(false);
 
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-
   const [loading, setLoading] = useState(true);
+
+  const [services, setServices] = useState<Service[]>([]);
+  const [loadingServices, setLoadingServices] = useState(false);
+  const [servicesError, setServicesError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadSession() {
       try {
         const currentUser = await getCurrentUser();
 
-        if (currentUser) {
-          setUser(currentUser);
-          setScreen('home');
+        if (!currentUser) {
+          return;
         }
+
+        setUser(currentUser);
+        setScreen('home');
+
+        const userAppointments = await getAppointments();
+
+        setAppointments(userAppointments);
       } catch (error) {
         console.error('Erro ao recuperar sessão:', error);
       } finally {
@@ -38,26 +54,41 @@ export default function Page() {
       }
     }
 
-    loadSession();
+    void loadSession();
   }, []);
 
   async function handleLogin(cpf: string, password: string) {
     try {
-      const authenticatedUser = await signIn(cpf, password);
+      const user = await signIn({
+        cpf,
+        password,
+      });
 
-      setUser(authenticatedUser);
+      setUser(user);
       setScreen('home');
+
+      const userAppointments = await getAppointments();
+
+      setAppointments(userAppointments);
     } catch (error) {
       console.error('Erro ao fazer login:', error);
     }
   }
 
-  async function handleSignup(input: SignupUser, password: string) {
+  async function handleSignup(data: SignupData) {
     try {
-      const createdUser = await signUp(input, password);
+      const createdUser = await signUp({
+        cpf: data.cpf.replace(/\D/g, ''),
+        name: data.name,
+        password: data.password,
+      });
 
       setUser(createdUser);
       setScreen('home');
+
+      const userAppointments = await getAppointments();
+
+      setAppointments(userAppointments);
     } catch (error) {
       console.error('Erro ao criar conta:', error);
     }
@@ -68,15 +99,30 @@ export default function Page() {
       await signOut();
 
       setUser(null);
-      setScreen('login');
       setAppointments([]);
+      setShowNewAppointment(false);
+      setScreen('login');
     } catch (error) {
       console.error('Erro ao sair:', error);
     }
   }
 
-  function openNewAppointment() {
-    setShowNewAppointment(true);
+  async function openNewAppointment() {
+    try {
+      setLoadingServices(true);
+      setServicesError(null);
+
+      const data = await getServices();
+
+      setServices(data);
+      setShowNewAppointment(true);
+    } catch (error) {
+      setServicesError(error instanceof Error ? error.message : 'Erro ao carregar procedimentos');
+
+      setShowNewAppointment(true);
+    } finally {
+      setLoadingServices(false);
+    }
   }
 
   function closeNewAppointment() {
@@ -91,8 +137,8 @@ export default function Page() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <span>Carregando...</span>
+      <main className="flex min-h-screen items-center justify-center bg-[#faf6f3]">
+        <span className="text-sm text-[#80665c]">Carregando...</span>
       </main>
     );
   }
@@ -111,13 +157,21 @@ export default function Page() {
         <HomeScreen
           user={user}
           appointments={appointments}
+          setAppointments={setAppointments}
           onLogout={handleLogout}
           openNew={openNewAppointment}
         />
       )}
 
-      {showNewAppointment && (
-        <NewAppointmentSheet onClose={closeNewAppointment} onSave={handleSaveAppointment} />
+      {showNewAppointment && user && (
+        <BookingFlow
+          userId={user.id}
+          services={services}
+          loadingServices={loadingServices}
+          servicesError={servicesError}
+          onClose={closeNewAppointment}
+          onComplete={handleSaveAppointment}
+        />
       )}
     </main>
   );

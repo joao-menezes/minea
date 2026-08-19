@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 
-import type { Client } from '@/types/client';
+import type { Client } from '@/types';
 
 type Props = {
   client: Client;
@@ -8,6 +8,13 @@ type Props = {
 };
 
 export function ClientModalHeader({ client, onClose }: Props) {
+  const getInitials = (client: string) => {
+    return client
+      .split(' ')
+      .map((word: string) => word.charAt(0).toUpperCase())
+      .join('');
+  };
+
   return (
     <header className="relative shrink-0 overflow-hidden bg-[#ead8cf] p-5 sm:p-6">
       <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full border border-white/40 bg-white/15" />
@@ -25,7 +32,7 @@ export function ClientModalHeader({ client, onClose }: Props) {
 
       <div className="relative flex items-center gap-3 pr-10 sm:gap-4">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-4 border-white/60 bg-[#c9afa5] text-[13px] font-bold text-white shadow-sm sm:h-16 sm:w-16 sm:text-[14px]">
-          {client.initials}
+          {getInitials(client.name)}
         </div>
 
         <div className="min-w-0">
@@ -38,7 +45,7 @@ export function ClientModalHeader({ client, onClose }: Props) {
 
             <span className="h-1 w-1 rounded-full bg-[#c8aea3]" />
 
-            <span className="text-[9px] text-[#a48a7f]">{client.status}</span>
+            <span className="text-[9px] text-[#a48a7f]">{client.isActive}</span>
           </div>
         </div>
       </div>

@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import {
+  AppointmentDetails,
+  AppointmentRow,
+  EmptyState,
+  SummaryRow,
+} from 'components/admin/agenda';
+import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
@@ -10,22 +16,16 @@ import {
   ChevronDown,
   Clock3,
   DollarSign,
-  MapPin,
-  MoreHorizontal,
   Plus,
   Search,
   Sparkles,
-  UserRound,
-  X,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 
+import { BookingFlow } from '@/components/HomeScreen/AppointmentList/NewAppointmentSheet';
 import { AdminShell } from '@/components/admin/AdminShell';
-import {
-  type Appointment,
-  type AppointmentStatus,
-  getAppointments,
-} from '@/src/services/appointmentService';
+import { getAppointments } from '@/lib/api/appointments';
+import { getServices } from '@/lib/api/services';
+import type { Appointment, AppointmentStatus, Service } from '@/types';
 
 const DAYS = [
   { day: 'SEG', date: 17 },
@@ -36,12 +36,6 @@ const DAYS = [
   { day: 'SÁB', date: 22 },
   { day: 'DOM', date: 23 },
 ];
-
-const STATUS_LABELS: Record<AppointmentStatus, string> = {
-  confirmed: 'Confirmado',
-  pending: 'Pendente',
-  cancelled: 'Cancelado',
-};
 
 export default function AdminAgendaPage() {
   const [selectedDay, setSelectedDay] = useState(17);
@@ -58,34 +52,38 @@ export default function AdminAgendaPage() {
 
   const [error, setError] = useState('');
 
-  const selectedDate = useMemo(() => {
-    const date = new Date(2026, 7, selectedDay);
+  const selectedDate = useMemo(() => new Date(2026, 7, selectedDay), [selectedDay]);
 
-    return date;
-  }, [selectedDay]);
+  const [showNewAppointment, setShowNewAppointment] = useState(false);
+
+  const [services, setServices] = useState<Service[]>([]);
+
+  const [loadingServices, setLoadingServices] = useState(false);
+
+  const [servicesError, setServicesError] = useState<string | null>(null);
 
   useEffect(() => {
-    let mounted = true;
+    const controller = new AbortController();
 
     async function loadAppointments() {
       try {
         setLoading(true);
         setError('');
 
-        const data = await getAppointments(selectedDate);
+        const data = await getAppointments();
 
-        if (mounted) {
+        if (!controller.signal.aborted) {
           setAppointments(data);
         }
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        if (!controller.signal.aborted) {
+          console.error(err);
 
-        if (mounted) {
-          setError('Não foi possível carregar a agenda.');
           setAppointments([]);
+          setError('Não foi possível carregar a agenda.');
         }
       } finally {
-        if (mounted) {
+        if (!controller.signal.aborted) {
           setLoading(false);
         }
       }
@@ -93,44 +91,63 @@ export default function AdminAgendaPage() {
 
     loadAppointments();
 
-    return () => {
-      mounted = false;
-    };
-  }, [selectedDate]);
+    return () => controller.abort();
+  }, []);
 
   const filteredAppointments = useMemo(() => {
-    const searchValue = search.trim().toLowerCase();
+    const query = search.trim().toLowerCase();
 
     return appointments.filter((appointment) => {
       const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
 
       const matchesSearch =
-        !searchValue ||
-        appointment.client.toLowerCase().includes(searchValue) ||
-        appointment.service.toLowerCase().includes(searchValue);
+        !query ||
+        appointment.clientName?.toLowerCase().includes(query) ||
+        appointment.title.toLowerCase().includes(query);
 
       return matchesStatus && matchesSearch;
     });
   }, [appointments, search, statusFilter]);
 
-  const confirmedCount = appointments.filter(
-    (appointment) => appointment.status === 'confirmed',
-  ).length;
+  async function handleNewAppointment() {
+    try {
+      setLoadingServices(true);
+      setServicesError(null);
 
-  const pendingCount = appointments.filter(
-    (appointment) => appointment.status === 'pending',
-  ).length;
+      const data = await getServices();
 
-  const revenue = appointments.reduce((total, appointment) => {
-    const value = Number(
-      appointment.price
-        .replace(/[^\d,.-]/g, '')
-        .replace(/\./g, '')
-        .replace(',', '.'),
-    );
+      setServices(data);
+      setShowNewAppointment(true);
+    } catch (error) {
+      console.error(error);
 
-    return Number.isFinite(value) ? total + value : total;
-  }, 0);
+      setServicesError(error instanceof Error ? error.message : 'Erro ao carregar serviços');
+
+      setShowNewAppointment(true);
+    } finally {
+      setLoadingServices(false);
+    }
+  }
+
+  const confirmedCount = appointments.filter((item) => item.status === 'confirmed').length;
+
+  const pendingCount = appointments.filter((item) => item.status === 'scheduled').length;
+
+  const revenue = useMemo(() => {
+    return appointments.reduce((total, appointment) => {
+      const value =
+        typeof appointment.price === 'number'
+          ? appointment.price
+          : Number(
+              String(appointment.price)
+                .replace(/[^\d,.-]/g, '')
+                .replace(/\./g, '')
+                .replace(',', '.'),
+            );
+
+      return Number.isFinite(value) ? total + value : total;
+    }, 0);
+  }, [appointments]);
 
   const formattedRevenue = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -138,9 +155,13 @@ export default function AdminAgendaPage() {
     minimumFractionDigits: 0,
   }).format(revenue);
 
-  const nextAppointment =
-    appointments.find((appointment) => appointment.status !== 'cancelled') ?? null;
-
+  const nextAppointment = useMemo(() => {
+    return (
+      appointments
+        .filter((item) => item.status !== 'cancelled')
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0] ?? null
+    );
+  }, [appointments]);
   return (
     <AdminShell>
       <main className="min-h-screen bg-[#faf6f3] text-[#6b5850]">
@@ -153,8 +174,6 @@ export default function AdminAgendaPage() {
         </div>
 
         <div className="relative mx-auto max-w-[1500px] px-5 py-7 lg:px-8 lg:py-9">
-          {/* HEADER */}
-
           <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -180,7 +199,8 @@ export default function AdminAgendaPage() {
 
             <button
               type="button"
-              className="group flex h-12 items-center justify-between gap-4 rounded-[17px] bg-[#8a6f63] px-4 text-[12px] font-bold text-white shadow-[0_18px_35px_-18px_rgba(138,111,99,.55)] transition-all hover:-translate-y-0.5 hover:bg-[#7c6156] active:scale-[.985]"
+              onClick={handleNewAppointment}
+              className="group flex h-12 items-center justify-between gap-4 rounded-[17px] bg-[#8a6f63] px-4 text-[12px] font-bold text-white shadow-[0_18px_35px_-18px_rgba(138,111,99,.55)] transition-all hover:-translate-y-0.5 hover:bg-[#7c6156]"
             >
               <span className="flex items-center gap-3">
                 <span className="flex h-8 w-8 items-center justify-center rounded-[11px] bg-white/15">
@@ -238,6 +258,7 @@ export default function AdminAgendaPage() {
             <div className="mt-5 grid grid-cols-7 gap-1.5 lg:gap-2">
               {DAYS.map((day) => {
                 const selected = selectedDay === day.date;
+
                 const isToday = day.date === 17;
 
                 return (
@@ -246,10 +267,10 @@ export default function AdminAgendaPage() {
                     type="button"
                     onClick={() => setSelectedDay(day.date)}
                     className={[
-                      'relative flex min-h-[76px] flex-col items-center justify-center rounded-[20px] transition-all',
+                      `relative flex min-h-[76px] flex-col items-center justify-center rounded-[20px] transition-all`,
                       selected
-                        ? 'bg-[#a98d81] text-white shadow-[0_12px_25px_-13px_rgba(169,141,129,.7)]'
-                        : 'text-[#a9948b] hover:bg-[#faf4f1]',
+                        ? `bg-[#a98d81] text-white shadow-[0_12px_25px_-13px_rgba(169,141,129,.7)]`
+                        : `text-[#a9948b] hover:bg-[#faf4f1]`,
                     ].join(' ')}
                   >
                     <span
@@ -271,9 +292,6 @@ export default function AdminAgendaPage() {
               })}
             </div>
           </section>
-
-          {/* TOOLBAR */}
-
           <section className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-[#c2a99d]">
@@ -310,7 +328,9 @@ export default function AdminAgendaPage() {
                 >
                   <option value="all">Todos os status</option>
                   <option value="confirmed">Confirmados</option>
-                  <option value="pending">Pendentes</option>
+                  <option value="scheduled">Agendados</option>
+                  <option value="completed">Concluídos</option>
+                  <option value="no_show">Não compareceram</option>
                   <option value="cancelled">Cancelados</option>
                 </select>
 
@@ -391,7 +411,6 @@ export default function AdminAgendaPage() {
                   />
                 </div>
               </div>
-
               <div className="relative overflow-hidden rounded-[30px] border border-white/30 bg-[#e8d4c9] p-6 shadow-[0_22px_50px_-34px_rgba(64,46,40,.35)]">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(255,255,255,.55),transparent_28%),linear-gradient(135deg,#f7eee9_0%,#ead7cd_52%,#dfc5b9_100%)]" />
 
@@ -410,14 +429,14 @@ export default function AdminAgendaPage() {
                     <>
                       <div className="mt-7">
                         <p className="text-[10px] font-bold text-[#a98d81]">
-                          {nextAppointment.time} · Hoje
+                          {nextAppointment.date}
                         </p>
 
                         <p className="mt-2 font-display text-[27px] tracking-[-0.025em] text-[#6b5850]">
-                          {nextAppointment.client}
+                          {nextAppointment.clientName ?? 'Cliente não informado'}
                         </p>
 
-                        <p className="mt-1 text-[10px] text-[#a48a7f]">{nextAppointment.service}</p>
+                        <p className="mt-1 text-[10px] text-[#a48a7f]">{nextAppointment.title}</p>
                       </div>
 
                       <div className="mt-6 flex items-center gap-2">
@@ -453,247 +472,22 @@ export default function AdminAgendaPage() {
             onClose={() => setSelectedAppointment(null)}
           />
         )}
+
+        {showNewAppointment && (
+          <BookingFlow
+            userId=""
+            services={services}
+            loadingServices={loadingServices}
+            servicesError={servicesError}
+            onClose={() => setShowNewAppointment(false)}
+            onComplete={(appointment) => {
+              setAppointments((current) => [...current, appointment]);
+
+              setShowNewAppointment(false);
+            }}
+          />
+        )}
       </main>
     </AdminShell>
-  );
-}
-
-function AppointmentRow({
-  appointment,
-  onClick,
-}: {
-  appointment: Appointment;
-  onClick: () => void;
-}) {
-  const cancelled = appointment.status === 'cancelled';
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group flex w-full items-center gap-4 py-4 text-left transition-all first:pt-3 last:pb-3 hover:px-2"
-    >
-      <div className="w-12 shrink-0">
-        <p
-          className={['text-xs font-bold', cancelled ? 'text-[#c8b9b2]' : 'text-[#80685e]'].join(
-            ' ',
-          )}
-        >
-          {appointment.time}
-        </p>
-
-        <p className="mt-1 text-[8px] text-[#c7b3aa]">{appointment.duration}</p>
-      </div>
-
-      <div className="relative hidden w-5 self-stretch sm:block">
-        <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-[#f1e8e2]" />
-
-        <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[#c8aea3]" />
-      </div>
-
-      <div
-        className={[
-          'flex h-12 w-12 shrink-0 items-center justify-center rounded-[17px]',
-          cancelled ? 'bg-[#f7f2ef] text-[#c4b4ac]' : 'bg-[#f6ede8] text-[#ab8f83]',
-        ].join(' ')}
-      >
-        {cancelled ? <X size={17} strokeWidth={1.7} /> : <Sparkles size={17} strokeWidth={1.6} />}
-      </div>
-
-      <div className="min-w-0 flex-1">
-        {cancelled ? (
-          <>
-            <p className="text-[12px] font-bold text-[#b5a49d]">Horário disponível</p>
-
-            <p className="mt-1 text-[10px] text-[#c7b7b0]">Este horário está livre</p>
-          </>
-        ) : (
-          <>
-            <p className="truncate text-[12px] font-bold text-[#6b5850]">{appointment.client}</p>
-
-            <p className="mt-1 truncate text-[10px] text-[#b49b90]">{appointment.service}</p>
-          </>
-        )}
-      </div>
-
-      {!cancelled && <StatusBadge status={appointment.status} />}
-
-      {!cancelled && (
-        <span className="hidden text-[10px] font-bold text-[#80685e] md:block">
-          {appointment.price}
-        </span>
-      )}
-
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#c9b6ac] transition-all group-hover:bg-[#faf4f1] group-hover:text-[#a98d81]">
-        <MoreHorizontal size={15} />
-      </span>
-    </button>
-  );
-}
-
-function StatusBadge({ status }: { status: AppointmentStatus }) {
-  const styles = {
-    confirmed: 'border-[#e2ebe4] bg-[#f1f6f2] text-[#718678]',
-    pending: 'border-[#eee0d5] bg-[#faf3ed] text-[#9a775b]',
-    cancelled: 'border-[#eee4df] bg-[#f8f3f0] text-[#ae9a91]',
-  };
-
-  return (
-    <span
-      className={[
-        'hidden rounded-full border px-3 py-1.5 text-[8px] font-bold sm:block',
-        styles[status],
-      ].join(' ')}
-    >
-      {STATUS_LABELS[status]}
-    </span>
-  );
-}
-
-function SummaryRow({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#f6ede8] text-[#ab8f83]">
-        <Icon size={14} strokeWidth={1.7} />
-      </div>
-
-      <span className="flex-1 text-[10px] font-semibold text-[#9c8278]">{label}</span>
-
-      <span className="text-[11px] font-bold text-[#6b5850]">{value}</span>
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-[20px] bg-[#f6ede8] text-[#b89a8d]">
-        <CalendarDays size={19} strokeWidth={1.5} />
-      </div>
-
-      <p className="mt-4 font-display text-[24px] text-[#8a6f63]">Nenhum horário encontrado</p>
-
-      <p className="mt-2 max-w-[230px] text-[10px] leading-relaxed text-[#b49b90]">
-        Não existem agendamentos que correspondam aos filtros selecionados.
-      </p>
-    </div>
-  );
-}
-
-function AppointmentDetails({
-  appointment,
-  onClose,
-}: {
-  appointment: Appointment;
-  onClose: () => void;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-[#463933]/15 p-0 backdrop-blur-[3px] sm:items-center sm:p-5"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-md overflow-hidden rounded-t-[30px] border border-white/70 bg-[#fffdfc] shadow-[0_30px_80px_-25px_rgba(64,46,40,.35)] sm:rounded-[30px]"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b border-[#f1e8e2] px-5 py-4">
-          <div>
-            <p className="text-[8px] font-bold uppercase tracking-[0.25em] text-[#c2a99d]">
-              Detalhes
-            </p>
-
-            <h3 className="mt-1 font-display text-[23px] text-[#6b5850]">Agendamento</h3>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#faf4f1] text-[#a98d81]"
-          >
-            <X size={15} />
-          </button>
-        </div>
-
-        <div className="p-5">
-          <div className="rounded-[23px] bg-[#f6ede8] p-5">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-white/70 text-[#ab8f83]">
-                <UserRound size={18} />
-              </div>
-
-              <div>
-                <p className="text-[13px] font-bold text-[#6b5850]">{appointment.client}</p>
-
-                <p className="mt-1 text-[10px] text-[#a48a7f]">{appointment.service}</p>
-              </div>
-            </div>
-
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <DetailItem
-                icon={Clock3}
-                label="Horário"
-                value={`${appointment.time} · ${appointment.duration}`}
-              />
-
-              <DetailItem icon={Sparkles} label="Profissional" value={appointment.professional} />
-
-              <DetailItem
-                icon={MapPin}
-                label="Local"
-                value={appointment.location || 'Clínica Minea'}
-              />
-
-              <DetailItem icon={CalendarDays} label="Valor" value={appointment.price} />
-            </div>
-          </div>
-
-          <div className="mt-5 flex gap-2">
-            <button
-              type="button"
-              className="flex h-11 flex-1 items-center justify-center rounded-[15px] border border-[#eee3dd] bg-white text-[10px] font-bold text-[#8a6f63] transition-all hover:bg-[#faf4f1]"
-            >
-              Editar
-            </button>
-
-            <button
-              type="button"
-              className="flex h-11 flex-1 items-center justify-center rounded-[15px] bg-[#8a6f63] text-[10px] font-bold text-white shadow-[0_12px_25px_-15px_rgba(138,111,99,.5)] transition-all hover:bg-[#7c6156]"
-            >
-              Confirmar
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DetailItem({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[16px] bg-white/65 p-3">
-      <Icon size={13} className="text-[#ab8f83]" />
-
-      <p className="mt-2 text-[8px] font-bold uppercase tracking-[0.12em] text-[#c1aaa0]">
-        {label}
-      </p>
-
-      <p className="mt-1 truncate text-[9px] font-semibold text-[#80685e]">{value}</p>
-    </div>
   );
 }

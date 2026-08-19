@@ -1,13 +1,9 @@
-import { SupabaseClientRepository } from '@/src/repositories/supabaseClientRepository';
-import { ClientService } from '@/src/services/clientServices';
+import { getClients } from '@/lib/api/clients';
 
 import AdminClientsPage from './AdminClientsPage';
 
 export default async function Page() {
-  const repository = new SupabaseClientRepository();
-  const service = new ClientService(repository);
-
-  const clients = await service.getAll();
+  const clients = await getClients();
 
   return <AdminClientsPage clients={clients} />;
 }

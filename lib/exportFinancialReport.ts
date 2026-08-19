@@ -1,11 +1,12 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-import type {
+import {
+  FinancialAppointmentData,
   FinancialMonthlyRevenue,
   FinancialPaymentMethod,
   FinancialTransactionType,
-} from '@/types/financial';
+} from '@/types';
 
 export type FinancialReportData = {
   period: string;
@@ -29,13 +30,7 @@ export type FinancialReportData = {
 
   monthlyRevenue: FinancialMonthlyRevenue[];
 
-  appointmentsData: {
-    date: string;
-    client: string;
-    service: string;
-    value: number;
-    status: string;
-  }[];
+  appointmentsData: FinancialAppointmentData[];
 };
 
 const COLORS = {
@@ -181,14 +176,12 @@ export function exportFinancialReport(data: FinancialReportData): void {
       right: 15,
     },
 
-    head: [['Data', 'Cliente', 'Serviço', 'Status', 'Valor']],
+    head: [['Data', 'Atendimento', 'Valor']],
 
     body: data.appointmentsData.map((appointment) => [
       formatDate(appointment.date),
-      appointment.client,
-      appointment.service,
-      appointment.status,
-      formatCurrency(appointment.value),
+      appointment.title,
+      formatCurrency(appointment.price),
     ]),
 
     theme: 'plain',

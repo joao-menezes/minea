@@ -314,7 +314,6 @@ export default function AdminSettingsPage() {
                 </SettingsSection>
               </section>
 
-              {/* CONTA */}
               <section data-settings-section="conta" className="scroll-mt-24">
                 <SettingsSection
                   eyebrow="Conta"
@@ -326,7 +325,6 @@ export default function AdminSettingsPage() {
                 </SettingsSection>
               </section>
 
-              {/* PREFERÊNCIAS */}
               <section data-settings-section="preferencias" className="scroll-mt-24">
                 <SettingsSection
                   eyebrow="Sistema"
