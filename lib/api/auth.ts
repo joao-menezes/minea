@@ -5,7 +5,7 @@ import { apiFetch } from './client';
 const SESSION_KEY = 'tua_agenda_user';
 
 export async function signIn({ cpf, password }: SignInData): Promise<User> {
-  const data = await apiFetch<{ user: User }>('/api/auth/signin', {
+  const data = await apiFetch<{ user: User }>('/auth/signin', {
     method: 'POST',
     body: JSON.stringify({
       cpf,
@@ -18,12 +18,13 @@ export async function signIn({ cpf, password }: SignInData): Promise<User> {
   return data.user;
 }
 
-export async function signUp({ cpf, name, password }: SignUpData): Promise<User> {
-  const data = await apiFetch<{ user: User }>('/api/auth/signup', {
+export async function signUp({ cpf, name, birthDate, password }: SignUpData): Promise<User> {
+  const data = await apiFetch<{ user: User }>('/auth/signup', {
     method: 'POST',
     body: JSON.stringify({
       cpf,
       name,
+      birthDate,
       password,
     }),
   });

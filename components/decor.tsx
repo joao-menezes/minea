@@ -21,12 +21,10 @@ export function maskCPF(value: string): string {
 export function maskDate(value: string): string {
   if (!value) return '';
 
-  if (value.includes('-')) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const [year, month, day] = value.split('-');
 
-    if (year && month && day) {
-      return `${day}/${month}/${year}`;
-    }
+    return `${day}/${month}/${year}`;
   }
 
   const digits = value.replace(/\D/g, '').slice(0, 8);
@@ -136,7 +134,12 @@ export function Bow({ size = 22, ...props }: IconProps) {
 export function Sparkle({ size = 16, ...props }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} fill="none" aria-hidden="true" {...props}>
-      <path d="M12 0c0 5-1 9-5 12 4 3 5 7 5 12 0-5 1-9 5-12-4-3-5-7-5-12Z" fill="#F2B8D4" />
+      <ellipse cx="12" cy="7.4" rx="3" ry="4.6" fill="#d9a998" transform="rotate(0 12 12)" />
+      <ellipse cx="12" cy="7.4" rx="3" ry="4.6" fill="#d9a998" transform="rotate(72 12 12)" />
+      <ellipse cx="12" cy="7.4" rx="3" ry="4.6" fill="#d9a998" transform="rotate(144 12 12)" />
+      <ellipse cx="12" cy="7.4" rx="3" ry="4.6" fill="#d9a998" transform="rotate(216 12 12)" />
+      <ellipse cx="12" cy="7.4" rx="3" ry="4.6" fill="#d9a998" transform="rotate(288 12 12)" />
+      <circle cx="12" cy="12" r="2.4" fill="#f6ece6" />
     </svg>
   );
 }

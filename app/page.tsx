@@ -12,6 +12,7 @@ import { getServices } from '@/lib/api/services';
 import type { Appointment, Service, User } from '@/types';
 
 type SignupData = {
+  birthDate?: string;
   cpf: string;
   name: string;
   password: string;
@@ -80,6 +81,7 @@ export default function Page() {
       const createdUser = await signUp({
         cpf: data.cpf.replace(/\D/g, ''),
         name: data.name,
+        birthDate: data.birthDate,
         password: data.password,
       });
 

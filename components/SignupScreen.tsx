@@ -9,6 +9,7 @@ import { Bow, maskCPF, maskDate } from './decor';
 type SignupData = {
   name: string;
   cpf: string;
+  birthDate: string;
   password: string;
 };
 
@@ -23,12 +24,11 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [querAniversario, setQuerAniversario] = useState(false);
-  const [birthday, setBirthday] = useState('');
+  const [birthDate, setBirthDate] = useState('');
   const [error, setError] = useState('');
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    1;
 
     if (!nome.trim()) {
       return setError('Conta pra gente como podemos te chamar.');
@@ -42,7 +42,7 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
       return setError('A senha precisa ter pelo menos 4 caracteres.');
     }
 
-    if (querAniversario && birthday.replace(/\D/g, '').length !== 8) {
+    if (querAniversario && birthDate.replace(/\D/g, '').length !== 8) {
       return setError('Preencha a data de aniversário completa ou desative a opção.');
     }
 
@@ -52,6 +52,7 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
       {
         name: nome,
         cpf,
+        birthDate,
         password,
       },
       password,
@@ -60,12 +61,81 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#f8f6f4] text-[#403632]">
-      <div className="absolute -right-32 -top-40 h-96 w-96 rounded-full bg-[#eadbd5]/60 blur-3xl" />
-      <div className="absolute -bottom-48 -left-32 h-96 w-96 rounded-full bg-[#e4d9dc]/50 blur-3xl" />
+      <style>{`
+        @keyframes minea-blob-a {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(-18px, 22px) scale(1.06); }
+        }
+        @keyframes minea-blob-b {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(16px, -20px) scale(1.05); }
+        }
+        @keyframes minea-fade-slide-up {
+          from { opacity: 0; transform: translateY(28px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes minea-fade-slide-up-sm {
+          from { opacity: 0; transform: translateY(14px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes minea-fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes minea-breathe {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.03); }
+        }
+        @keyframes minea-ring-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes minea-twinkle {
+          0%, 100% { opacity: 0.3; transform: scale(0.85); }
+          50% { opacity: 1; transform: scale(1.15); }
+        }
+        @keyframes minea-pop-in {
+          0% { opacity: 0; transform: scale(0.6) rotate(-12deg); }
+          70% { opacity: 1; transform: scale(1.08) rotate(4deg); }
+          100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        @keyframes minea-shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+
+        .minea-blob-a { animation: minea-blob-a 14s ease-in-out infinite; }
+        .minea-blob-b { animation: minea-blob-b 16s ease-in-out infinite; }
+        .minea-card { animation: minea-fade-slide-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .minea-inner-1 { animation: minea-fade-slide-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both 0.15s; }
+        .minea-inner-2 { animation: minea-fade-in 0.9s ease-out both 0.35s; }
+        .minea-circle { animation: minea-breathe 6s ease-in-out infinite 1s; }
+        .minea-ring { animation: minea-ring-spin 40s linear infinite; }
+        .minea-sparkle-1 { animation: minea-twinkle 3.4s ease-in-out infinite 0.6s; }
+        .minea-sparkle-2 { animation: minea-twinkle 4.2s ease-in-out infinite 1.4s; }
+        .minea-badge { animation: minea-pop-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both 0.9s; }
+
+        .minea-form-header { animation: minea-fade-slide-up-sm 0.7s cubic-bezier(0.22, 1, 0.36, 1) both 0.1s; }
+        .minea-form-card { animation: minea-fade-slide-up-sm 0.7s cubic-bezier(0.22, 1, 0.36, 1) both 0.25s; }
+        .minea-form-footer { animation: minea-fade-in 0.8s ease-out both 0.5s; }
+        .minea-error { animation: minea-shake 0.4s ease-in-out; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .minea-blob-a, .minea-blob-b, .minea-card, .minea-inner-1, .minea-inner-2,
+          .minea-circle, .minea-ring, .minea-sparkle-1, .minea-sparkle-2, .minea-badge,
+          .minea-form-header, .minea-form-card, .minea-form-footer, .minea-error {
+            animation: none !important;
+          }
+        }
+      `}</style>
+
+      <div className="minea-blob-a absolute -right-32 -top-40 h-96 w-96 rounded-full bg-[#eadbd5]/60 blur-3xl" />
+      <div className="minea-blob-b absolute -bottom-48 -left-32 h-96 w-96 rounded-full bg-[#e4d9dc]/50 blur-3xl" />
 
       <div className="relative z-10 flex min-h-screen flex-col lg:flex-row">
         <section className="hidden items-center justify-center p-10 lg:flex lg:w-[43%] xl:w-1/2">
-          <div className="relative w-full max-w-lg">
+          <div className="minea-card relative w-full max-w-lg">
             <div className="absolute inset-5 rounded-[42px] bg-[#eee2dd]" />
 
             <div className="relative aspect-[4/5] overflow-hidden rounded-[36px] bg-[#dfcec7] shadow-[0_30px_80px_-30px_rgba(74,54,47,.4)]">
@@ -74,21 +144,23 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
               <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-white/20" />
               <div className="absolute -left-16 bottom-10 h-48 w-48 rounded-full bg-[#bda198]/20 blur-2xl" />
 
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="flex h-56 w-56 items-center justify-center rounded-full border border-white/40">
-                  <div className="flex h-44 w-44 flex-col items-center justify-center rounded-full bg-white/35 shadow-xl backdrop-blur-md">
-                    <Bow size={40} />
-
-                    <p className="mt-2 font-serif text-3xl italic text-[#5d4942]">Minea</p>
-
-                    <p className="mt-1 text-[9px] uppercase tracking-[0.35em] text-[#80665d]">
-                      beauty
-                    </p>
+              <div className="minea-inner-1 absolute inset-0 flex items-center justify-center">
+                <div className="relative flex h-[26rem] w-[26rem] items-center justify-center">
+                  <div className="absolute inset-6 rounded-full bg-[#d9b8aa]/20 blur-3xl" />
+                  <div className="minea-ring absolute inset-0 rounded-full border border-white/60 bg-white/10 shadow-[0_30px_80px_-30px_rgba(91,63,55,0.35)] backdrop-blur-[2px]" />
+                  <div className="absolute inset-5 rounded-full border border-[#b99588]/20" />
+                  <div className="minea-circle relative flex h-72 w-72 items-center justify-center rounded-full border border-white/70 bg-[#f7eee9]/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_25px_60px_-25px_rgba(91,63,55,0.45)] backdrop-blur-xl">
+                    <div className="absolute left-10 top-8 h-20 w-32 rounded-full bg-white/40 blur-2xl" />
+                    <img
+                      src="/minea-logo.svg"
+                      alt="Minea"
+                      className="relative z-10 h-auto w-[30rem] max-w-none translate-x-8 scale-[1] object-contain drop-shadow-[0_12px_18px_rgba(91,63,55,0.18)]"
+                    />
                   </div>
                 </div>
               </div>
 
-              <div className="absolute bottom-7 left-7 right-7 rounded-[26px] border border-white/50 bg-white/60 p-5 backdrop-blur-lg">
+              <div className="minea-inner-2 absolute bottom-7 left-7 right-7 rounded-[26px] border border-white/50 bg-white/60 p-5 backdrop-blur-lg">
                 <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#8b6d63]">
                   um novo ritual começa aqui
                 </p>
@@ -103,7 +175,7 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
               </div>
             </div>
 
-            <div className="absolute -bottom-5 -right-5 flex h-20 w-20 items-center justify-center rounded-[24px] bg-white shadow-[0_15px_35px_-15px_rgba(68,50,43,.35)]">
+            <div className="minea-badge absolute -bottom-5 -right-5 flex h-20 w-20 items-center justify-center rounded-[24px] bg-white shadow-[0_15px_35px_-15px_rgba(68,50,43,.35)]">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#eee3df]">
                 <Cake size={18} className="text-[#94766c]" />
               </div>
@@ -131,7 +203,7 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
               <p className="mt-3 text-[9px] uppercase tracking-[0.3em] text-[#a18a81]">Minea</p>
             </div>
 
-            <div className="mb-7">
+            <div className="minea-form-header mb-7">
               <p className="text-[10px] font-semibold uppercase tracking-[0.27em] text-[#a28b82]">
                 Primeiro passo
               </p>
@@ -150,7 +222,7 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
 
             <form
               onSubmit={handleSubmit}
-              className="rounded-[30px] border border-[#ebe3df] bg-white p-6 shadow-[0_25px_65px_-35px_rgba(68,50,43,.35)] sm:p-8"
+              className="minea-form-card rounded-[30px] border border-[#ebe3df] bg-white p-6 shadow-[0_25px_65px_-35px_rgba(68,50,43,.35)] sm:p-8"
             >
               <div>
                 <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#79665e]">
@@ -249,9 +321,9 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
                   </div>
 
                   <span
-                    className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${querAniversario ? 'justify-end bg-[#806057]' : 'justify-start bg-[#d9cec9]'} `}
+                    className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors duration-300 ${querAniversario ? 'justify-end bg-[#806057]' : 'justify-start bg-[#d9cec9]'} `}
                   >
-                    <span className="h-5 w-5 rounded-full bg-white shadow-sm" />
+                    <span className="h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-300" />
                   </span>
                 </button>
 
@@ -260,11 +332,16 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
                 </p>
 
                 {querAniversario && (
-                  <div className="mt-4 pl-12">
+                  <div
+                    className="mt-4 pl-12"
+                    style={{
+                      animation: 'minea-fade-slide-up-sm 0.4s cubic-bezier(0.22, 1, 0.36, 1) both',
+                    }}
+                  >
                     <input
-                      value={birthday}
+                      value={birthDate}
                       onChange={(e) => {
-                        setBirthday(maskDate(e.target.value));
+                        setBirthDate(maskDate(e.target.value));
                         setError('');
                       }}
                       placeholder="DD/MM/AAAA"
@@ -276,7 +353,7 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
               </div>
 
               {error && (
-                <div className="mt-4 flex items-start gap-3 rounded-2xl border border-[#f0d9d4] bg-[#fbefed] px-4 py-3">
+                <div className="minea-error mt-4 flex items-start gap-3 rounded-2xl border border-[#f0d9d4] bg-[#fbefed] px-4 py-3">
                   <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#c98579] text-[10px] text-white">
                     !
                   </div>
@@ -297,7 +374,7 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
               </button>
             </form>
 
-            <div className="mt-6 flex items-center justify-center gap-2 text-[#a4948d]">
+            <div className="minea-form-footer mt-6 flex items-center justify-center gap-2 text-[#a4948d]">
               <ShieldCheck size={14} />
 
               <p className="text-[10px]">Seus dados ficam seguros durante esta demonstração</p>

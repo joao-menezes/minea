@@ -78,6 +78,7 @@ export type SignInData = {
 export type SignUpData = {
   cpf: string;
   name: string;
+  birthDate?: string;
   password: string;
 };
 

@@ -49,15 +49,84 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#fbf8f6] text-[#403735]">
-      <div className="absolute -right-32 -top-32 h-80 w-80 rounded-full bg-[#ead8d2]/50 blur-3xl" />
+      <style>{`
+        @keyframes minea-blob-a {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(-18px, 22px) scale(1.06); }
+        }
+        @keyframes minea-blob-b {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(16px, -20px) scale(1.05); }
+        }
+        @keyframes minea-fade-slide-up {
+          from { opacity: 0; transform: translateY(28px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes minea-fade-slide-up-sm {
+          from { opacity: 0; transform: translateY(14px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes minea-fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes minea-breathe {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.03); }
+        }
+        @keyframes minea-ring-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes minea-pop-in {
+          0% { opacity: 0; transform: scale(0.6) rotate(-12deg); }
+          70% { opacity: 1; transform: scale(1.08) rotate(4deg); }
+          100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        @keyframes minea-shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+        @keyframes minea-pulse-soft {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
 
-      <div className="absolute -bottom-40 -left-32 h-96 w-96 rounded-full bg-[#e8d7df]/40 blur-3xl" />
+        .minea-blob-a { animation: minea-blob-a 14s ease-in-out infinite; }
+        .minea-blob-b { animation: minea-blob-b 16s ease-in-out infinite; }
+        .minea-card { animation: minea-fade-slide-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .minea-inner-1 { animation: minea-fade-slide-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both 0.15s; }
+        .minea-inner-2 { animation: minea-fade-in 0.9s ease-out both 0.35s; }
+        .minea-circle { animation: minea-breathe 6s ease-in-out infinite 1s; }
+        .minea-ring { animation: minea-ring-spin 40s linear infinite; }
+        .minea-badge { animation: minea-pop-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both 0.9s; }
+
+        .minea-form-header { animation: minea-fade-slide-up-sm 0.7s cubic-bezier(0.22, 1, 0.36, 1) both 0.1s; }
+        .minea-form-card { animation: minea-fade-slide-up-sm 0.7s cubic-bezier(0.22, 1, 0.36, 1) both 0.25s; }
+        .minea-form-footer { animation: minea-fade-in 0.8s ease-out both 0.5s; }
+        .minea-error { animation: minea-shake 0.4s ease-in-out; }
+        .minea-loading-pulse { animation: minea-pulse-soft 1.4s ease-in-out infinite; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .minea-blob-a, .minea-blob-b, .minea-card, .minea-inner-1, .minea-inner-2,
+          .minea-circle, .minea-ring, .minea-badge,
+          .minea-form-header, .minea-form-card, .minea-form-footer, .minea-error,
+          .minea-loading-pulse {
+            animation: none !important;
+          }
+        }
+      `}</style>
+
+      <div className="minea-blob-a absolute -right-32 -top-32 h-80 w-80 rounded-full bg-[#ead8d2]/50 blur-3xl" />
+
+      <div className="minea-blob-b absolute -bottom-40 -left-32 h-96 w-96 rounded-full bg-[#e8d7df]/40 blur-3xl" />
 
       <div className="relative z-10 flex min-h-screen flex-col lg:flex-row">
         <section className="relative hidden items-center justify-center p-12 lg:flex lg:w-[46%] xl:w-1/2">
           <div className="absolute inset-8 rounded-[40px] bg-[#efe3de]" />
 
-          <div className="relative w-full max-w-lg">
+          <div className="minea-card relative w-full max-w-lg">
             <div className="relative aspect-[4/5] overflow-hidden rounded-[36px] bg-[#e6d4cd] shadow-[0_30px_80px_-30px_rgba(91,63,55,0.35)]">
               <div className="absolute inset-0 bg-gradient-to-br from-[#eadbd5] via-[#e8d8d2] to-[#d9c4bc]" />
 
@@ -65,12 +134,12 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
 
               <div className="absolute bottom-16 right-8 h-40 w-40 rounded-full bg-[#f7eee9]/40 blur-2xl" />
 
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="minea-inner-1 absolute inset-0 flex items-center justify-center">
                 <div className="relative flex h-[26rem] w-[26rem] items-center justify-center">
                   <div className="absolute inset-6 rounded-full bg-[#d9b8aa]/20 blur-3xl" />
-                  <div className="absolute inset-0 rounded-full border border-white/60 bg-white/10 shadow-[0_30px_80px_-30px_rgba(91,63,55,0.35)] backdrop-blur-[2px]" />
+                  <div className="minea-ring absolute inset-0 rounded-full border border-white/60 bg-white/10 shadow-[0_30px_80px_-30px_rgba(91,63,55,0.35)] backdrop-blur-[2px]" />
                   <div className="absolute inset-5 rounded-full border border-[#b99588]/20" />
-                  <div className="relative flex h-72 w-72 items-center justify-center rounded-full border border-white/70 bg-[#f7eee9]/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_25px_60px_-25px_rgba(91,63,55,0.45)] backdrop-blur-xl">
+                  <div className="minea-circle relative flex h-72 w-72 items-center justify-center rounded-full border border-white/70 bg-[#f7eee9]/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_25px_60px_-25px_rgba(91,63,55,0.45)] backdrop-blur-xl">
                     <div className="absolute left-10 top-8 h-20 w-32 rounded-full bg-white/40 blur-2xl" />
                     <img
                       src="/minea-logo.svg"
@@ -78,12 +147,10 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
                       className="relative z-10 h-auto w-[30rem] max-w-none translate-x-8 scale-[1] object-contain drop-shadow-[0_12px_18px_rgba(91,63,55,0.18)]"
                     />
                   </div>
-                  <span className="absolute right-8 top-16 h-2 w-2 rounded-full bg-white/80 shadow-[0_0_15px_rgba(255,255,255,0.9)]" />
-                  <span className="absolute bottom-20 left-8 h-1.5 w-1.5 rounded-full bg-[#b99588]/50" />
                 </div>
               </div>
 
-              <div className="absolute bottom-8 left-8 right-8 rounded-3xl border border-white/60 bg-white/65 p-5 backdrop-blur-md">
+              <div className="minea-inner-2 absolute bottom-8 left-8 right-8 rounded-3xl border border-white/60 bg-white/65 p-5 backdrop-blur-md">
                 <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#765a51]">
                   seu momento
                 </p>
@@ -94,8 +161,10 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
               </div>
             </div>
 
-            <div className="absolute -bottom-5 -right-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-[#fffaf8] shadow-xl">
-              <Sparkle />
+            <div className="minea-badge absolute -bottom-5 -right-5 flex h-20 w-20 rotate-3 items-center justify-center rounded-[1.75rem] border border-[#eadbd4] bg-[#fffaf8] shadow-[0_14px_35px_-12px_rgba(91,63,55,0.35)]">
+              <div className="flex flex-col items-center justify-center gap-1 text-center">
+                <img src="/icon.ico" alt="Minea" />
+              </div>
             </div>
           </div>
         </section>
@@ -108,7 +177,7 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
               </div>
             </div>
 
-            <div className="mb-8">
+            <div className="minea-form-header mb-8">
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#a78378]">
                 Bem-vinda de volta
               </p>
@@ -126,7 +195,7 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
 
             <form
               onSubmit={handleSubmit}
-              className="rounded-[30px] border border-[#eee4df] bg-white p-6 shadow-[0_20px_60px_-30px_rgba(76,55,48,0.25)] sm:p-8"
+              className="minea-form-card rounded-[30px] border border-[#eee4df] bg-white p-6 shadow-[0_20px_60px_-30px_rgba(76,55,48,0.25)] sm:p-8"
             >
               <div>
                 <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#79665f]">
@@ -199,7 +268,7 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
               </div>
 
               {erro && (
-                <div className="mt-4 flex items-start gap-3 rounded-2xl border border-[#f1d9d4] bg-[#fbefed] px-4 py-3">
+                <div className="minea-error mt-4 flex items-start gap-3 rounded-2xl border border-[#f1d9d4] bg-[#fbefed] px-4 py-3">
                   <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d98f82] text-[10px] text-white">
                     !
                   </div>
@@ -213,7 +282,9 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
                 disabled={loading}
                 className="group mt-6 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[#806057] text-sm font-medium text-white shadow-[0_12px_25px_-10px_rgba(92,68,60,0.55)] transition-all hover:bg-[#71534b] active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-70"
               >
-                <span>{loading ? 'Entrando...' : 'Entrar na minha conta'}</span>
+                <span className={loading ? 'minea-loading-pulse' : ''}>
+                  {loading ? 'Entrando...' : 'Entrar na minha conta'}
+                </span>
 
                 {!loading && (
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform group-hover:translate-x-0.5">
@@ -241,7 +312,7 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
               </button>
             </form>
 
-            <div className="mt-6 flex items-center justify-center gap-2 text-[#aa9790]">
+            <div className="minea-form-footer mt-6 flex items-center justify-center gap-2 text-[#aa9790]">
               <ShieldCheck size={14} />
 
               <p className="text-[10px] tracking-wide">
