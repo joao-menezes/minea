@@ -1,7 +1,7 @@
 import { ChevronRight, Clock3, MapPin, Sparkles } from 'lucide-react';
 
-import { formatDate, formatTimeData } from '@/components/decor';
 import type { Appointment } from '@/types';
+import { formatDate, formatTimeData } from '@/utils/utils';
 
 type AppointmentCardProps = {
   appointment: Appointment;

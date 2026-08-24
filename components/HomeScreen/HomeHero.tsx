@@ -1,7 +1,7 @@
 import { ArrowUpRight, CalendarDays, Clock3, Sparkles } from 'lucide-react';
 
-import { formatDate, formatTime } from '@/components/decor';
 import type { Appointment } from '@/types';
+import { formatDate, formatTime } from '@/utils/utils';
 
 type HomeHeroProps = {
   appointment?: Appointment;

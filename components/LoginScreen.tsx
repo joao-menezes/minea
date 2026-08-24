@@ -4,14 +4,16 @@ import { type FormEvent, useState } from 'react';
 
 import { ArrowRight, Eye, EyeOff, Lock, ShieldCheck, User } from 'lucide-react';
 
-import { Sparkle, maskCPF } from './decor';
+import { ErrorMessage } from '@/components/ErrorMessage';
+import { maskCPF } from '@/utils/utils';
 
 type LoginScreenProps = {
   onLogin: (cpf: string, password: string) => void | Promise<void>;
+  error?: string;
   goSignup: () => void;
 };
 
-export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
+export default function LoginScreen({ onLogin, error, goSignup }: LoginScreenProps) {
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [showSenha, setShowSenha] = useState(false);
@@ -267,15 +269,7 @@ export default function LoginScreen({ onLogin, goSignup }: LoginScreenProps) {
                 </div>
               </div>
 
-              {erro && (
-                <div className="minea-error mt-4 flex items-start gap-3 rounded-2xl border border-[#f1d9d4] bg-[#fbefed] px-4 py-3">
-                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d98f82] text-[10px] text-white">
-                    !
-                  </div>
-
-                  <p className="text-xs leading-relaxed text-[#9b5d53]">{erro}</p>
-                </div>
-              )}
+              {erro && <ErrorMessage error={error} />}
 
               <button
                 type="submit"

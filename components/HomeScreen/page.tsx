@@ -2,15 +2,17 @@
 
 import { useMemo, useState } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 import { AmbientBackground } from '@/components/HomeScreen/AmbientBackground';
-import { AppointmentCalendar } from '@/components/HomeScreen/AppointmentList/AppointmentCalendar';
-import { AppointmentList } from '@/components/HomeScreen/AppointmentList/AppointmentList';
-import { AppointmentModal } from '@/components/HomeScreen/AppointmentList/AppointmentModal';
-import { NewAppointmentButton } from '@/components/HomeScreen/AppointmentList/NewAppointmentButton';
+import { AppointmentCalendar } from '@/components/HomeScreen/Appointment/AppointmentCalendar';
+import { AppointmentList } from '@/components/HomeScreen/Appointment/AppointmentList';
+import { AppointmentModal } from '@/components/HomeScreen/Appointment/AppointmentModal';
+import { NewAppointmentButton } from '@/components/HomeScreen/Appointment/NewAppointmentButton';
 import { HomeHeader } from '@/components/HomeScreen/HomeHeader';
-import { buildWeekStrip, sameDay } from '@/components/decor';
 import { deleteAppointment, updateAppointment } from '@/lib/api/appointments';
 import type { Appointment, User } from '@/types';
+import { buildWeekStrip, sameDay } from '@/utils/utils';
 
 import { HomeHero } from './HomeHero';
 
@@ -65,6 +67,7 @@ export default function Page({
           week={week}
           appointmentCount={appointments.length}
           appointmentDates={appointments.map((appointment) => new Date(appointment.date))}
+          appointments={appointments}
           onSelect={setSelected}
         />
 

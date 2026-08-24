@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
-import { maskCPF, maskDate } from '@/components/decor';
 import { updateUserStatus } from '@/lib/api/clients';
 import type { Client } from '@/types';
+import { maskCPF, maskDate } from '@/utils/utils';
 
 type Props = {
   client: Client;

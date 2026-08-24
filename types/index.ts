@@ -205,3 +205,27 @@ export type FinancialSummary = {
   transactionCount: number;
   averageTransaction: number;
 };
+
+// ============================================================
+// PAYMENT
+// ============================================================
+
+export type PixPayment = {
+  id: string;
+  status: PixPaymentStatus;
+  transactionAmount: number;
+  qrCode: string | null;
+  qrCodeBase64: string | null;
+  ticketUrl: string | null;
+  dateOfExpiration: string | null;
+};
+
+export type PixPaymentStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+
+export type PendingAppointment = {
+  userId: string;
+  serviceId: string;
+  date: string;
+  time: string;
+  service: Service;
+};

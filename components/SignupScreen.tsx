@@ -4,7 +4,9 @@ import { type FormEvent, useState } from 'react';
 
 import { ArrowLeft, ArrowRight, Cake, Eye, EyeOff, Lock, ShieldCheck, User } from 'lucide-react';
 
-import { Bow, maskCPF, maskDate } from './decor';
+import { maskCPF, maskDate } from '@/utils/utils';
+
+import { Bow } from './decor';
 
 type SignupData = {
   name: string;
@@ -38,8 +40,8 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
       return setError('Digite um CPF válido, com os 11 números.');
     }
 
-    if (password.length < 4) {
-      return setError('A senha precisa ter pelo menos 4 caracteres.');
+    if (password.length < 6) {
+      return setError('A senha precisa ter pelo menos 6 caracteres.');
     }
 
     if (querAniversario && birthDate.replace(/\D/g, '').length !== 8) {
@@ -287,7 +289,7 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
                       setError('');
                     }}
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Mínimo de 4 caracteres"
+                    placeholder="Mínimo de 6 caracteres"
                     autoComplete="new-password"
                     className="w-full bg-transparent text-sm text-[#443834] outline-none placeholder:text-[#c0b1aa]"
                   />

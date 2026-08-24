@@ -4,8 +4,15 @@ import { useMemo, useState } from 'react';
 
 import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock3, Sparkles, X } from 'lucide-react';
 
+import { PaymentPixModal } from '@/components/HomeScreen/Appointment/PaymentPixModal';
 import { createAppointment } from '@/lib/api/appointments';
-import type { Appointment, CreateAppointmentData, Service } from '@/types';
+import type {
+  Appointment,
+  CreateAppointmentData,
+  PendingAppointment,
+  PixPaymentStatus,
+  Service,
+} from '@/types';
 
 import { WEEKDAYS } from '../../decor';
 
@@ -33,6 +40,8 @@ export function BookingFlow({
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [error, setError] = useState<string | null>('');
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [pendingAppointment, setPendingAppointment] = useState<PendingAppointment | null>(null);
 
   const selectedService = useMemo(
     () => services.find((service) => service.id === selectedServiceId) ?? null,
@@ -83,31 +92,27 @@ export function BookingFlow({
     setStep((current) => (current - 1) as BookingStep);
   }
 
-  async function finish() {
+  function finish() {
     if (!selectedService || !selectedDate || !selectedTime) {
       return;
     }
 
-    try {
-      const appointmentDate = new Date(selectedDate);
+    const appointmentDate = new Date(selectedDate);
 
-      const [hours, minutes] = selectedTime.split(':');
+    const [hours, minutes] = selectedTime.split(':');
 
-      appointmentDate.setHours(Number(hours), Number(minutes), 0, 0);
+    appointmentDate.setHours(Number(hours), Number(minutes), 0, 0);
 
-      const appointmentData: CreateAppointmentData = {
-        userId,
-        serviceId: selectedService.id,
-        date: appointmentDate.toISOString(),
-        time: selectedTime,
-      };
+    setPendingAppointment({
+      userId,
+      serviceId: selectedService.id,
+      date: appointmentDate.toISOString(),
+      time: selectedTime,
+      service: selectedService,
+    });
 
-      const savedAppointment = await createAppointment(appointmentData);
-
-      onComplete(savedAppointment);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Não foi possível salvar o agendamento.');
-    }
+    setError('');
+    setPaymentOpen(true);
   }
 
   return (
@@ -459,6 +464,37 @@ export function BookingFlow({
           </button>
         </div>
       </div>
+      {pendingAppointment && (
+        <PaymentPixModal
+          pendingAppointment={pendingAppointment}
+          open={paymentOpen}
+          onClose={() => {
+            setPaymentOpen(false);
+            setPendingAppointment(null);
+          }}
+          onPaymentApproved={async () => {
+            try {
+              const savedAppointment = await createAppointment({
+                userId: pendingAppointment.userId,
+                serviceId: pendingAppointment.serviceId,
+                date: pendingAppointment.date,
+                time: pendingAppointment.time,
+              });
+
+              setPaymentOpen(false);
+              setPendingAppointment(null);
+
+              onComplete(savedAppointment);
+            } catch (error) {
+              setError(
+                error instanceof Error
+                  ? error.message
+                  : 'Não foi possível confirmar o agendamento.',
+              );
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

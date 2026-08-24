@@ -21,7 +21,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-import { BookingFlow } from '@/components/HomeScreen/AppointmentList/NewAppointmentSheet';
+import { BookingFlow } from '@/components/HomeScreen/Appointment/NewAppointmentSheet';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { getAppointments } from '@/lib/api/appointments';
 import { getServices } from '@/lib/api/services';
@@ -39,27 +39,15 @@ const DAYS = [
 
 export default function AdminAgendaPage() {
   const [selectedDay, setSelectedDay] = useState(17);
-
   const [statusFilter, setStatusFilter] = useState<'all' | AppointmentStatus>('all');
-
   const [search, setSearch] = useState('');
-
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState('');
-
-  const selectedDate = useMemo(() => new Date(2026, 7, selectedDay), [selectedDay]);
-
   const [showNewAppointment, setShowNewAppointment] = useState(false);
-
   const [services, setServices] = useState<Service[]>([]);
-
   const [loadingServices, setLoadingServices] = useState(false);
-
   const [servicesError, setServicesError] = useState<string | null>(null);
 
   useEffect(() => {

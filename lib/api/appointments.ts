@@ -2,8 +2,8 @@ import { Appointment, CreateAppointmentData, UpdateAppointmentData } from '@/typ
 
 import { apiFetch } from './client';
 
-export async function getAppointments(): Promise<Appointment[]> {
-  return apiFetch<Appointment[]>('/appointments');
+export async function getAppointments(userId: string): Promise<Appointment[]> {
+  return apiFetch<Appointment[]>(`/appointments?userId=${encodeURIComponent(userId)}`);
 }
 
 export async function getAppointment(id: string): Promise<Appointment> {

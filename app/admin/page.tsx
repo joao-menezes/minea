@@ -101,7 +101,7 @@ export default function AdminPage() {
         </div>
 
         <div className="relative mx-auto max-w-[1500px] px-5 py-7 lg:px-8 lg:py-9">
-           <section className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <section className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[9px] font-bold uppercase tracking-[0.34em] text-[#c2a99d]">

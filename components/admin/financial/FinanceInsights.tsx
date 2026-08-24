@@ -2,7 +2,6 @@ import { CreditCard, DollarSign, TrendingUp, Wallet } from 'lucide-react';
 
 import { formatCurrency } from '@/lib/financial';
 
-
 type BestDay = {
   date: Date;
   value: number;

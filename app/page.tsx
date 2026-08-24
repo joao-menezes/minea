@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { BookingFlow } from '@/components/HomeScreen/AppointmentList/NewAppointmentSheet';
+import { BookingFlow } from '@/components/HomeScreen/Appointment/NewAppointmentSheet';
 import HomeScreen from '@/components/HomeScreen/page';
 import LoginScreen from '@/components/LoginScreen';
 import SignupScreen from '@/components/SignupScreen';
@@ -24,11 +24,9 @@ export default function Page() {
   const [screen, setScreen] = useState<Screen>('login');
   const [user, setUser] = useState<User | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-
   const [showNewAppointment, setShowNewAppointment] = useState(false);
-
   const [loading, setLoading] = useState(true);
-
+  const [loginError, setLoginError] = useState('');
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(false);
   const [servicesError, setServicesError] = useState<string | null>(null);
@@ -45,7 +43,7 @@ export default function Page() {
         setUser(currentUser);
         setScreen('home');
 
-        const userAppointments = await getAppointments();
+        const userAppointments = await getAppointments(currentUser.id);
 
         setAppointments(userAppointments);
       } catch (error) {
@@ -65,14 +63,15 @@ export default function Page() {
         password,
       });
 
+      const userAppointments = await getAppointments(user.id);
+
       setUser(user);
-      setScreen('home');
-
-      const userAppointments = await getAppointments();
-
       setAppointments(userAppointments);
+      setScreen('home');
     } catch (error) {
       console.error('Erro ao fazer login:', error);
+
+      throw new Error(error instanceof Error ? error.message : 'CPF ou senha incorretos.');
     }
   }
 
@@ -88,7 +87,7 @@ export default function Page() {
       setUser(createdUser);
       setScreen('home');
 
-      const userAppointments = await getAppointments();
+      const userAppointments = await getAppointments(createdUser.id);
 
       setAppointments(userAppointments);
     } catch (error) {
@@ -148,7 +147,11 @@ export default function Page() {
   return (
     <main className="min-h-screen w-full">
       {screen === 'login' && (
-        <LoginScreen onLogin={handleLogin} goSignup={() => setScreen('signup')} />
+        <LoginScreen
+          onLogin={handleLogin}
+          error={loginError}
+          goSignup={() => setScreen('signup')}
+        />
       )}
 
       {screen === 'signup' && (

@@ -16,7 +16,6 @@ export function FinanceBreakdown({ report, margin }: Props) {
       <h2 className="mt-2 font-display text-[27px] text-[#6b5850]">Entradas & saídas</h2>
 
       <div className="mt-7 space-y-4">
-
         <Item
           icon={ArrowDownRight}
           label="Entradas"
@@ -36,7 +35,6 @@ export function FinanceBreakdown({ report, margin }: Props) {
 
         <div className="rounded-[21px] bg-[#f6ede8] p-4">
           <div className="flex items-center justify-between">
-
             <div>
               <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#b49b90]">
                 Resultado
@@ -98,7 +96,6 @@ function Item({
         <p className="text-[11px] font-bold text-[#6b5850]">{label}</p>
 
         <p className="text-[9px] text-[#b49b90]">{description}</p>
-
       </div>
 
       <strong className="text-[11px] text-[#80685e]">{value}</strong>

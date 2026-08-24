@@ -4,13 +4,16 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { MONTHS, WEEKDAYS, sameDay } from '@/components/decor';
+import { MONTHS, WEEKDAYS } from '@/components/decor';
+import { Appointment } from '@/types';
+import { sameDay } from '@/utils/utils';
 
 type AppointmentCalendarProps = {
   selected: Date;
   week: Date[];
   appointmentCount: number;
   appointmentDates?: Date[];
+  appointments?: Appointment[];
   onSelect: (date: Date) => void;
 };
 
@@ -70,9 +73,11 @@ export function AppointmentCalendar({
   week,
   appointmentCount,
   appointmentDates,
+  appointments = [],
   onSelect,
 }: AppointmentCalendarProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [showAllAppointments, setShowAllAppointments] = useState(false);
 
   const [calendarMonth, setCalendarMonth] = useState(
     new Date(selected.getFullYear(), selected.getMonth(), 1),
@@ -189,13 +194,21 @@ export function AppointmentCalendar({
           </button>
         </div>
 
-        <div className="flex items-center gap-1.5 pb-0.5 text-[#b49b90]">
-          <CalendarDays size={13} strokeWidth={1.7} />
+        <button
+          type="button"
+          onClick={() => setShowAllAppointments(true)}
+          className="group flex items-center gap-1.5 pb-0.5 text-[#b49b90] transition hover:text-[#806d64]"
+        >
+          <CalendarDays
+            size={13}
+            strokeWidth={1.7}
+            className="transition-transform group-hover:scale-105"
+          />
 
           <span className="text-[9px] font-bold uppercase tracking-wide">
             {appointmentCount} {appointmentCount === 1 ? 'agendamento' : 'agendamentos'}
           </span>
-        </div>
+        </button>
       </div>
 
       {isCalendarOpen && (
@@ -363,6 +376,127 @@ export function AppointmentCalendar({
             >
               <ChevronRight size={17} strokeWidth={1.8} />
             </button>
+          </div>
+        </div>
+      )}
+      {showAllAppointments && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/20 p-0 backdrop-blur-[2px] sm:items-center sm:p-6"
+          onClick={() => setShowAllAppointments(false)}
+        >
+          <div
+            className="max-h-[85vh] w-full max-w-[520px] overflow-hidden rounded-t-[30px] bg-[#fffdfc] shadow-[0_25px_80px_-30px_rgba(67,47,40,.45)] sm:rounded-[30px]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[#eee4df] px-5 py-5">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#c0a79c]">
+                  Sua agenda
+                </p>
+
+                <h3 className="mt-1 font-display text-[25px] leading-none text-[#6b5850]">
+                  Todos os agendamentos
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAllAppointments(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f8f2ee] text-[#907970] transition hover:bg-[#f1e8e2]"
+                aria-label="Fechar"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="max-h-[65vh] overflow-y-auto p-5">
+              {appointments.length === 0 ? (
+                <div className="rounded-[22px] border border-[#eee4df] bg-[#faf7f5] px-5 py-10 text-center">
+                  <CalendarDays size={24} strokeWidth={1.5} className="mx-auto text-[#b99d91]" />
+
+                  <p className="mt-3 text-sm font-bold text-[#66534c]">Nenhum agendamento</p>
+
+                  <p className="mt-1 text-[10px] leading-relaxed text-[#a58b81]">
+                    Você ainda não possui agendamentos.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {appointments.map((appointment) => {
+                    const appointmentDate = new Date(appointment.date);
+
+                    return (
+                      <button
+                        key={appointment.id}
+                        type="button"
+                        onClick={() => {
+                          onSelect(appointmentDate);
+                          setShowAllAppointments(false);
+                        }}
+                        className="group w-full rounded-[22px] border border-[#eee4df] bg-white p-4 text-left transition hover:-translate-y-[1px] hover:border-[#dfd0c9] hover:bg-[#fdf9f7]"
+                      >
+                        <div className="flex items-center gap-3">
+                          {/* Data */}
+                          <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-[17px] bg-[#f3ece8]">
+                            <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-[#a98d81]">
+                              {appointmentDate.toLocaleDateString('pt-BR', {
+                                month: 'short',
+                              })}
+                            </span>
+
+                            <span className="text-lg font-bold leading-none text-[#6b5850]">
+                              {appointmentDate.getDate()}
+                            </span>
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[13px] font-bold text-[#4b3b36]">
+                              {appointment.title}
+                            </p>
+
+                            <div className="mt-1.5 flex items-center gap-2">
+                              <span className="text-[10px] font-semibold text-[#9a837b]">
+                                {appointmentDate.toLocaleDateString('pt-BR', {
+                                  weekday: 'long',
+                                })}
+                              </span>
+
+                              <span className="h-1 w-1 rounded-full bg-[#d3beb5]" />
+
+                              <span className="text-[10px] font-bold text-[#80665c]">
+                                {appointment.time?.slice(0, 5)}
+                              </span>
+                            </div>
+
+                            {appointment.local && (
+                              <p className="mt-1 truncate text-[9px] text-[#b09a91]">
+                                {appointment.local}
+                              </p>
+                            )}
+                          </div>
+
+                          <div
+                            className={`shrink-0 rounded-full px-2.5 py-1 text-[8px] font-bold uppercase tracking-wide ${
+                              appointment.status === 'confirmed'
+                                ? 'bg-[#edf5ef] text-[#66816d]'
+                                : appointment.status === 'cancelled'
+                                  ? 'bg-[#fff1ef] text-[#a46c65]'
+                                  : 'bg-[#f5eee9] text-[#907970]'
+                            }`}
+                          >
+                            {appointment.status === 'confirmed'
+                              ? 'Confirmado'
+                              : appointment.status === 'cancelled'
+                                ? 'Cancelado'
+                                : 'Agendado'}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

@@ -81,7 +81,7 @@ export function AppointmentModal({
       setError('');
 
       await onCancel(appointment);
-
+      toast.success('Agendamento Cancelado com sucesso!');
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao cancelar agendamento');
@@ -121,7 +121,6 @@ export function AppointmentModal({
       }
     >
       <div className="space-y-5 p-6">
-        {/* Service */}
         <div className="flex items-center gap-4 rounded-2xl border border-[#eadfd9] bg-white p-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#f1e7e2] text-[#917066]">
             <Sparkles size={19} strokeWidth={1.6} />
@@ -136,7 +135,6 @@ export function AppointmentModal({
           </div>
         </div>
 
-        {/* Date */}
         <div>
           <label
             htmlFor="appointment-date"
@@ -213,7 +211,6 @@ export function AppointmentModal({
           </button>
         )}
 
-        {/* Cancel */}
         {onCancel && (
           <div className="border-t border-[#eadfd9] pt-5">
             <button

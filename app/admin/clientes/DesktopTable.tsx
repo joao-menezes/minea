@@ -1,8 +1,8 @@
 import { ChevronRight } from 'lucide-react';
 
 import { StatusBadge } from '@/components/badge';
-import { formatDateShort, formatTime } from '@/components/decor';
-import { Appointment, Client } from '@/types';
+import { Client } from '@/types';
+import { formatDateShort, formatTime } from '@/utils/utils';
 
 type Props = {
   clients: Client[];
@@ -121,21 +121,4 @@ function ClientRow({ client, onClick }: { client: Client; onClick: () => void })
       </span>
     </button>
   );
-}
-
-function getAppointmentParts(appointment?: Appointment | null): {
-  date: string | null;
-  time: string | null;
-} {
-  if (!appointment?.date) {
-    return { date: null, time: null };
-  }
-  const parsedDate = new Date(appointment.date);
-  if (Number.isNaN(parsedDate.getTime())) {
-    return { date: null, time: null };
-  }
-  return {
-    date: parsedDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-    time: parsedDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-  };
 }
