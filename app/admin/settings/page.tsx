@@ -22,6 +22,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { AdminShell } from '@/components/admin/AdminShell';
 
@@ -83,6 +84,10 @@ const SCHEDULE = [
 ];
 
 export default function AdminSettingsPage() {
+  const router = useRouter();
+  window.onload = () => {
+    router.push('/admin');
+  };
   const [activeSection, setActiveSection] = useState<SettingsSectionId>('clinica');
 
   const [notifications, setNotifications] = useState(true);
@@ -93,15 +98,6 @@ export default function AdminSettingsPage() {
   const [showAddress, setShowAddress] = useState(true);
   const [saved, setSaved] = useState(false);
 
-  /**
-   * Scroll spy
-   *
-   * O IntersectionObserver funciona melhor aqui do que calcular
-   * manualmente o top das sections.
-   *
-   * Também resolve o problema quando o usuário simplesmente
-   * faz scroll sem clicar na navegação.
-   */
   useEffect(() => {
     const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-settings-section]'));
 

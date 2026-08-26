@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 import { AdminShell } from '@/components/admin/AdminShell';
-import { getAppointments } from '@/lib/api/appointments';
+import { getAllAppointment, getAppointments } from '@/lib/api/appointments';
 import { getServices } from '@/lib/api/services';
 import { formatCurrency } from '@/lib/financial';
 import type { Appointment, AppointmentStatus, Service } from '@/types';
@@ -41,7 +41,7 @@ export default function AdminPage() {
 
         const [servicesData, appointmentsData] = await Promise.all([
           getServices(),
-          getAppointments(),
+          getAllAppointment(),
         ]);
 
         if (!mounted) return;

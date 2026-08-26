@@ -6,8 +6,8 @@ export async function getAppointments(userId: string): Promise<Appointment[]> {
   return apiFetch<Appointment[]>(`/appointments?userId=${encodeURIComponent(userId)}`);
 }
 
-export async function getAppointment(id: string): Promise<Appointment> {
-  return apiFetch<Appointment>(`/appointments/${id}`);
+export async function getAllAppointment(): Promise<Appointment[]> {
+  return apiFetch<Appointment[]>('/appointments/admin');
 }
 
 export async function createAppointment(data: CreateAppointmentData): Promise<Appointment> {
@@ -27,8 +27,11 @@ export async function updateAppointment(
   });
 }
 
-export async function deleteAppointment(id: string): Promise<void> {
+export async function deleteAppointment(id: string, userId: string): Promise<void> {
   await apiFetch<void>(`/appointments/${id}`, {
     method: 'DELETE',
+    body: JSON.stringify({
+      userId,
+    }),
   });
 }

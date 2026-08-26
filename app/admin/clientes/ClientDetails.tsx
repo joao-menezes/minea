@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { updateUserStatus } from '@/lib/api/clients';
 import type { Client } from '@/types';
@@ -6,12 +6,18 @@ import { maskCPF, maskDate } from '@/utils/utils';
 
 type Props = {
   client: Client;
+  onClientUpdated: (client: Client) => void;
 };
 
-export function ClientDetails({ client }: Props) {
-  const lastAppointment = client.lastAppointmentAt ? new Date(client.lastAppointmentAt) : null;
+export function ClientDetails({ client, onClientUpdated }: Props) {
   const [isActive, setIsActive] = useState(client.isActive);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  useEffect(() => {
+    setIsActive(client.isActive);
+  }, [client.id, client.isActive]);
+
+  const lastAppointment = client.lastAppointmentAt ? new Date(client.lastAppointmentAt) : null;
 
   const formattedLastAppointment = lastAppointment
     ? lastAppointment.toLocaleDateString('pt-BR', {
@@ -22,6 +28,8 @@ export function ClientDetails({ client }: Props) {
     : 'Nenhum atendimento';
 
   async function handleToggleStatus() {
+    if (updatingStatus) return;
+
     const newStatus = !isActive;
 
     try {
@@ -30,6 +38,11 @@ export function ClientDetails({ client }: Props) {
       await updateUserStatus(client.id, newStatus);
 
       setIsActive(newStatus);
+
+      onClientUpdated({
+        ...client,
+        isActive: client.isActive,
+      });
     } catch (error) {
       console.error('Erro ao alterar status do cliente:', error);
     } finally {
@@ -69,26 +82,21 @@ export function ClientDetails({ client }: Props) {
 
   return (
     <div className="space-y-3">
-      {' '}
       <div className="grid grid-cols-2 gap-3">
-        {' '}
         {details.map((detail) => (
           <DetailItem key={detail.label} label={detail.label} value={detail.value} />
-        ))}{' '}
-      </div>{' '}
+        ))}
+      </div>
+
       <div className="flex items-center justify-between rounded-[17px] bg-[#faf6f3] p-3">
-        {' '}
         <div>
-          {' '}
-          <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-[#c2a99d]">
-            {' '}
-            Status{' '}
-          </p>{' '}
+          <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-[#c2a99d]">Status</p>
+
           <p className="mt-1.5 text-[10px] font-semibold text-[#80685e]">
-            {' '}
-            {isActive ? 'Cliente ativo' : 'Cliente inativo'}{' '}
-          </p>{' '}
-        </div>{' '}
+            {isActive ? 'Cliente ativo' : 'Cliente inativo'}
+          </p>
+        </div>
+
         <button
           type="button"
           role="switch"
@@ -104,16 +112,15 @@ export function ClientDetails({ client }: Props) {
             isActive ? 'bg-[#a98d81]' : 'bg-[#d8cbc5]',
           ].join(' ')}
         >
-          {' '}
           <span
             className={[
               'block h-5 w-5 rounded-full bg-white shadow-sm',
               'transition-transform duration-200',
               isActive ? 'translate-x-5' : 'translate-x-0',
             ].join(' ')}
-          />{' '}
-        </button>{' '}
-      </div>{' '}
+          />
+        </button>
+      </div>
     </div>
   );
 }

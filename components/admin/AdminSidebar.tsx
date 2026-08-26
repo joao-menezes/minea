@@ -103,19 +103,21 @@ export function AdminSidebar() {
         </nav>
 
         <div className="mt-5 shrink-0 border-t border-[#e9e1dc] pt-4">
-          <Link
-            href="/admin/settings"
-            className={[
-              'group flex h-11 items-center gap-3 rounded-xl px-3',
-              'text-sm font-medium text-[#806f68]',
-              'transition-all duration-200',
-              'hover:bg-[#f3ece8] hover:text-[#493a35]',
-            ].join(' ')}
-          >
-            <Settings size={17} strokeWidth={1.7} className="shrink-0" />
+          {false && (
+            <Link
+              href="/admin/settings"
+              className={[
+                'group flex h-11 items-center gap-3 rounded-xl px-3',
+                'text-sm font-medium text-[#806f68]',
+                'transition-all duration-200',
+                'hover:bg-[#f3ece8] hover:text-[#493a35]',
+              ].join(' ')}
+            >
+              <Settings size={17} strokeWidth={1.7} className="shrink-0" />
 
-            <span>Configurações</span>
-          </Link>
+              <span>Configurações</span>
+            </Link>
+          )}
 
           <div className="mt-4 flex items-center gap-3 rounded-2xl bg-[#f3ece8] p-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#c9afa5] text-xs font-bold text-white">

@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-
 import { Modal } from '@/components/Modal';
 import type { PendingAppointment, PixPayment } from '@/types';
 
@@ -12,6 +10,7 @@ type PaymentPixModalProps = {
   open: boolean;
   onClose: () => void;
   onPaymentApproved: () => void;
+  onSkipPayment: () => void;
 };
 
 export function PaymentPixModal({
@@ -19,7 +18,9 @@ export function PaymentPixModal({
   open,
   onClose,
   onPaymentApproved,
+  onSkipPayment,
 }: PaymentPixModalProps) {
+  //fake payment time calc
   const fakePayment: PixPayment = {
     id: 'test-payment',
     status: 'PENDING',
@@ -36,10 +37,15 @@ export function PaymentPixModal({
       onClose={onClose}
       title="Pagamento PIX"
       description="Finalize o pagamento para confirmar seu agendamento."
-      size="md"
+      size="lg"
       contentClassName="bg-[#fdfaf8]"
     >
-      <PaymentPix payment={fakePayment} onBack={onClose} onConfirmed={onPaymentApproved} />
+      <PaymentPix
+        payment={fakePayment}
+        onBack={onClose}
+        onConfirmed={onPaymentApproved}
+        onSkipPayment={onSkipPayment}
+      />
     </Modal>
   );
 }

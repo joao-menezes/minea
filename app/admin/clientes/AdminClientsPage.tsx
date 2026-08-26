@@ -7,7 +7,7 @@ import { ClientModal } from '@/app/admin/clientes/ClientModal';
 import { ClientStats } from '@/app/admin/clientes/ClientStats';
 import { ClientTable } from '@/app/admin/clientes/ClientTable';
 import { ClientToolbar } from '@/app/admin/clientes/ClientToolbar';
-import { EmptyClients } from '@/app/admin/clientes/EmptyClients';
+import { EmptyRow } from '@/components/EmptyRow';
 import { AdminShell } from '@/components/admin/AdminShell';
 import type { Client, ClientFilter } from '@/types';
 
@@ -24,14 +24,16 @@ function normalize(value: string | null | undefined): string {
 }
 
 export default function AdminClientsPage({ clients: initialClients }: AdminClientsPageProps) {
+  const [clients, setClients] = useState<Client[]>(initialClients);
+
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<ClientFilter>('Todos');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
-  const clients = useMemo(() => {
+  const filteredClients = useMemo(() => {
     const query = normalize(search);
 
-    return initialClients.filter((client) => {
+    return clients.filter((client) => {
       const searchableContent = [client.name, client.phone, client.email, client.cpf]
         .filter(Boolean)
         .map((value) => normalize(value))
@@ -46,15 +48,15 @@ export default function AdminClientsPage({ clients: initialClients }: AdminClien
 
       return matchesSearch && matchesStatus;
     });
-  }, [initialClients, search, status]);
+  }, [clients, search, status]);
 
   const activeClients = useMemo(() => {
-    return initialClients.filter((client) => client.isActive);
-  }, [initialClients]);
+    return clients.filter((client) => client.isActive);
+  }, [clients]);
 
   const debtClients = useMemo(() => {
-    return initialClients.filter((client) => client.inDebt);
-  }, [initialClients]);
+    return clients.filter((client) => client.inDebt);
+  }, [clients]);
 
   return (
     <AdminShell>
@@ -78,21 +80,33 @@ export default function AdminClientsPage({ clients: initialClients }: AdminClien
             <ClientToolbar
               search={search}
               status={status}
-              count={clients.length}
+              count={filteredClients.length}
               onSearch={setSearch}
               onStatus={setStatus}
             />
 
-            {clients.length > 0 ? (
-              <ClientTable clients={clients} onSelect={setSelectedClient} />
+            {filteredClients.length > 0 ? (
+              <ClientTable clients={filteredClients} onSelect={setSelectedClient} />
             ) : (
-              <EmptyClients />
+              <EmptyRow
+                title={'Nenhum cliente encontrado'}
+                message={'Tente buscar por outro nome, telefone ou e-mail.'}
+              />
             )}
           </section>
         </div>
 
         {selectedClient && (
-          <ClientModal client={selectedClient} onClose={() => setSelectedClient(null)} />
+          <ClientModal
+            client={selectedClient}
+            onClose={() => setSelectedClient(null)}
+            onClientUpdated={(updatedClient) => {
+              setClients((current) =>
+                current.map((client) => (client.id === updatedClient.id ? updatedClient : client)),
+              );
+              setSelectedClient(updatedClient);
+            }}
+          />
         )}
       </main>
     </AdminShell>

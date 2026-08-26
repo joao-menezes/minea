@@ -97,7 +97,7 @@ export default function Page({
         }}
 
         onCancel={async (appointment) => {
-          await deleteAppointment(appointment.id);
+          await deleteAppointment(appointment.id, user.id);
 
           setAppointments((current) => current.filter((item) => item.id !== appointment.id));
 

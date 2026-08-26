@@ -20,6 +20,7 @@ import {
   X,
 } from 'lucide-react';
 
+import { EmptyRow } from '@/components/EmptyRow';
 import { AdminShell } from '@/components/admin/AdminShell';
 
 type NotificationType = 'appointment' | 'reminder' | 'message' | 'system' | 'client';

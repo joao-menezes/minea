@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock3, Sparkles, X } from 'lucide-react';
 
-import { PaymentPixModal } from '@/components/HomeScreen/Appointment/PaymentPixModal';
+import { PaymentPixModal } from '@/components/HomeScreen/Appointment/payment/PaymentPixModal';
 import { createAppointment } from '@/lib/api/appointments';
 import type {
   Appointment,
@@ -113,6 +113,28 @@ export function BookingFlow({
 
     setError('');
     setPaymentOpen(true);
+  }
+
+  async function confirmAppointment() {
+    if (!pendingAppointment) return;
+
+    try {
+      const savedAppointment = await createAppointment({
+        userId: pendingAppointment.userId,
+        serviceId: pendingAppointment.serviceId,
+        date: pendingAppointment.date,
+        time: pendingAppointment.time,
+      });
+
+      setPaymentOpen(false);
+      setPendingAppointment(null);
+
+      onComplete(savedAppointment);
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Não foi possível confirmar o agendamento.',
+      );
+    }
   }
 
   return (
@@ -472,27 +494,8 @@ export function BookingFlow({
             setPaymentOpen(false);
             setPendingAppointment(null);
           }}
-          onPaymentApproved={async () => {
-            try {
-              const savedAppointment = await createAppointment({
-                userId: pendingAppointment.userId,
-                serviceId: pendingAppointment.serviceId,
-                date: pendingAppointment.date,
-                time: pendingAppointment.time,
-              });
-
-              setPaymentOpen(false);
-              setPendingAppointment(null);
-
-              onComplete(savedAppointment);
-            } catch (error) {
-              setError(
-                error instanceof Error
-                  ? error.message
-                  : 'Não foi possível confirmar o agendamento.',
-              );
-            }
-          }}
+          onPaymentApproved={confirmAppointment}
+          onSkipPayment={confirmAppointment}
         />
       )}
     </div>

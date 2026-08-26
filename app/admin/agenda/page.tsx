@@ -2,12 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import {
-  AppointmentDetails,
-  AppointmentRow,
-  EmptyState,
-  SummaryRow,
-} from 'components/admin/agenda';
+import { AppointmentDetails, AppointmentRow, SummaryRow } from 'components/admin/agenda';
 import {
   ArrowLeft,
   ArrowRight,
@@ -21,9 +16,10 @@ import {
   Sparkles,
 } from 'lucide-react';
 
+import { EmptyRow } from '@/components/EmptyRow';
 import { BookingFlow } from '@/components/HomeScreen/Appointment/NewAppointmentSheet';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { getAppointments } from '@/lib/api/appointments';
+import { getAllAppointment } from '@/lib/api/appointments';
 import { getServices } from '@/lib/api/services';
 import type { Appointment, AppointmentStatus, Service } from '@/types';
 
@@ -58,7 +54,7 @@ export default function AdminAgendaPage() {
         setLoading(true);
         setError('');
 
-        const data = await getAppointments();
+        const data = await getAllAppointment();
 
         if (!controller.signal.aborted) {
           setAppointments(data);
@@ -365,7 +361,12 @@ export default function AdminAgendaPage() {
                       />
                     ))}
 
-                    {filteredAppointments.length === 0 && <EmptyState />}
+                    {filteredAppointments.length === 0 && (
+                      <EmptyRow
+                        title={'Agenda livre'}
+                        message={'Nenhum atendimento encontrado para este dia.'}
+                      />
+                    )}
                   </>
                 )}
               </div>
