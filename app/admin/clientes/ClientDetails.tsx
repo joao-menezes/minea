@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { toast } from 'sonner';
+
 import { updateUserStatus } from '@/lib/api/clients';
 import type { Client } from '@/types';
 import { maskCPF, maskDate } from '@/utils/utils';
@@ -35,16 +37,21 @@ export function ClientDetails({ client, onClientUpdated }: Props) {
     try {
       setUpdatingStatus(true);
 
-      await updateUserStatus(client.id, newStatus);
+      const updatedClient = await updateUserStatus(client.id, newStatus);
 
       setIsActive(newStatus);
 
       onClientUpdated({
         ...client,
-        isActive: client.isActive,
+        ...updatedClient,
+        isActive: newStatus,
       });
+      toast.success(newStatus ? 'Cliente ativado com sucesso!' : 'Cliente desativado com sucesso!');
     } catch (error) {
       console.error('Erro ao alterar status do cliente:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Não foi possível alterar o status do cliente.',
+      );
     } finally {
       setUpdatingStatus(false);
     }

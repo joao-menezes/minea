@@ -22,19 +22,11 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { getAllAppointment } from '@/lib/api/appointments';
 import { getServices } from '@/lib/api/services';
 import type { Appointment, AppointmentStatus, Service } from '@/types';
-
-const DAYS = [
-  { day: 'SEG', date: 17 },
-  { day: 'TER', date: 18 },
-  { day: 'QUA', date: 19 },
-  { day: 'QUI', date: 20 },
-  { day: 'SEX', date: 21 },
-  { day: 'SÁB', date: 22 },
-  { day: 'DOM', date: 23 },
-];
+import { buildWeekStrip, sameDay } from '@/utils/utils';
 
 export default function AdminAgendaPage() {
-  const [selectedDay, setSelectedDay] = useState(17);
+  const [selectedDay, setSelectedDay] = useState(new Date());
+  const [displayedWeek, setDisplayedWeek] = useState(() => buildWeekStrip(new Date()));
   const [statusFilter, setStatusFilter] = useState<'all' | AppointmentStatus>('all');
   const [search, setSearch] = useState('');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -82,6 +74,12 @@ export default function AdminAgendaPage() {
     const query = search.trim().toLowerCase();
 
     return appointments.filter((appointment) => {
+      const appointmentDate = new Date(appointment.date);
+      const matchesDay =
+        sameDay(appointmentDate, selectedDay) ||
+        (appointmentDate.getUTCFullYear() === selectedDay.getFullYear() &&
+          appointmentDate.getUTCMonth() === selectedDay.getMonth() &&
+          appointmentDate.getUTCDate() === selectedDay.getDate());
       const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
 
       const matchesSearch =
@@ -89,9 +87,31 @@ export default function AdminAgendaPage() {
         appointment.clientName?.toLowerCase().includes(query) ||
         appointment.title.toLowerCase().includes(query);
 
-      return matchesStatus && matchesSearch;
+      return matchesDay && matchesStatus && matchesSearch;
     });
-  }, [appointments, search, statusFilter]);
+  }, [appointments, search, selectedDay, statusFilter]);
+
+  const selectDay = (date: Date) => {
+    setSelectedDay(date);
+  };
+
+  const shiftWeek = (amount: number) => {
+    const nextWeek = displayedWeek.map((date) => {
+      const shifted = new Date(date);
+      shifted.setDate(shifted.getDate() + amount);
+      return shifted;
+    });
+
+    const selectedIndex = displayedWeek.findIndex((date) => sameDay(date, selectedDay));
+    setDisplayedWeek(nextWeek);
+    setSelectedDay(nextWeek[selectedIndex >= 0 ? selectedIndex : 3]);
+  };
+
+  const goToToday = () => {
+    const today = new Date();
+    setSelectedDay(today);
+    setDisplayedWeek(buildWeekStrip(today));
+  };
 
   async function handleNewAppointment() {
     try {
@@ -113,12 +133,12 @@ export default function AdminAgendaPage() {
     }
   }
 
-  const confirmedCount = appointments.filter((item) => item.status === 'confirmed').length;
+  const confirmedCount = filteredAppointments.filter((item) => item.status === 'confirmed').length;
 
-  const pendingCount = appointments.filter((item) => item.status === 'scheduled').length;
+  const pendingCount = filteredAppointments.filter((item) => item.status === 'scheduled').length;
 
   const revenue = useMemo(() => {
-    return appointments.reduce((total, appointment) => {
+    return filteredAppointments.reduce((total, appointment) => {
       const value =
         typeof appointment.price === 'number'
           ? appointment.price
@@ -131,7 +151,7 @@ export default function AdminAgendaPage() {
 
       return Number.isFinite(value) ? total + value : total;
     }, 0);
-  }, [appointments]);
+  }, [filteredAppointments]);
 
   const formattedRevenue = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -141,20 +161,18 @@ export default function AdminAgendaPage() {
 
   const nextAppointment = useMemo(() => {
     return (
-      appointments
+      filteredAppointments
         .filter((item) => item.status !== 'cancelled')
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0] ?? null
     );
-  }, [appointments]);
+  }, [filteredAppointments]);
   return (
     <AdminShell>
       <main className="min-h-screen bg-[#faf6f3] text-[#6b5850]">
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
-          <div className="absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#f0e0d7]/45 blur-3xl" />
-
-          <div className="absolute -left-40 top-[40%] h-96 w-96 rounded-full bg-[#f4ede6]/60 blur-3xl" />
-
-          <div className="absolute bottom-0 right-[15%] h-80 w-80 rounded-full bg-[#e9d9d0]/25 blur-3xl" />
+          {/*<div className="absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#f0e0d7]/45 blur-3xl" />*/}
+          {/*<div className="absolute -left-40 top-[40%] h-96 w-96 rounded-full bg-[#f4ede6]/60 blur-3xl" />*/}
+          {/*<div className="absolute bottom-0 right-[15%] h-80 w-80 rounded-full bg-[#e9d9d0]/25 blur-3xl" />*/}
         </div>
 
         <div className="relative mx-auto max-w-[1500px] px-5 py-7 lg:px-8 lg:py-9">
@@ -206,6 +224,8 @@ export default function AdminAgendaPage() {
               <div className="flex items-center justify-between gap-4 lg:justify-start">
                 <button
                   type="button"
+                  onClick={() => shiftWeek(-7)}
+                  aria-label="Semana anterior"
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-[#f1e8e2] bg-white text-[#a98d81] transition-all hover:bg-[#faf4f1]"
                 >
                   <ArrowLeft size={15} />
@@ -213,7 +233,10 @@ export default function AdminAgendaPage() {
 
                 <div className="text-center lg:text-left">
                   <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#c2a99d]">
-                    Agosto 2026
+                    {selectedDay.toLocaleDateString('pt-BR', {
+                      month: 'long',
+                      year: 'numeric',
+                    })}
                   </p>
 
                   <h2 className="mt-1 font-display text-[24px] tracking-[-0.025em] text-[#6b5850]">
@@ -223,6 +246,8 @@ export default function AdminAgendaPage() {
 
                 <button
                   type="button"
+                  onClick={() => shiftWeek(7)}
+                  aria-label="Próxima semana"
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-[#f1e8e2] bg-white text-[#a98d81] transition-all hover:bg-[#faf4f1]"
                 >
                   <ArrowRight size={15} />
@@ -231,7 +256,7 @@ export default function AdminAgendaPage() {
 
               <button
                 type="button"
-                onClick={() => setSelectedDay(17)}
+                onClick={goToToday}
                 className="flex h-10 items-center justify-center gap-2 rounded-full border border-[#f1e8e2] bg-[#faf6f3] px-4 text-[10px] font-bold text-[#92766b] transition-all hover:bg-[#f6ede8]"
               >
                 <CalendarDays size={13} />
@@ -240,16 +265,15 @@ export default function AdminAgendaPage() {
             </div>
 
             <div className="mt-5 grid grid-cols-7 gap-1.5 lg:gap-2">
-              {DAYS.map((day) => {
-                const selected = selectedDay === day.date;
-
-                const isToday = day.date === 17;
+              {displayedWeek.map((date) => {
+                const selected = sameDay(selectedDay, date);
+                const isToday = sameDay(new Date(), date);
 
                 return (
                   <button
-                    key={day.date}
+                    key={date.toISOString()}
                     type="button"
-                    onClick={() => setSelectedDay(day.date)}
+                    onClick={() => selectDay(date)}
                     className={[
                       `relative flex min-h-[76px] flex-col items-center justify-center rounded-[20px] transition-all`,
                       selected
@@ -263,10 +287,10 @@ export default function AdminAgendaPage() {
                         selected ? 'text-white/65' : 'text-[#c5b2a9]',
                       ].join(' ')}
                     >
-                      {day.day}
+                      {date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}
                     </span>
 
-                    <span className="mt-1 text-[17px] font-semibold">{day.date}</span>
+                    <span className="mt-1 text-[17px] font-semibold">{date.getDate()}</span>
 
                     {isToday && !selected && (
                       <span className="absolute bottom-2 h-1 w-1 rounded-full bg-[#d4b6a8]" />
@@ -279,7 +303,11 @@ export default function AdminAgendaPage() {
           <section className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-[#c2a99d]">
-                {selectedDay === 17 ? 'Segunda-feira, 17 de agosto' : `${selectedDay} de agosto`}
+                {selectedDay.toLocaleDateString('pt-BR', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                })}
               </p>
 
               <h2 className="mt-2 font-display text-[28px] leading-none tracking-[-0.025em] text-[#6b5850]">
@@ -379,14 +407,17 @@ export default function AdminAgendaPage() {
                 </p>
 
                 <h2 className="mt-2 font-display text-[27px] leading-none tracking-[-0.02em] text-[#6b5850]">
-                  Hoje
+                  {selectedDay.toLocaleDateString('pt-BR', {
+                    day: 'numeric',
+                    month: 'long',
+                  })}
                 </h2>
 
                 <div className="mt-7 space-y-4">
                   <SummaryRow
                     icon={CalendarDays}
                     label="Agendamentos"
-                    value={String(appointments.length)}
+                    value={String(filteredAppointments.length)}
                   />
 
                   <SummaryRow icon={Check} label="Confirmados" value={String(confirmedCount)} />

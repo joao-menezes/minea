@@ -48,8 +48,6 @@ export function AppointmentSummary({
           </h2>
         </div>
       </div>
-
-      {/* Service */}
       <div className="relative overflow-hidden rounded-[2rem] bg-[#403936] p-6 text-white">
         <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/5" />
 

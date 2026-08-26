@@ -152,8 +152,6 @@ export function AppointmentModal({
             className="h-12 w-full rounded-xl border border-[#e5dad5] bg-white px-4 text-sm font-medium text-[#54423c] outline-none transition focus:border-[#a8897e] focus:ring-2 focus:ring-[#d8c0b6]/30"
           />
         </div>
-
-        {/* Time */}
         <div>
           <label
             htmlFor="appointment-time"

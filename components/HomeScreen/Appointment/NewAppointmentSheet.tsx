@@ -6,13 +6,8 @@ import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock3, Sparkles, X } from 
 
 import { PaymentPixModal } from '@/components/HomeScreen/Appointment/payment/PaymentPixModal';
 import { createAppointment } from '@/lib/api/appointments';
-import type {
-  Appointment,
-  CreateAppointmentData,
-  PendingAppointment,
-  PixPaymentStatus,
-  Service,
-} from '@/types';
+import { createPixPayment } from '@/lib/api/payment';
+import type { Appointment, PendingAppointment, PixPayment, Service } from '@/types';
 
 import { WEEKDAYS } from '../../decor';
 
@@ -42,6 +37,8 @@ export function BookingFlow({
   const [error, setError] = useState<string | null>('');
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [pendingAppointment, setPendingAppointment] = useState<PendingAppointment | null>(null);
+  const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
+  const [payment, setPayment] = useState<PixPayment | null>(null);
 
   const selectedService = useMemo(
     () => services.find((service) => service.id === selectedServiceId) ?? null,
@@ -92,7 +89,7 @@ export function BookingFlow({
     setStep((current) => (current - 1) as BookingStep);
   }
 
-  function finish() {
+  async function finish() {
     if (!selectedService || !selectedDate || !selectedTime) {
       return;
     }
@@ -103,38 +100,44 @@ export function BookingFlow({
 
     appointmentDate.setHours(Number(hours), Number(minutes), 0, 0);
 
-    setPendingAppointment({
+    const pending: PendingAppointment = {
+      appointmentId: '',
       userId,
       serviceId: selectedService.id,
       date: appointmentDate.toISOString(),
       time: selectedTime,
       service: selectedService,
-    });
+    };
 
     setError('');
-    setPaymentOpen(true);
-  }
-
-  async function confirmAppointment() {
-    if (!pendingAppointment) return;
 
     try {
       const savedAppointment = await createAppointment({
-        userId: pendingAppointment.userId,
-        serviceId: pendingAppointment.serviceId,
-        date: pendingAppointment.date,
-        time: pendingAppointment.time,
+        userId: pending.userId,
+        serviceId: pending.serviceId,
+        date: pending.date,
+        time: pending.time,
       });
 
-      setPaymentOpen(false);
-      setPendingAppointment(null);
+      const pixPayment = await createPixPayment(savedAppointment.id);
 
-      onComplete(savedAppointment);
+      setCreatedAppointment(savedAppointment);
+      setPendingAppointment({ ...pending, appointmentId: savedAppointment.id });
+      setPayment(pixPayment);
+      setPaymentOpen(true);
     } catch (error) {
-      setError(
-        error instanceof Error ? error.message : 'Não foi possível confirmar o agendamento.',
-      );
+      setError(error instanceof Error ? error.message : 'Não foi possível iniciar o pagamento.');
     }
+  }
+
+  function confirmAppointment() {
+    if (!pendingAppointment || !createdAppointment) return;
+
+    setPaymentOpen(false);
+    setPendingAppointment(null);
+    setPayment(null);
+    setCreatedAppointment(null);
+    onComplete(createdAppointment);
   }
 
   return (
@@ -486,9 +489,10 @@ export function BookingFlow({
           </button>
         </div>
       </div>
-      {pendingAppointment && (
+      {pendingAppointment && payment && (
         <PaymentPixModal
           pendingAppointment={pendingAppointment}
+          payment={payment}
           open={paymentOpen}
           onClose={() => {
             setPaymentOpen(false);

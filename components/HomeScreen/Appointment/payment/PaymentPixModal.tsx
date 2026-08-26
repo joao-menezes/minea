@@ -1,12 +1,16 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 import { Modal } from '@/components/Modal';
+import { getPayment } from '@/lib/api/payment';
 import type { PendingAppointment, PixPayment } from '@/types';
 
 import { PaymentPix } from './PaymentPix';
 
 type PaymentPixModalProps = {
   pendingAppointment: PendingAppointment;
+  payment: PixPayment;
   open: boolean;
   onClose: () => void;
   onPaymentApproved: () => void;
@@ -15,21 +19,43 @@ type PaymentPixModalProps = {
 
 export function PaymentPixModal({
   pendingAppointment,
+  payment: initialPayment,
   open,
   onClose,
   onPaymentApproved,
   onSkipPayment,
 }: PaymentPixModalProps) {
-  //fake payment time calc
-  const fakePayment: PixPayment = {
-    id: 'test-payment',
-    status: 'PENDING',
-    transactionAmount: pendingAppointment.service.price,
-    qrCode: '00020126580014BR.GOV.BCB.PIX0136teste-minea-pix',
-    qrCodeBase64: null,
-    ticketUrl: null,
-    dateOfExpiration: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-  };
+  const [payment, setPayment] = useState(initialPayment);
+
+  useEffect(() => {
+    setPayment(initialPayment);
+  }, [initialPayment]);
+
+  useEffect(() => {
+    if (!open || payment.status !== 'PENDING') {
+      return;
+    }
+
+    const interval = window.setInterval(async () => {
+      const updatedPayment = await getPayment(payment.id);
+      setPayment({
+        ...payment,
+        ...updatedPayment,
+        transactionAmount:
+          updatedPayment.transactionAmount ??
+          (updatedPayment as PixPayment & { amount?: number }).amount ??
+          payment.transactionAmount,
+        qrCode: updatedPayment.qrCode ?? payment.qrCode,
+        qrCodeBase64: updatedPayment.qrCodeBase64 ?? payment.qrCodeBase64,
+        dateOfExpiration:
+          updatedPayment.dateOfExpiration ??
+          (updatedPayment as PixPayment & { expiresAt?: string | null }).expiresAt ??
+          payment.dateOfExpiration,
+      });
+    }, 3000);
+
+    return () => window.clearInterval(interval);
+  }, [open, payment.id, payment.status]);
 
   return (
     <Modal
@@ -41,7 +67,7 @@ export function PaymentPixModal({
       contentClassName="bg-[#fdfaf8]"
     >
       <PaymentPix
-        payment={fakePayment}
+        payment={payment}
         onBack={onClose}
         onConfirmed={onPaymentApproved}
         onSkipPayment={onSkipPayment}

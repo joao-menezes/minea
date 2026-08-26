@@ -436,7 +436,6 @@ export function AppointmentCalendar({
                         className="group w-full rounded-[22px] border border-[#eee4df] bg-white p-4 text-left transition hover:-translate-y-[1px] hover:border-[#dfd0c9] hover:bg-[#fdf9f7]"
                       >
                         <div className="flex items-center gap-3">
-                          {/* Data */}
                           <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-[17px] bg-[#f3ece8]">
                             <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-[#a98d81]">
                               {appointmentDate.toLocaleDateString('pt-BR', {

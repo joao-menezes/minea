@@ -92,6 +92,7 @@ export default function Page() {
       setAppointments(userAppointments);
     } catch (error) {
       console.error('Erro ao criar conta:', error);
+      throw new Error(error instanceof Error ? error.message : 'Não foi possível criar a conta.');
     }
   }
 

@@ -32,8 +32,6 @@ function getPercentage(methods: PaymentMethod[], method: string) {
 export function FinanceInsights({ bestDay, paymentMethods }: Props) {
   return (
     <section className="mt-5 grid gap-5 lg:grid-cols-2">
-      {/* Melhor dia */}
-
       <section className="relative min-h-[180px] overflow-hidden rounded-[30px] bg-[#ead7cd] p-6 shadow-sm">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(255,255,255,.55),transparent_28%)]" />
 
@@ -67,8 +65,6 @@ export function FinanceInsights({ bestDay, paymentMethods }: Props) {
           </div>
         </div>
       </section>
-
-      {/* Pagamentos */}
 
       <section className="relative min-h-[180px] overflow-hidden rounded-[30px] border border-[#f1e8e2] bg-white/85 p-6 shadow-sm">
         <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-[#c2a99d]">

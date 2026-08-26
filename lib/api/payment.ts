@@ -1,11 +1,14 @@
-import { PixPayment } from '@/types';
+import type { PixPayment } from '@/types';
 
-const mockPayment: PixPayment = {
-  id: 'payment-test',
-  status: 'PENDING',
-  transactionAmount: 120,
-  qrCode: '000201010212...',
-  qrCodeBase64: null,
-  ticketUrl: null,
-  dateOfExpiration: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-};
+import { apiFetch } from './client';
+
+export function createPixPayment(appointmentId: string): Promise<PixPayment> {
+  return apiFetch<PixPayment>('/payment/pix', {
+    method: 'POST',
+    body: JSON.stringify({ appointmentId }),
+  });
+}
+
+export function getPayment(id: string): Promise<PixPayment> {
+  return apiFetch<PixPayment>(`/payment/${id}`);
+}

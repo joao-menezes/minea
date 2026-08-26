@@ -58,7 +58,11 @@ export function PaymentPix({ payment, onSkipPayment, onBack, onConfirmed }: Paym
     return <PaymentPixSuccess onConfirmed={onConfirmed} />;
   }
 
-  if (payment.status === 'REJECTED' || payment.status === 'CANCELLED') {
+  if (
+    payment.status === 'REJECTED' ||
+    payment.status === 'CANCELLED' ||
+    payment.status === 'EXPIRED'
+  ) {
     return <PaymentPixError onBack={onBack} />;
   }
 
@@ -85,13 +89,15 @@ export function PaymentPix({ payment, onSkipPayment, onBack, onConfirmed }: Paym
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onSkipPayment}
-          className="mt-4 w-full rounded-2xl border border-dashed border-[#cdbdb5] bg-[#faf7f5] px-5 py-3 text-xs font-semibold text-[#806e66] transition hover:bg-[#f4eeeb]"
-        >
-          Continuar sem pagamento - DEV
-        </button>
+        {onSkipPayment && process.env.NODE_ENV === 'development' && (
+          <button
+            type="button"
+            onClick={onSkipPayment}
+            className="mt-4 w-full rounded-2xl border border-dashed border-[#cdbdb5] bg-[#faf7f5] px-5 py-3 text-xs font-semibold text-[#806e66] transition hover:bg-[#f4eeeb]"
+          >
+            Continuar sem pagamento — desenvolvimento
+          </button>
+        )}
       </div>
     </div>
   );

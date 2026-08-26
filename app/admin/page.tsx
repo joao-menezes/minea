@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   ArrowUpRight,
@@ -13,20 +13,25 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
+import { router } from 'next/client';
+import { useRouter } from 'next/navigation';
 
 import { AdminShell } from '@/components/admin/AdminShell';
-import { getAllAppointment, getAppointments } from '@/lib/api/appointments';
+import { getAllAppointment } from '@/lib/api/appointments';
+import { getClients } from '@/lib/api/clients';
 import { getServices } from '@/lib/api/services';
 import { formatCurrency } from '@/lib/financial';
 import type { Appointment, AppointmentStatus, Service } from '@/types';
 
 export default function AdminPage() {
+  const router = useRouter();
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
   const [servicesError, setServicesError] = useState<string | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loadingAppointments, setLoadingAppointments] = useState(true);
   const [appointmentsError, setAppointmentsError] = useState<string | null>(null);
+  const [activeClients, setActiveClients] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -48,6 +53,13 @@ export default function AdminPage() {
 
         setServices(servicesData);
         setAppointments(appointmentsData);
+
+        try {
+          const clientsData = await getClients();
+          setActiveClients(clientsData.filter((client) => client.isActive).length);
+        } catch (error) {
+          console.error('Erro ao carregar clientes ativos:', error);
+        }
       } catch (error) {
         console.error('Erro ao carregar dashboard:', error);
 
@@ -69,6 +81,48 @@ export default function AdminPage() {
       mounted = false;
     };
   }, []);
+
+  const appointmentsToday = useMemo(() => {
+    const today = new Date();
+    const todayKey = [
+      today.getFullYear(),
+      String(today.getMonth() + 1).padStart(2, '0'),
+      String(today.getDate()).padStart(2, '0'),
+    ].join('-');
+
+    return appointments
+      .filter((appointment) => {
+        const rawDate = String(appointment.date ?? '');
+        const dateOnly = rawDate.match(/^(\d{4}-\d{2}-\d{2})/)?.[1];
+
+        if (dateOnly === todayKey) {
+          return true;
+        }
+
+        const date = new Date(appointment.date);
+
+        if (Number.isNaN(date.getTime())) {
+          return false;
+        }
+
+        const matchesDate = (year: number, month: number, day: number) =>
+          year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
+
+        return (
+          matchesDate(date.getFullYear(), date.getMonth(), date.getDate()) ||
+          matchesDate(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+        );
+      })
+      .sort((first, second) => first.time.localeCompare(second.time));
+  }, [appointments]);
+
+  const confirmedToday = appointmentsToday.filter((item) => item.status === 'confirmed').length;
+  const revenueToday = appointmentsToday
+    .filter((item) => item.status !== 'cancelled')
+    .reduce((total, item) => total + Number(item.price || 0), 0);
+  const clientsToday = new Set(
+    appointmentsToday.map((item) => item.userId ?? item.clientName ?? item.id),
+  ).size;
 
   function getAppointmentStatusLabel(status: AppointmentStatus): string {
     switch (status) {
@@ -144,34 +198,34 @@ export default function AdminPage() {
           <section className="mt-8 grid grid-cols-2 gap-3 xl:grid-cols-4">
             <StatCard
               label="Agendamentos hoje"
-              value="8"
-              description="2 a mais que ontem"
+              value={String(appointmentsToday.length)}
+              description="Agendamentos registrados para hoje"
               icon={CalendarCheck}
-              trend="+12,5%"
+              trend=""
             />
 
             <StatCard
               label="Confirmados"
-              value="6"
-              description="75% dos horários"
+              value={String(confirmedToday)}
+              description="Atendimentos confirmados hoje"
               icon={Clock3}
-              trend="+8,2%"
+              trend=""
             />
 
             <StatCard
               label="Faturamento hoje"
-              value="R$ 1.240"
-              description="Estimativa do dia"
+              value={formatCurrency(revenueToday)}
+              description="Valor previsto para hoje"
               icon={DollarSign}
-              trend="+14,6%"
+              trend=""
             />
 
             <StatCard
               label="Clientes ativos"
-              value="248"
-              description="Neste mês"
+              value={String(activeClients)}
+              description="Clientes ativos"
               icon={Users}
-              trend="+5,4%"
+              trend=""
             />
           </section>
 
@@ -190,6 +244,7 @@ export default function AdminPage() {
 
                 <button
                   type="button"
+                  onClick={() => router.push('/admin/agenda')}
                   className="group flex items-center gap-1.5 text-[10px] font-bold text-[#a98d81] transition-colors hover:text-[#80655b]"
                 >
                   Ver agenda
@@ -223,7 +278,7 @@ export default function AdminPage() {
                   </div>
                 )}
 
-                {!loadingAppointments && !appointmentsError && appointments.length === 0 && (
+                {!loadingAppointments && !appointmentsError && appointmentsToday.length === 0 && (
                   <div className="rounded-[18px] bg-[#f8f1ed] px-4 py-5 text-center">
                     <p className="text-[10px] font-medium text-[#a98d81]">
                       Nenhum agendamento para hoje.
@@ -233,7 +288,7 @@ export default function AdminPage() {
 
                 {!loadingAppointments &&
                   !appointmentsError &&
-                  appointments.map((appointment) => (
+                  appointmentsToday.map((appointment) => (
                     <div
                       key={appointment.id}
                       className="group flex items-center gap-4 py-4 first:pt-0 last:pb-0"
@@ -323,8 +378,6 @@ export default function AdminPage() {
                   services.map((service) => <ServiceRow key={service.id} service={service} />)}
               </div>
 
-              {/* INSIGHT */}
-
               <div className="relative mt-8 overflow-hidden rounded-[21px] bg-[#f6ede8] p-4">
                 <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/50" />
 
@@ -347,11 +400,7 @@ export default function AdminPage() {
             </div>
           </section>
 
-          {/* BOTTOM */}
-
           <section className="mt-5 grid gap-5 lg:grid-cols-2">
-            {/* REVENUE */}
-
             <div className="group relative min-h-[180px] overflow-hidden rounded-[30px] border border-white/30 bg-[#e8d4c9] p-6 shadow-[0_22px_50px_-34px_rgba(64,46,40,.35)]">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(255,255,255,.55),transparent_28%),linear-gradient(135deg,#f7eee9_0%,#ead7cd_52%,#dfc5b9_100%)]" />
 
@@ -373,20 +422,20 @@ export default function AdminPage() {
                 <div className="mt-7 flex items-end justify-between gap-5">
                   <div>
                     <p className="font-display text-[35px] tracking-[-0.03em] text-[#6b5850]">
-                      R$ 18.450
+                      {formatCurrency(revenueToday)}
                     </p>
 
-                    <p className="mt-1 text-[10px] text-[#a48a7f]">faturamento em agosto</p>
+                    <p className="mt-1 text-[10px] text-[#a48a7f]">
+                      faturamento previsto para hoje
+                    </p>
                   </div>
 
                   <div className="rounded-full bg-white/40 px-3 py-1.5 text-[9px] font-bold text-[#8f7165] backdrop-blur">
-                    +12,4%
+                    {appointmentsToday.length} horários
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* CLIENTS */}
 
             <div className="relative min-h-[180px] overflow-hidden rounded-[30px] border border-[#f1e8e2] bg-white/85 p-6 shadow-[0_22px_50px_-34px_rgba(64,46,40,.28)] backdrop-blur">
               <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-[#f4e9e3]/60 blur-2xl" />
@@ -397,22 +446,33 @@ export default function AdminPage() {
                 </p>
 
                 <div className="mt-7 flex items-center">
-                  {['AS', 'MC', 'CS', 'JA'].map((initials, index) => (
-                    <div
-                      key={initials}
-                      className={[
-                        'flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-white bg-[#c9afa5] text-[9px] font-bold text-white shadow-sm',
-                        index > 0 ? '-ml-3' : '',
-                      ].join(' ')}
-                    >
-                      {initials}
-                    </div>
-                  ))}
+                  {appointmentsToday.slice(0, 4).map((appointment, index) => {
+                    const initials = (appointment.clientName ?? 'CL')
+                      .split(' ')
+                      .map((part) => part[0])
+                      .join('')
+                      .slice(0, 2)
+                      .toUpperCase();
+
+                    return (
+                      <div
+                        key={appointment.id}
+                        className={[
+                          'flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-white bg-[#c9afa5] text-[9px] font-bold text-white shadow-sm',
+                          index > 0 ? '-ml-3' : '',
+                        ].join(' ')}
+                      >
+                        {initials}
+                      </div>
+                    );
+                  })}
 
                   <div className="ml-5">
-                    <p className="text-xs font-bold text-[#6b5850]">4 clientes hoje</p>
+                    <p className="text-xs font-bold text-[#6b5850]">{clientsToday} clientes hoje</p>
 
-                    <p className="mt-1 text-[9px] text-[#b49b90]">Próximo atendimento às 09:00</p>
+                    <p className="mt-1 text-[9px] text-[#b49b90]">
+                      {appointmentsToday[0]?.time ?? 'Nenhum horário definido'}
+                    </p>
                   </div>
                 </div>
 
@@ -420,7 +480,7 @@ export default function AdminPage() {
                   <CalendarDays size={12} />
 
                   <span className="text-[9px] font-semibold">
-                    Agenda com 4 horários confirmados
+                    {confirmedToday} horários confirmados
                   </span>
                 </div>
               </div>
@@ -493,9 +553,11 @@ function StatCard({ label, value, description, trend, icon: Icon }: StatCardProp
           <Icon size={16} strokeWidth={1.7} />
         </div>
 
-        <span className="rounded-full border border-[#dce9df] bg-[#edf4ee] px-2.5 py-1 text-[8px] font-bold text-[#66806d]">
-          {trend}
-        </span>
+        {trend && (
+          <span className="rounded-full border border-[#dce9df] bg-[#edf4ee] px-2.5 py-1 text-[8px] font-bold text-[#66806d]">
+            {trend}
+          </span>
+        )}
       </div>
 
       <p className="mt-5 text-[9px] font-bold uppercase tracking-[0.16em] text-[#c2a99d]">

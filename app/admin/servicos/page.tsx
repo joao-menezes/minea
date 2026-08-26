@@ -140,14 +140,6 @@ export default function AdminServicesPage() {
   return (
     <AdminShell>
       <main className="min-h-screen bg-[#faf6f3] text-[#66534c]">
-        <div className="pointer-events-none fixed inset-0 overflow-hidden">
-          <div className="absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-[#ead7cd]/45 blur-3xl" />
-
-          <div className="absolute -left-48 top-[35%] h-[480px] w-[480px] rounded-full bg-[#f2e8e1]/70 blur-3xl" />
-
-          <div className="absolute bottom-[-180px] right-[18%] h-[430px] w-[430px] rounded-full bg-[#e6d2c8]/25 blur-3xl" />
-        </div>
-
         <div className="relative mx-auto max-w-[1500px] px-5 py-7 lg:px-8 lg:py-10">
           <section className="flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -364,8 +356,18 @@ export default function AdminServicesPage() {
         <ServiceModal
           service={selectedService}
           onClose={() => setSelectedService(null)}
-          onEdit={(service) => {
-            console.log('Editar serviço:', service);
+          onSave={async (updatedService) => {
+            const savedService = await updateService(updatedService.id, {
+              name: updatedService.name,
+              price: updatedService.price,
+              duration: updatedService.duration,
+            });
+
+            setServices((current) =>
+              current.map((service) => (service.id === savedService.id ? savedService : service)),
+            );
+            setSelectedService(savedService);
+            toast.success('Serviço atualizado com sucesso!');
           }}
         />
 

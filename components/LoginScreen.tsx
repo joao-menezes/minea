@@ -269,7 +269,7 @@ export default function LoginScreen({ onLogin, error, goSignup }: LoginScreenPro
                 </div>
               </div>
 
-              {erro && <ErrorMessage error={error} />}
+              {erro && <ErrorMessage error={erro} />}
 
               <button
                 type="submit"

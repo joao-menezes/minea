@@ -14,6 +14,8 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
+import { getCurrentUser } from '@/lib/api/auth';
+
 import { AdminHeader } from './AdminHeader';
 import { AdminSidebar } from './AdminSidebar';
 
@@ -59,15 +61,20 @@ export function AdminShell({ children }: AdminShellProps) {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem('aura_admin_authenticated') === 'true';
+    async function checkAccess() {
+      const currentUser = await getCurrentUser();
+      const isAuthenticated = Boolean(currentUser?.isAdmin);
 
-    if (!isAuthenticated && pathname !== '/admin/login') {
-      router.replace('/admin/login');
-      return;
+      if (!isAuthenticated && pathname !== '/admin/login') {
+        router.replace('/admin/login');
+        return;
+      }
+
+      setAuthenticated(isAuthenticated);
+      setChecking(false);
     }
 
-    setAuthenticated(isAuthenticated);
-    setChecking(false);
+    void checkAccess();
   }, [pathname, router]);
 
   // Fecha o drawer quando muda de página

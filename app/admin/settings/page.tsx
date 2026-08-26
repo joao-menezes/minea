@@ -25,6 +25,7 @@ import type { LucideIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { AdminShell } from '@/components/admin/AdminShell';
+import { signOut } from '@/lib/api/auth';
 
 type ToggleProps = {
   checked: boolean;
@@ -85,9 +86,6 @@ const SCHEDULE = [
 
 export default function AdminSettingsPage() {
   const router = useRouter();
-  window.onload = () => {
-    router.push('/admin');
-  };
   const [activeSection, setActiveSection] = useState<SettingsSectionId>('clinica');
 
   const [notifications, setNotifications] = useState(true);
@@ -147,6 +145,23 @@ export default function AdminSettingsPage() {
     });
   }
 
+  useEffect(() => {
+    function scrollToHashSection() {
+      const requestedSection = window.location.hash.slice(1) as SettingsSectionId;
+
+      if (!requestedSection || !SETTINGS_NAVIGATION.some((item) => item.id === requestedSection)) {
+        return;
+      }
+
+      window.setTimeout(() => scrollToSection(requestedSection), 0);
+    }
+
+    scrollToHashSection();
+    window.addEventListener('hashchange', scrollToHashSection);
+
+    return () => window.removeEventListener('hashchange', scrollToHashSection);
+  }, []);
+
   function handleSave() {
     setSaved(true);
 
@@ -155,9 +170,9 @@ export default function AdminSettingsPage() {
     }, 2200);
   }
 
-  function handleLogout() {
-    localStorage.removeItem('aura_admin_authenticated');
-    window.location.href = '/admin/login';
+  async function handleLogout() {
+    await signOut();
+    router.push('/admin/login');
   }
 
   return (
@@ -310,7 +325,7 @@ export default function AdminSettingsPage() {
                 </SettingsSection>
               </section>
 
-              <section data-settings-section="conta" className="scroll-mt-24">
+              <section id="conta" data-settings-section="conta" className="scroll-mt-24">
                 <SettingsSection
                   eyebrow="Conta"
                   title="Minha conta"

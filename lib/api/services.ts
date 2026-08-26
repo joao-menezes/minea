@@ -7,7 +7,7 @@ export async function getServices(): Promise<Service[]> {
 }
 
 export async function getActiveServices(): Promise<Service[]> {
-  return apiFetch<Service[]>('/services/active');
+  return apiFetch<Service[]>('/services?active=true');
 }
 
 export async function getService(id: string): Promise<Service> {

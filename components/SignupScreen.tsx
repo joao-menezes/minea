@@ -29,7 +29,7 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
   const [birthDate, setBirthDate] = useState('');
   const [error, setError] = useState('');
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (!nome.trim()) {
@@ -50,15 +50,21 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
 
     setError('');
 
-    onCreated(
-      {
-        name: nome,
-        cpf,
-        birthDate,
+    try {
+      await onCreated(
+        {
+          name: nome,
+          cpf,
+          birthDate,
+          password,
+        },
         password,
-      },
-      password,
-    );
+      );
+    } catch (signupError) {
+      setError(
+        signupError instanceof Error ? signupError.message : 'Não foi possível criar sua conta.',
+      );
+    }
   }
 
   return (

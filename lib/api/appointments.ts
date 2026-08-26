@@ -7,7 +7,7 @@ export async function getAppointments(userId: string): Promise<Appointment[]> {
 }
 
 export async function getAllAppointment(): Promise<Appointment[]> {
-  return apiFetch<Appointment[]>('/appointments/admin');
+  return apiFetch<Appointment[]>('/appointments');
 }
 
 export async function createAppointment(data: CreateAppointmentData): Promise<Appointment> {

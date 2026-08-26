@@ -161,12 +161,8 @@ export function NewServiceModal({ open, onClose, onCreated }: NewServiceModalPro
         </button>
       </div>
 
-      {/* Form */}
-
       <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
         <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
-          {/* Name */}
-
           <div>
             <label
               htmlFor="service-name"
@@ -188,8 +184,6 @@ export function NewServiceModal({ open, onClose, onCreated }: NewServiceModalPro
               className="h-11 w-full rounded-[12px] border border-[#e5dad5] bg-white px-3.5 text-[12px] font-medium text-[#54423c] outline-none transition placeholder:text-[#c4afa6] focus:border-[#b99a8e] focus:ring-2 focus:ring-[#d8c0b6]/30 disabled:cursor-not-allowed disabled:bg-[#f5f1ef]"
             />
           </div>
-
-          {/* Description */}
 
           <div>
             <label
@@ -288,8 +282,6 @@ export function NewServiceModal({ open, onClose, onCreated }: NewServiceModalPro
               </p>
             </div>
           </div>
-
-          {/* Error */}
 
           {error && (
             <div className="rounded-[12px] border border-[#ead3cf] bg-[#fff5f3] px-3.5 py-2.5">

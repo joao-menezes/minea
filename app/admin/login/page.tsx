@@ -6,29 +6,42 @@ import { ArrowLeft, Eye, EyeOff, LockKeyhole, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-const ADMIN_EMAIL = 'admin@mineabeauty.com';
-const ADMIN_PASSWORD = '123456';
+import { signIn } from '@/lib/api/auth';
+import { maskCPF } from '@/utils/utils';
 
 export default function AdminLoginPage() {
   const router = useRouter();
 
-  const [email, setEmail] = useState('');
+  const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
 
-    if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
-      setError('E-mail ou senha incorretos.');
+    if (cpf.replace(/\D/g, '').length !== 11) {
+      setError('Informe um CPF válido.');
       return;
     }
 
-    localStorage.setItem('aura_admin_authenticated', 'true');
+    try {
+      setLoading(true);
+      const user = await signIn({ cpf, password });
 
-    router.push('/admin');
+      if (!user.isAdmin) {
+        setError('Esta conta não possui acesso administrativo.');
+        return;
+      }
+
+      router.push('/admin');
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : 'Não foi possível entrar.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -99,18 +112,18 @@ export default function AdminLoginPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label
-                  htmlFor="email"
+                  htmlFor="cpf"
                   className="mb-2 block text-[10px] font-bold uppercase tracking-[0.12em] text-[#806f68]"
                 >
-                  E-mail
+                  CPF
                 </label>
 
                 <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="admin@aurabeauty.com"
+                  id="cpf"
+                  value={cpf}
+                  onChange={(event) => setCpf(maskCPF(event.target.value))}
+                  placeholder="000.000.000-00"
+                  inputMode="numeric"
                   className="h-12 w-full rounded-xl border border-[#e4dad5] bg-white px-4 text-xs text-[#493a35] outline-none transition placeholder:text-[#b9a9a2] focus:border-[#a88b80] focus:ring-4 focus:ring-[#a88b80]/10"
                   required
                 />
@@ -156,23 +169,9 @@ export default function AdminLoginPage() {
                 type="submit"
                 className="flex h-12 w-full items-center justify-center rounded-xl bg-[#493a35] text-xs font-bold text-white shadow-[0_14px_30px_-18px_rgba(54,39,34,.8)] transition hover:-translate-y-0.5 hover:bg-[#3d302c]"
               >
-                Entrar no painel
+                {loading ? 'Entrando...' : 'Entrar no painel'}
               </button>
             </form>
-
-            <div className="mt-8 rounded-2xl border border-dashed border-[#d9ccc6] bg-[#faf7f5] p-4">
-              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-[#a38b82]">
-                Acesso de teste
-              </p>
-
-              <p className="mt-2 text-[10px] text-[#806f68]">
-                <strong>E-mail:</strong> {ADMIN_EMAIL}
-              </p>
-
-              <p className="mt-1 text-[10px] text-[#806f68]">
-                <strong>Senha:</strong> {ADMIN_PASSWORD}
-              </p>
-            </div>
           </div>
         </section>
       </div>

@@ -118,7 +118,6 @@ export function AdminNotifications() {
 
       {open && (
         <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-[360px] overflow-hidden rounded-[22px] border border-[#e9e1dc] bg-white/95 shadow-[0_24px_60px_-25px_rgba(73,58,53,.25)] backdrop-blur-xl">
-          {/* Header */}
           <div className="flex items-center justify-between border-b border-[#f0e8e4] px-4 py-4">
             <div>
               <div className="flex items-center gap-2">
@@ -146,7 +145,6 @@ export function AdminNotifications() {
             </button>
           </div>
 
-          {/* Actions */}
           {unreadCount > 0 && (
             <div className="flex justify-end border-b border-[#f5eeea] px-4 py-2">
               <button

@@ -68,6 +68,9 @@ export type User = {
   id: string;
   name: string;
   cpf: string;
+  birthDate?: string | null;
+  isActive?: boolean;
+  isAdmin?: boolean;
 };
 
 export type SignInData = {
@@ -218,11 +221,13 @@ export type PixPayment = {
   qrCodeBase64: string | null;
   ticketUrl: string | null;
   dateOfExpiration: string | null;
+  statusDetail?: string | null;
 };
 
-export type PixPaymentStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+export type PixPaymentStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'EXPIRED';
 
 export type PendingAppointment = {
+  appointmentId: string;
   userId: string;
   serviceId: string;
   date: string;
