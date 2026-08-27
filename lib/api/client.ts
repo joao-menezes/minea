@@ -5,6 +5,16 @@ type ApiError = {
   message?: string;
 };
 
+export class ApiRequestError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiRequestError';
+    this.status = status;
+  }
+}
+
 export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
 
@@ -27,7 +37,7 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
       localStorage.removeItem(SESSION_KEY);
     }
 
-    throw new Error(error?.message ?? 'Erro ao realizar requisição.');
+    throw new ApiRequestError(error?.message ?? 'Erro ao realizar requisição.', response.status);
   }
 
   return data as T;

@@ -515,6 +515,16 @@ export default function AdminAgendaPage() {
             );
             setSelectedAppointment(updated);
           }}
+          onCancel={async (appointment) => {
+            const updated = await updateAppointment(appointment.id, {
+              status: 'cancelled',
+            });
+
+            setAppointments((current) =>
+              current.map((item) => (item.id === updated.id ? updated : item)),
+            );
+            setSelectedAppointment(updated);
+          }}
         />
 
         {showNewAppointment && (

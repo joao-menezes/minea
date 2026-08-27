@@ -8,10 +8,11 @@ import { maskCPF, maskDate } from '@/utils/utils';
 
 type Props = {
   client: Client;
+  currentUserId?: string | null;
   onClientUpdated: (client: Client) => void;
 };
 
-export function ClientDetails({ client, onClientUpdated }: Props) {
+export function ClientDetails({ client, currentUserId, onClientUpdated }: Props) {
   const [isActive, setIsActive] = useState(client.isActive);
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
@@ -109,7 +110,7 @@ export function ClientDetails({ client, onClientUpdated }: Props) {
           role="switch"
           aria-checked={isActive}
           aria-label={isActive ? 'Desativar cliente' : 'Ativar cliente'}
-          disabled={updatingStatus}
+          disabled={updatingStatus || client.id === currentUserId}
           onClick={handleToggleStatus}
           className={[
             'relative h-7 w-12 rounded-full p-1',

@@ -1,6 +1,6 @@
 import { ArrowUpRight, UserPlus } from 'lucide-react';
 
-export function ClientHeader() {
+export function ClientHeader({ onNewClient }: { onNewClient: () => void }) {
   return (
     <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div>
@@ -27,6 +27,7 @@ export function ClientHeader() {
 
       <button
         type="button"
+        onClick={onNewClient}
         className="group flex h-12 items-center justify-between gap-4 rounded-[17px] bg-[#8a6f63] px-4 text-[12px] font-bold text-white shadow-[0_18px_35px_-18px_rgba(138,111,99,.55)] transition hover:-translate-y-0.5 hover:bg-[#7c6156]"
       >
         <span className="flex items-center gap-3">

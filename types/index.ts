@@ -73,6 +73,14 @@ export type User = {
   isAdmin?: boolean;
 };
 
+export type CreateClientData = {
+  name: string;
+  cpf: string;
+  birthDate?: string;
+  password: string;
+  isAdmin?: boolean;
+};
+
 export type SignInData = {
   cpf: string;
   password: string;

@@ -10,11 +10,12 @@ import { NextAppointment } from './NextAppointment';
 
 type Props = {
   client: Client;
+  currentUserId?: string | null;
   onClose: () => void;
   onClientUpdated: (client: Client) => void;
 };
 
-export function ClientModal({ client, onClose, onClientUpdated }: Props) {
+export function ClientModal({ client, currentUserId, onClose, onClientUpdated }: Props) {
   return (
     <BaseModal
       open
@@ -26,7 +27,11 @@ export function ClientModal({ client, onClose, onClientUpdated }: Props) {
       <ClientModalHeader client={client} onClose={onClose} />
 
       <div className="min-h-0 overflow-y-auto p-5 sm:p-6">
-        <ClientDetails client={client} onClientUpdated={onClientUpdated} />
+        <ClientDetails
+          client={client}
+          currentUserId={currentUserId}
+          onClientUpdated={onClientUpdated}
+        />
 
         {client.lastAppointmentAt && <NextAppointment appointment={client.lastAppointmentAt} />}
 

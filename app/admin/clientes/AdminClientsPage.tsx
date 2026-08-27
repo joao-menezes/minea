@@ -7,9 +7,11 @@ import { ClientModal } from '@/app/admin/clientes/ClientModal';
 import { ClientStats } from '@/app/admin/clientes/ClientStats';
 import { ClientTable } from '@/app/admin/clientes/ClientTable';
 import { ClientToolbar } from '@/app/admin/clientes/ClientToolbar';
+import { NewClientModal } from '@/app/admin/clientes/NewClientModal';
 import { EmptyRow } from '@/components/EmptyRow';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { getAllAppointment } from '@/lib/api/appointments';
+import { getCurrentUser } from '@/lib/api/auth';
 import type { Client, ClientFilter } from '@/types';
 
 type AdminClientsPageProps = {
@@ -31,6 +33,12 @@ export default function AdminClientsPage({ clients: initialClients }: AdminClien
   const [status, setStatus] = useState<ClientFilter>('Todos');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [monthlyAppointments, setMonthlyAppointments] = useState(0);
+  const [newClientOpen, setNewClientOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    void getCurrentUser().then((user) => setCurrentUserId(user?.id ?? null));
+  }, []);
 
   const filteredClients = useMemo(() => {
     const query = normalize(search);
@@ -112,7 +120,7 @@ export default function AdminClientsPage({ clients: initialClients }: AdminClien
         </div>
 
         <div className="relative mx-auto max-w-[1500px] px-5 py-7 lg:px-8 lg:py-9">
-          <ClientHeader />
+          <ClientHeader onNewClient={() => setNewClientOpen(true)} />
 
           <div className="mt-8">
             <ClientStats
@@ -147,6 +155,7 @@ export default function AdminClientsPage({ clients: initialClients }: AdminClien
           <ClientModal
             client={selectedClient}
             onClose={() => setSelectedClient(null)}
+            currentUserId={currentUserId}
             onClientUpdated={(updatedClient) => {
               setClients((current) =>
                 current.map((client) => (client.id === updatedClient.id ? updatedClient : client)),
@@ -155,6 +164,15 @@ export default function AdminClientsPage({ clients: initialClients }: AdminClien
             }}
           />
         )}
+
+        <NewClientModal
+          open={newClientOpen}
+          onClose={() => setNewClientOpen(false)}
+          onCreated={(newClient) => {
+            setClients((current) => [newClient, ...current]);
+            setNewClientOpen(false);
+          }}
+        />
       </main>
     </AdminShell>
   );

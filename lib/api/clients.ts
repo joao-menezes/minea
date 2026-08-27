@@ -1,4 +1,4 @@
-import { Client, User } from '@/types';
+import { Client, CreateClientData, User } from '@/types';
 
 import { apiFetch } from './client';
 
@@ -8,6 +8,18 @@ export async function getClients(): Promise<Client[]> {
 
 export async function getClient(id: string): Promise<Client> {
   return apiFetch<Client>(`/users/${id}`);
+}
+
+export async function createClient(data: CreateClientData): Promise<Client> {
+  const response = await apiFetch<Client | { user: Client }>('/auth/signup', {
+    method: 'POST',
+    body: JSON.stringify({
+      ...data,
+      cpf: data.cpf.replace(/\D/g, ''),
+    }),
+  });
+
+  return 'user' in response ? response.user : response;
 }
 
 export async function updateClient(id: string, data: Partial<Omit<Client, 'id'>>): Promise<Client> {

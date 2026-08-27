@@ -1,23 +1,41 @@
 import { SignInData, SignUpData, User } from '@/types';
 
-import { apiFetch } from './client';
+import { ApiRequestError, apiFetch } from './client';
 import { TOKEN_KEY } from './client';
 
 const SESSION_KEY = 'minea_user';
 
 export async function signIn({ cpf, password }: SignInData): Promise<User> {
-  const data = await apiFetch<{
+  let data: {
     token?: string;
     user?: {
       token?: string;
     };
-  }>('/auth/signin', {
-    method: 'POST',
-    body: JSON.stringify({
-      cpf: cpf.replace(/\D/g, ''),
-      password,
-    }),
-  });
+  };
+
+  try {
+    data = await apiFetch<{
+      token?: string;
+      user?: {
+        token?: string;
+      };
+    }>('/auth/signin', {
+      method: 'POST',
+      body: JSON.stringify({
+        cpf: cpf.replace(/\D/g, ''),
+        password,
+      }),
+    });
+  } catch (error) {
+    if (
+      error instanceof ApiRequestError &&
+      (error.status === 403 || /desativ|inativ|disabled|inactive/i.test(error.message))
+    ) {
+      throw new Error('Sua conta está desativada. Entre em contato com a clínica.');
+    }
+
+    throw error;
+  }
 
   const token = data.token ?? data.user?.token;
 
@@ -28,6 +46,13 @@ export async function signIn({ cpf, password }: SignInData): Promise<User> {
   localStorage.setItem(TOKEN_KEY, token);
 
   const user = await apiFetch<{ user: User }>(`/auth/me/${getTokenSubject(token)}`);
+
+  if (user.user.isActive === false) {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(SESSION_KEY);
+    throw new Error('Sua conta está desativada. Entre em contato com a clínica.');
+  }
+
   localStorage.setItem(SESSION_KEY, JSON.stringify(user.user));
   return user.user;
 }
