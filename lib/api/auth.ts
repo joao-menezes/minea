@@ -14,7 +14,7 @@ export async function signIn({ cpf, password }: SignInData): Promise<User> {
   }>('/auth/signin', {
     method: 'POST',
     body: JSON.stringify({
-      cpf,
+      cpf: cpf.replace(/\D/g, ''),
       password,
     }),
   });
@@ -36,7 +36,7 @@ export async function signUp({ cpf, name, birthDate, password }: SignUpData): Pr
   await apiFetch<{ user: User }>('/auth/signup', {
     method: 'POST',
     body: JSON.stringify({
-      cpf,
+      cpf: cpf.replace(/\D/g, ''),
       name,
       birthDate,
       password,

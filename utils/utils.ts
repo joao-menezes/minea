@@ -1,3 +1,5 @@
+import type { AppointmentStatus } from '@/types';
+
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -21,6 +23,18 @@ export function sameDay(a: Date, b: Date): boolean {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate()
   );
+}
+
+export function getAppointmentStatusLabel(status: AppointmentStatus): string {
+  const labels: Record<AppointmentStatus, string> = {
+    scheduled: 'Agendado',
+    confirmed: 'Confirmado',
+    completed: 'Concluído',
+    cancelled: 'Cancelado',
+    no_show: 'Não compareceu',
+  };
+
+  return labels[status];
 }
 
 export function formatDate(value: Date | string): string {

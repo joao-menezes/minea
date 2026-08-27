@@ -4,7 +4,7 @@ type FinancialStatProps = {
   label: string;
   value: string;
   description: string;
-  trend: string;
+  trend?: string;
   icon: LucideIcon;
   positive?: boolean;
 };
@@ -24,16 +24,18 @@ export function FinancialStat({
           <Icon size={16} strokeWidth={1.7} />
         </div>
 
-        <span
-          className={[
-            'rounded-full border px-2.5 py-1 text-[8px] font-bold',
-            positive
-              ? 'border-[#dce9df] bg-[#edf4ee] text-[#66806d]'
-              : 'border-[#eadbd4] bg-[#f8eeea] text-[#a68173]',
-          ].join(' ')}
-        >
-          {trend}
-        </span>
+        {trend && (
+          <span
+            className={[
+              'rounded-full border px-2.5 py-1 text-[8px] font-bold',
+              positive
+                ? 'border-[#dce9df] bg-[#edf4ee] text-[#66806d]'
+                : 'border-[#eadbd4] bg-[#f8eeea] text-[#a68173]',
+            ].join(' ')}
+          >
+            {trend}
+          </span>
+        )}
       </div>
 
       <p className="mt-5 text-[9px] font-bold uppercase tracking-[0.16em] text-[#c2a99d]">

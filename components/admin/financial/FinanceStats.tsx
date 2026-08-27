@@ -15,7 +15,6 @@ export function FinanceStats({ report }: Props) {
         label="Faturamento"
         value={formatCurrency(report.revenue)}
         description="Total recebido no período"
-        trend="+12,4%"
         icon={TrendingUp}
       />
 
@@ -23,7 +22,6 @@ export function FinanceStats({ report }: Props) {
         label="Despesas"
         value={formatCurrency(report.expenses)}
         description="Custos operacionais"
-        trend="-6,2%"
         icon={TrendingDown}
         positive={false}
       />
@@ -32,7 +30,6 @@ export function FinanceStats({ report }: Props) {
         label="Lucro estimado"
         value={formatCurrency(report.profit)}
         description="Receita menos despesas"
-        trend="+16,8%"
         icon={Wallet}
       />
 
@@ -40,7 +37,6 @@ export function FinanceStats({ report }: Props) {
         label="Ticket médio"
         value={formatCurrency(report.averageTicket)}
         description={`${report.appointments} atendimentos`}
-        trend="+4,6%"
         icon={Receipt}
       />
     </section>

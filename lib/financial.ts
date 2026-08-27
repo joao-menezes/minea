@@ -1,27 +1,80 @@
 import { FinancialReportData } from '@/lib/exportFinancialReport';
 import type { FinancialReport } from '@/types';
 
-import { apiFetch } from './api/client';
+export { getFinancialReport } from './api/financial';
+export type { FinancialReport as FinancialReportResponse } from '@/types';
 
-export type FinancialReportResponse = FinancialReport;
+export type FinancialPeriodFilter = 'Hoje' | '7 dias' | 'Este mês' | 'Últimos 6 meses';
 
-export async function getFinancialReport(
-  startDate?: Date,
-  endDate?: Date,
-): Promise<FinancialReportResponse> {
-  const params = new URLSearchParams();
+export function getMonthValue(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
 
-  if (startDate) {
-    params.set('startDate', startDate.toISOString());
+export function getFinancialPeriodDates(
+  period: FinancialPeriodFilter,
+  monthValue: string,
+  now = new Date(),
+): { startDate: Date; endDate: Date } {
+  const [year, month] = monthValue.split('-').map(Number);
+  const anchor = Number.isFinite(year) && Number.isFinite(month) ? new Date(year, month - 1, 1) : now;
+  const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const selectedMonth = new Date(anchor.getFullYear(), anchor.getMonth(), 1).getTime();
+  const rangeEnd =
+    selectedMonth === currentMonth
+      ? now
+      : new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0);
+
+  if (period === 'Hoje') {
+    return {
+      startDate: new Date(
+        rangeEnd.getFullYear(),
+        rangeEnd.getMonth(),
+        rangeEnd.getDate(),
+      ),
+      endDate: new Date(
+        rangeEnd.getFullYear(),
+        rangeEnd.getMonth(),
+        rangeEnd.getDate(),
+        23,
+        59,
+        59,
+        999,
+      ),
+    };
   }
 
-  if (endDate) {
-    params.set('endDate', endDate.toISOString());
+  if (period === '7 dias') {
+    const startDate = new Date(
+      rangeEnd.getFullYear(),
+      rangeEnd.getMonth(),
+      rangeEnd.getDate() - 6,
+    );
+
+    return {
+      startDate,
+      endDate: new Date(
+        rangeEnd.getFullYear(),
+        rangeEnd.getMonth(),
+        rangeEnd.getDate(),
+        23,
+        59,
+        59,
+        999,
+      ),
+    };
   }
 
-  const query = params.toString();
+  if (period === 'Últimos 6 meses') {
+    return {
+      startDate: new Date(anchor.getFullYear(), anchor.getMonth() - 5, 1),
+      endDate: new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0, 23, 59, 59, 999),
+    };
+  }
 
-  return apiFetch<FinancialReportResponse>(`/financial/report${query ? `?${query}` : ''}`);
+  return {
+    startDate: new Date(anchor.getFullYear(), anchor.getMonth(), 1),
+    endDate: new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0, 23, 59, 59, 999),
+  };
 }
 
 export function formatCurrency(value: number): string {

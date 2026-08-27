@@ -72,10 +72,6 @@ export default function LoginScreen({ onLogin, error, goSignup }: LoginScreenPro
           from { opacity: 0; }
           to { opacity: 1; }
         }
-        @keyframes minea-breathe {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.03); }
-        }
         @keyframes minea-ring-spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
@@ -95,14 +91,57 @@ export default function LoginScreen({ onLogin, error, goSignup }: LoginScreenPro
           50% { opacity: 0.7; }
         }
 
+        /* ---- Argila (clay morph), suave e contínua, sem "saltos" ---- */
+        @keyframes minea-clay-morph {
+          0%   { border-radius: 42% 58% 61% 39% / 51% 44% 56% 49%; transform: rotate(0deg) scale(1); }
+          20%  { border-radius: 55% 45% 48% 52% / 40% 62% 38% 60%; transform: rotate(4deg) scale(1.015); }
+          40%  { border-radius: 63% 37% 53% 47% / 58% 41% 59% 42%; transform: rotate(-3deg) scale(0.99); }
+          60%  { border-radius: 46% 54% 62% 38% / 49% 57% 43% 51%; transform: rotate(3deg) scale(1.02); }
+          80%  { border-radius: 58% 42% 40% 60% / 60% 45% 55% 40%; transform: rotate(-2deg) scale(0.995); }
+          100% { border-radius: 42% 58% 61% 39% / 51% 44% 56% 49%; transform: rotate(0deg) scale(1); }
+        }
+        @keyframes minea-clay-morph-inverse {
+          0%   { border-radius: 58% 42% 39% 61% / 49% 56% 44% 51%; }
+          20%  { border-radius: 45% 55% 52% 48% / 60% 38% 62% 40%; }
+          40%  { border-radius: 37% 63% 47% 53% / 42% 59% 41% 58%; }
+          60%  { border-radius: 54% 46% 38% 62% / 51% 43% 57% 49%; }
+          80%  { border-radius: 42% 58% 60% 40% / 40% 55% 45% 60%; }
+          100% { border-radius: 58% 42% 39% 61% / 49% 56% 44% 51%; }
+        }
+        @keyframes minea-clay-shine-drift {
+          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.55; }
+          33%      { transform: translate(16px, -10px) scale(1.12); opacity: 0.8; }
+          66%      { transform: translate(-10px, 12px) scale(0.95); opacity: 0.4; }
+        }
+        @keyframes minea-clay-float {
+          0%, 100% { transform: translateY(0px); }
+          50%      { transform: translateY(-10px); }
+        }
+
         .minea-blob-a { animation: minea-blob-a 14s ease-in-out infinite; }
         .minea-blob-b { animation: minea-blob-b 16s ease-in-out infinite; }
         .minea-card { animation: minea-fade-slide-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
         .minea-inner-1 { animation: minea-fade-slide-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both 0.15s; }
         .minea-inner-2 { animation: minea-fade-in 0.9s ease-out both 0.35s; }
-        .minea-circle { animation: minea-breathe 6s ease-in-out infinite 1s; }
         .minea-ring { animation: minea-ring-spin 40s linear infinite; }
         .minea-badge { animation: minea-pop-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both 0.9s; }
+
+        .minea-clay-blob {
+          animation:
+            minea-clay-morph 13s cubic-bezier(0.45, 0, 0.55, 1) infinite,
+            minea-clay-float 7s ease-in-out infinite;
+        }
+        .minea-clay-blob-back {
+          animation:
+            minea-clay-morph-inverse 17s cubic-bezier(0.45, 0, 0.55, 1) infinite,
+            minea-clay-float 9s ease-in-out infinite reverse;
+        }
+        .minea-clay-shine {
+          animation: minea-clay-shine-drift 13s ease-in-out infinite;
+        }
+        .minea-clay-shine-sm {
+          animation: minea-clay-shine-drift 9s ease-in-out infinite reverse;
+        }
 
         .minea-form-header { animation: minea-fade-slide-up-sm 0.7s cubic-bezier(0.22, 1, 0.36, 1) both 0.1s; }
         .minea-form-card { animation: minea-fade-slide-up-sm 0.7s cubic-bezier(0.22, 1, 0.36, 1) both 0.25s; }
@@ -112,7 +151,8 @@ export default function LoginScreen({ onLogin, error, goSignup }: LoginScreenPro
 
         @media (prefers-reduced-motion: reduce) {
           .minea-blob-a, .minea-blob-b, .minea-card, .minea-inner-1, .minea-inner-2,
-          .minea-circle, .minea-ring, .minea-badge,
+          .minea-ring, .minea-badge,
+          .minea-clay-blob, .minea-clay-blob-back, .minea-clay-shine, .minea-clay-shine-sm,
           .minea-form-header, .minea-form-card, .minea-form-footer, .minea-error,
           .minea-loading-pulse {
             animation: none !important;
@@ -139,10 +179,24 @@ export default function LoginScreen({ onLogin, error, goSignup }: LoginScreenPro
               <div className="minea-inner-1 absolute inset-0 flex items-center justify-center">
                 <div className="relative flex h-[26rem] w-[26rem] items-center justify-center">
                   <div className="absolute inset-6 rounded-full bg-[#d9b8aa]/20 blur-3xl" />
+
                   <div className="minea-ring absolute inset-0 rounded-full border border-white/60 bg-white/10 shadow-[0_30px_80px_-30px_rgba(91,63,55,0.35)] backdrop-blur-[2px]" />
-                  <div className="absolute inset-5 rounded-full border border-[#b99588]/20" />
-                  <div className="minea-circle relative flex h-72 w-72 items-center justify-center rounded-full border border-white/70 bg-[#f7eee9]/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_25px_60px_-25px_rgba(91,63,55,0.45)] backdrop-blur-xl">
-                    <div className="absolute left-10 top-8 h-20 w-32 rounded-full bg-white/40 blur-2xl" />
+
+                  {/* segunda camada de argila, mais atrás, para dar profundidade */}
+                  <div
+                    className="minea-clay-blob-back absolute inset-5 bg-gradient-to-br from-[#e2cabd] via-[#d9b8aa] to-[#c9a191] opacity-70 shadow-[inset_0_2px_10px_rgba(255,255,255,0.35)]"
+                    style={{ willChange: 'border-radius, transform' }}
+                  />
+
+                  {/* blob de argila principal: molda o "vidro" onde a logo fica */}
+                  <div
+                    className="minea-clay-blob relative flex h-72 w-72 items-center justify-center overflow-hidden bg-[#f7eee9]/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_25px_60px_-25px_rgba(91,63,55,0.45)] backdrop-blur-xl"
+                    style={{ willChange: 'border-radius, transform' }}
+                  >
+                    <div className="minea-clay-shine pointer-events-none absolute left-8 top-6 h-24 w-36 rounded-full bg-white/50 blur-2xl" />
+
+                    <div className="minea-clay-shine-sm pointer-events-none absolute bottom-8 right-10 h-16 w-16 rounded-full bg-white/30 blur-xl" />
+
                     <img
                       src="/minea-logo.svg"
                       alt="Minea"
@@ -309,9 +363,7 @@ export default function LoginScreen({ onLogin, error, goSignup }: LoginScreenPro
             <div className="minea-form-footer mt-6 flex items-center justify-center gap-2 text-[#aa9790]">
               <ShieldCheck size={14} />
 
-              <p className="text-[10px] tracking-wide">
-                Seus dados são protegidos durante esta demonstração
-              </p>
+              <p className="text-[10px] tracking-wide">Seus dados estão protegidos</p>
             </div>
           </div>
         </section>

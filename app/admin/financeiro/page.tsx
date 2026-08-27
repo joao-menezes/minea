@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
-import { getFinancialReport } from '@/lib/financial';
+import { getFinancialReport } from '@/lib/api/financial';
+import { getFinancialPeriodDates, getMonthValue } from '@/lib/financial';
 import type { FinancialReport } from '@/types';
 
 import FinanceiroClient from './FinanceiroClient';
@@ -12,7 +13,10 @@ export default function FinanceiroPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    getFinancialReport()
+    const month = getMonthValue(new Date());
+    const { startDate, endDate } = getFinancialPeriodDates('Este mês', month);
+
+    getFinancialReport(startDate, endDate)
       .then(setReport)
       .catch((reason: unknown) => {
         console.error('Erro ao carregar financeiro:', reason);

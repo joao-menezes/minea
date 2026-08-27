@@ -1,6 +1,7 @@
 import { Clock3, MapPin } from 'lucide-react';
 
 import type { Appointment } from '@/types';
+import { getAppointmentStatusLabel } from '@/utils/utils';
 
 type AppointmentRowProps = {
   appointment: Appointment;
@@ -39,7 +40,7 @@ export function AppointmentRow({ appointment, onClick }: AppointmentRowProps) {
             <span
               className={`rounded-full px-2 py-1 text-[8px] font-bold uppercase ${STATUS_STYLE[appointment.status]} `}
             >
-              {appointment.status}
+              {getAppointmentStatusLabel(appointment.status)}
             </span>
           </div>
 

@@ -161,6 +161,16 @@ export type FinancialTransaction = {
   serviceId?: string;
 };
 
+export type CreateFinancialTransactionData = {
+  type: FinancialTransactionType;
+  category: string;
+  description: string;
+  value: number;
+  date: string;
+  method: FinancialPaymentMethod;
+  client?: string;
+};
+
 // ============================================================
 // FINANCIAL REPORT
 // ============================================================

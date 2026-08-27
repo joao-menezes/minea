@@ -6,7 +6,7 @@ import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-rea
 
 import { MONTHS, WEEKDAYS } from '@/components/decor';
 import { Appointment } from '@/types';
-import { sameDay } from '@/utils/utils';
+import { getAppointmentStatusLabel, sameDay } from '@/utils/utils';
 
 type AppointmentCalendarProps = {
   selected: Date;
@@ -483,11 +483,7 @@ export function AppointmentCalendar({
                                   : 'bg-[#f5eee9] text-[#907970]'
                             }`}
                           >
-                            {appointment.status === 'confirmed'
-                              ? 'Confirmado'
-                              : appointment.status === 'cancelled'
-                                ? 'Cancelado'
-                                : 'Agendado'}
+                            {getAppointmentStatusLabel(appointment.status)}
                           </div>
                         </div>
                       </button>

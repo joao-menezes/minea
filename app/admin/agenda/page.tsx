@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { AppointmentDetails, AppointmentRow, SummaryRow } from 'components/admin/agenda';
+import { AppointmentRow, SummaryRow } from 'components/admin/agenda';
 import {
   ArrowLeft,
   ArrowRight,
@@ -17,11 +17,13 @@ import {
 } from 'lucide-react';
 
 import { EmptyRow } from '@/components/EmptyRow';
+import { AppointmentModal } from '@/components/HomeScreen/Appointment/AppointmentModal';
 import { BookingFlow } from '@/components/HomeScreen/Appointment/NewAppointmentSheet';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { getAllAppointment } from '@/lib/api/appointments';
+import { getAllAppointment, updateAppointment } from '@/lib/api/appointments';
+import { getClients } from '@/lib/api/clients';
 import { getServices } from '@/lib/api/services';
-import type { Appointment, AppointmentStatus, Service } from '@/types';
+import type { Appointment, AppointmentStatus, Client, Service } from '@/types';
 import { buildWeekStrip, sameDay } from '@/utils/utils';
 
 export default function AdminAgendaPage() {
@@ -35,6 +37,7 @@ export default function AdminAgendaPage() {
   const [error, setError] = useState('');
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [loadingServices, setLoadingServices] = useState(false);
   const [servicesError, setServicesError] = useState<string | null>(null);
 
@@ -118,9 +121,10 @@ export default function AdminAgendaPage() {
       setLoadingServices(true);
       setServicesError(null);
 
-      const data = await getServices();
+      const [serviceData, clientData] = await Promise.all([getServices(), getClients()]);
 
-      setServices(data);
+      setServices(serviceData);
+      setClients(clientData);
       setShowNewAppointment(true);
     } catch (error) {
       console.error(error);
@@ -486,16 +490,38 @@ export default function AdminAgendaPage() {
           </section>
         </div>
 
-        {selectedAppointment && (
-          <AppointmentDetails
-            appointment={selectedAppointment}
-            onClose={() => setSelectedAppointment(null)}
-          />
-        )}
+        <AppointmentModal
+          appointment={selectedAppointment}
+          open={selectedAppointment !== null}
+          onClose={() => setSelectedAppointment(null)}
+          onSave={async (updatedAppointment) => {
+            const updated = await updateAppointment(updatedAppointment.id, {
+              date: updatedAppointment.date,
+              time: updatedAppointment.time,
+            });
+
+            setAppointments((current) =>
+              current.map((item) => (item.id === updated.id ? updated : item)),
+            );
+            setSelectedAppointment(updated);
+          }}
+          onComplete={async (appointment) => {
+            const updated = await updateAppointment(appointment.id, {
+              status: 'completed',
+            });
+
+            setAppointments((current) =>
+              current.map((item) => (item.id === updated.id ? updated : item)),
+            );
+            setSelectedAppointment(updated);
+          }}
+        />
 
         {showNewAppointment && (
           <BookingFlow
             userId=""
+            adminMode
+            clients={clients}
             services={services}
             loadingServices={loadingServices}
             servicesError={servicesError}

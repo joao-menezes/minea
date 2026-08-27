@@ -6,9 +6,10 @@ import type { FinancialReport } from '@/types';
 
 type Props = {
   report: FinancialReport;
+  onNewTransaction: () => void;
 };
 
-export function FinanceHeader({ report }: Props) {
+export function FinanceHeader({ report, onNewTransaction }: Props) {
   function handleExport() {
     exportFinancialReport(toFinancialReportData(report));
   }
@@ -46,7 +47,11 @@ export function FinanceHeader({ report }: Props) {
           Exportar PDF
         </button>
 
-        <button className="flex h-11 items-center gap-3 rounded-[16px] bg-[#8a6f63] px-4 text-[11px] font-bold text-white transition hover:bg-[#7c6156]">
+        <button
+          type="button"
+          onClick={onNewTransaction}
+          className="flex h-11 items-center gap-3 rounded-[16px] bg-[#8a6f63] px-4 text-[11px] font-bold text-white transition hover:bg-[#7c6156]"
+        >
           <span className="flex h-7 w-7 items-center justify-center rounded-[10px] bg-white/15">
             <Plus size={15} />
           </span>

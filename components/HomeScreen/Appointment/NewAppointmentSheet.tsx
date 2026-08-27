@@ -2,20 +2,23 @@
 
 import { useMemo, useState } from 'react';
 
-import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock3, Sparkles, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Sparkles, X } from 'lucide-react';
 
+import { CustomDropdown } from '@/components/CustomDropdown';
+import { CustomCalendar } from '@/components/CustomCalendar';
+import { CustomTimePicker } from '@/components/CustomTimePicker';
 import { PaymentPixModal } from '@/components/HomeScreen/Appointment/payment/PaymentPixModal';
-import { createAppointment } from '@/lib/api/appointments';
+import { createAppointment, deleteAppointment } from '@/lib/api/appointments';
 import { createPixPayment } from '@/lib/api/payment';
-import type { Appointment, PendingAppointment, PixPayment, Service } from '@/types';
-
-import { WEEKDAYS } from '../../decor';
+import type { Appointment, Client, PendingAppointment, PixPayment, Service } from '@/types';
 
 type BookingStep = 1 | 2 | 3;
 
 type BookingFlowProps = {
   userId: string;
   services: Service[];
+  clients?: Client[];
+  adminMode?: boolean;
   loadingServices: boolean;
   servicesError: string | null;
   onClose: () => void;
@@ -25,6 +28,8 @@ type BookingFlowProps = {
 export function BookingFlow({
   userId,
   services,
+  clients = [],
+  adminMode = false,
   loadingServices,
   servicesError,
   onClose,
@@ -32,6 +37,9 @@ export function BookingFlow({
 }: BookingFlowProps) {
   const [step, setStep] = useState<BookingStep>(1);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(
+    adminMode ? null : userId,
+  );
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [error, setError] = useState<string | null>('');
@@ -43,6 +51,18 @@ export function BookingFlow({
   const selectedService = useMemo(
     () => services.find((service) => service.id === selectedServiceId) ?? null,
     [selectedServiceId, services],
+  );
+
+  const clientOptions = useMemo(
+    () =>
+      clients
+        .filter((client) => client.isActive)
+        .sort((first, second) => first.name.localeCompare(second.name))
+        .map((client) => ({
+          value: client.id,
+          label: client.name,
+        })),
+    [clients],
   );
 
   function selectService(id: string) {
@@ -100,9 +120,16 @@ export function BookingFlow({
 
     appointmentDate.setHours(Number(hours), Number(minutes), 0, 0);
 
+    const targetUserId = adminMode ? selectedClientId : userId;
+
+    if (!targetUserId) {
+      setError('Escolha um cliente para continuar.');
+      return;
+    }
+
     const pending: PendingAppointment = {
       appointmentId: '',
-      userId,
+      userId: targetUserId,
       serviceId: selectedService.id,
       date: appointmentDate.toISOString(),
       time: selectedTime,
@@ -111,21 +138,35 @@ export function BookingFlow({
 
     setError('');
 
+    let savedAppointment: Appointment | null = null;
+
     try {
-      const savedAppointment = await createAppointment({
+      savedAppointment = await createAppointment({
         userId: pending.userId,
         serviceId: pending.serviceId,
         date: pending.date,
         time: pending.time,
       });
 
-      const pixPayment = await createPixPayment(savedAppointment.id);
+      if (adminMode) {
+        onComplete(savedAppointment);
+        return;
+      }
 
+      const pixPayment = await createPixPayment(savedAppointment.id);
       setCreatedAppointment(savedAppointment);
       setPendingAppointment({ ...pending, appointmentId: savedAppointment.id });
       setPayment(pixPayment);
       setPaymentOpen(true);
     } catch (error) {
+      if (savedAppointment && !adminMode) {
+        try {
+          await deleteAppointment(savedAppointment.id, pending.userId);
+        } catch (rollbackError) {
+          console.error('Não foi possível desfazer o agendamento após falha no PIX:', rollbackError);
+        }
+      }
+
       setError(error instanceof Error ? error.message : 'Não foi possível iniciar o pagamento.');
     }
   }
@@ -159,7 +200,7 @@ export function BookingFlow({
             </p>
 
             <p className="mt-0.5 text-sm font-bold text-[#4b3b36]">
-              {step === 1 && 'Escolha seu procedimento'}
+              {step === 1 && (adminMode ? 'Escolha cliente e procedimento' : 'Escolha seu procedimento')}
               {step === 2 && 'Escolha data e horário'}
               {step === 3 && 'Confirme seu agendamento'}
             </p>
@@ -195,13 +236,43 @@ export function BookingFlow({
                 </p>
 
                 <h2 className="mt-1 text-xl font-bold tracking-[-0.03em] text-[#4b3b36]">
-                  O que você gostaria de fazer?
+                  {adminMode ? 'Para quem e qual procedimento?' : 'O que você gostaria de fazer?'}
                 </h2>
 
                 <p className="mt-1.5 text-xs leading-relaxed text-[#9a837b]">
-                  Selecione um procedimento para continuar seu agendamento.
+                  {adminMode
+                    ? 'Selecione o cliente e o procedimento do agendamento.'
+                    : 'Selecione um procedimento para continuar seu agendamento.'}
                 </p>
               </div>
+
+              {adminMode && (
+                <div className="mb-5 rounded-[22px] border border-[#e7ded9] bg-white p-4">
+                  <label
+                    htmlFor="appointment-client"
+                    className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#a38379]"
+                  >
+                    Cliente
+                  </label>
+
+                  <CustomDropdown
+                    id="appointment-client"
+                    value={selectedClientId ?? ''}
+                    options={clientOptions}
+                    placeholder="Selecione um cliente"
+                    onChange={(clientId) => {
+                      setSelectedClientId(clientId || null);
+                      setError('');
+                    }}
+                  />
+
+                  {clientOptions.length === 0 && (
+                    <p className="mt-2 text-xs text-[#9a837b]">
+                      Nenhum cliente ativo disponível para agendamento.
+                    </p>
+                  )}
+                </div>
+              )}
 
               {loadingServices && (
                 <div className="space-y-2.5">
@@ -339,79 +410,22 @@ export function BookingFlow({
                 </h2>
               </div>
 
-              <div className="rounded-[22px] border border-[#e7ded9] bg-white p-4">
-                <div className="flex items-center gap-2">
-                  <CalendarDays size={17} className="text-[#80665c]" />
+              <CustomCalendar
+                value={selectedDate}
+                onChange={(date) => {
+                  setSelectedDate(date);
+                  setSelectedTime(null);
+                  setError('');
+                }}
+              />
 
-                  <p className="text-sm font-bold text-[#4b3b36]">Escolha uma data</p>
-                </div>
-
-                <div className="mt-4 grid grid-cols-7 gap-1.5">
-                  {WEEKDAYS.map((weekday) => (
-                    <div
-                      key={weekday}
-                      className="text-center text-[9px] font-bold uppercase text-[#a38379]"
-                    >
-                      {weekday}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-2 grid grid-cols-7 gap-1.5">
-                  {buildCalendarDays(new Date()).map((date) => {
-                    const active = selectedDate ? sameDay(selectedDate, date) : false;
-
-                    return (
-                      <button
-                        key={date.toISOString()}
-                        type="button"
-                        onClick={() => {
-                          setSelectedDate(date);
-                          setSelectedTime(null);
-                          setError('');
-                        }}
-                        className={`flex aspect-square items-center justify-center rounded-xl text-xs font-semibold transition ${
-                          active ? 'bg-[#80665c] text-white' : 'text-[#5d4942] hover:bg-[#f3ece8]'
-                        }`}
-                      >
-                        {date.getDate()}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="mt-4 rounded-[22px] border border-[#e7ded9] bg-white p-4">
-                <div className="flex items-center gap-2">
-                  <Clock3 size={17} className="text-[#80665c]" />
-
-                  <p className="text-sm font-bold text-[#4b3b36]">Horários disponíveis</p>
-                </div>
-
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  {['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'].map((time) => {
-                    const active = selectedTime === time;
-
-                    return (
-                      <button
-                        key={time}
-                        type="button"
-                        onClick={() => {
-                          setSelectedTime(time);
-                          setError('');
-                        }}
-                        className={`rounded-xl border px-3 py-2.5 text-xs font-bold transition ${
-                          active
-                            ? 'border-[#80665c] bg-[#80665c] text-white'
-                            : 'border-[#e7ded9] bg-white text-[#775b52] hover:bg-[#f6efeb]'
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              <CustomTimePicker
+                value={selectedTime}
+                onChange={(time) => {
+                  setSelectedTime(time);
+                  setError('');
+                }}
+              />
             </div>
           )}
 
@@ -480,7 +494,13 @@ export function BookingFlow({
           <button
             type="button"
             onClick={step === 3 ? finish : next}
-            disabled={step === 1 ? loadingServices || services.length === 0 : false}
+            disabled={
+              step === 1
+                ? loadingServices ||
+                  services.length === 0 ||
+                  (adminMode && (!selectedClientId || clients.length === 0))
+                : false
+            }
             className="flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#80665c] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[#6f574e] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {step === 3 ? 'Confirmar agendamento' : 'Continuar'}
@@ -511,38 +531,4 @@ function formatCurrency(value: number): string {
     style: 'currency',
     currency: 'BRL',
   });
-}
-
-function sameDay(first: Date, second: Date): boolean {
-  return (
-    first.getFullYear() === second.getFullYear() &&
-    first.getMonth() === second.getMonth() &&
-    first.getDate() === second.getDate()
-  );
-}
-
-function buildCalendarDays(referenceDate: Date): Date[] {
-  const year = referenceDate.getFullYear();
-  const month = referenceDate.getMonth();
-
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-
-  const days: Date[] = [];
-
-  for (let index = 0; index < firstDay.getDay(); index += 1) {
-    days.push(new Date(year, month, index - firstDay.getDay() + 1));
-  }
-
-  for (let day = 1; day <= lastDay.getDate(); day += 1) {
-    days.push(new Date(year, month, day));
-  }
-
-  while (days.length % 7 !== 0) {
-    const last = days[days.length - 1];
-
-    days.push(new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1));
-  }
-
-  return days;
 }

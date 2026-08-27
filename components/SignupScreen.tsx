@@ -385,7 +385,7 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
             <div className="minea-form-footer mt-6 flex items-center justify-center gap-2 text-[#a4948d]">
               <ShieldCheck size={14} />
 
-              <p className="text-[10px]">Seus dados ficam seguros durante esta demonstração</p>
+              <p className="text-[10px]">Seus dados estão protegidos</p>
             </div>
           </div>
         </section>

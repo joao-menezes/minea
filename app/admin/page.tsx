@@ -21,7 +21,8 @@ import { getAllAppointment } from '@/lib/api/appointments';
 import { getClients } from '@/lib/api/clients';
 import { getServices } from '@/lib/api/services';
 import { formatCurrency } from '@/lib/financial';
-import type { Appointment, AppointmentStatus, Service } from '@/types';
+import type { Appointment, Service } from '@/types';
+import { getAppointmentStatusLabel } from '@/utils/utils';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -123,25 +124,6 @@ export default function AdminPage() {
   const clientsToday = new Set(
     appointmentsToday.map((item) => item.userId ?? item.clientName ?? item.id),
   ).size;
-
-  function getAppointmentStatusLabel(status: AppointmentStatus): string {
-    switch (status) {
-      case 'scheduled':
-        return 'Agendado';
-
-      case 'confirmed':
-        return 'Confirmado';
-
-      case 'completed':
-        return 'Concluído';
-
-      case 'cancelled':
-        return 'Cancelado';
-
-      case 'no_show':
-        return 'Não compareceu';
-    }
-  }
 
   return (
     <AdminShell>

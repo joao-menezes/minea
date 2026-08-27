@@ -1,9 +1,7 @@
-import { MoreHorizontal, TrendingUp } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 
 import { formatCurrency } from '@/lib/financial';
 import type { FinancialReport } from '@/types';
-
-const CHART_MAX_VALUE = 20000;
 
 type Props = {
   report: FinancialReport;
@@ -11,6 +9,9 @@ type Props = {
 
 export function RevenueChart({ report }: Props) {
   const lastMonthIndex = report.monthlyRevenue.length - 1;
+  const maxValue = Math.max(...report.monthlyRevenue.map((item) => item.value), 0);
+  const chartMaxValue = getChartMaxValue(maxValue);
+  const gridValues = [1, 0.75, 0.5, 0.25, 0];
 
   return (
     <section className="rounded-[30px] border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur lg:p-6">
@@ -27,10 +28,6 @@ export function RevenueChart({ report }: Props) {
               {formatCurrency(report.revenue)}
             </span>
 
-            <span className="flex items-center gap-1 rounded-full bg-[#edf4ee] px-2 py-1 text-[8px] font-bold text-[#66806d]">
-              <TrendingUp size={10} />
-              12,4%
-            </span>
           </div>
         </div>
 
@@ -41,10 +38,10 @@ export function RevenueChart({ report }: Props) {
 
       <div className="relative mt-9 h-[230px]">
         <div className="absolute inset-0 flex flex-col justify-between">
-          {[20, 15, 10, 5, 0].map((value) => (
-            <div key={value} className="flex items-center gap-3">
+          {gridValues.map((ratio) => (
+            <div key={ratio} className="flex items-center gap-3">
               <span className="w-10 text-right text-[8px] text-[#c8b5ac]">
-                {value === 0 ? '0' : `${value}k`}
+                {formatChartAxisValue(chartMaxValue * ratio)}
               </span>
 
               <div className="h-px flex-1 bg-[#f3ebe7]" />
@@ -56,7 +53,7 @@ export function RevenueChart({ report }: Props) {
           {report.monthlyRevenue.map((item, index) => {
             const current = index === lastMonthIndex;
 
-            const height = Math.min((item.value / CHART_MAX_VALUE) * 100, 100);
+            const height = maxValue > 0 ? Math.min((item.value / chartMaxValue) * 100, 100) : 0;
 
             return (
               <div
@@ -89,4 +86,19 @@ export function RevenueChart({ report }: Props) {
       </div>
     </section>
   );
+}
+
+function getChartMaxValue(value: number) {
+  if (value <= 0) return 1;
+
+  const magnitude = 10 ** Math.max(Math.floor(Math.log10(value)) - 1, 0);
+
+  return Math.ceil(value / magnitude) * magnitude;
+}
+
+function formatChartAxisValue(value: number) {
+  if (value === 0) return '0';
+  if (value >= 1000) return `${Math.round(value / 1000)}k`;
+
+  return String(Math.round(value));
 }
