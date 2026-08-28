@@ -12,6 +12,8 @@ type BeforeInstallPromptEvent = Event & {
 export function InstallAppPrompt() {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
+  const [isIos, setIsIos] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -21,6 +23,11 @@ export function InstallAppPrompt() {
     if (window.matchMedia('(display-mode: standalone)').matches) return;
     if (localStorage.getItem('minea_install_prompt_dismissed') === 'true') return;
 
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const android = /android/i.test(navigator.userAgent);
+    setIsIos(ios);
+    setIsAndroid(android);
+
     function handleBeforeInstallPrompt(event: Event) {
       event.preventDefault();
       setInstallEvent(event as BeforeInstallPromptEvent);
@@ -28,8 +35,14 @@ export function InstallAppPrompt() {
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    const fallbackTimer = window.setTimeout(() => {
+      if (ios || android) setVisible(true);
+    }, 1200);
 
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.clearTimeout(fallbackTimer);
+    };
   }, []);
 
   async function handleInstall() {
@@ -50,7 +63,7 @@ export function InstallAppPrompt() {
     setVisible(false);
   }
 
-  if (!visible || !installEvent) return null;
+  if (!visible) return null;
 
   return (
     <aside className="fixed inset-x-4 bottom-5 z-40 mx-auto max-w-md rounded-[22px] border border-[#eaded8] bg-white p-4 shadow-[0_20px_45px_-20px_rgba(64,46,40,.4)] sm:inset-x-auto sm:right-6">
@@ -70,18 +83,32 @@ export function InstallAppPrompt() {
         <div>
           <p className="text-[11px] font-bold text-[#6b5850]">Leve a Minea com você</p>
           <p className="mt-1 text-[9px] leading-relaxed text-[#a48a7f]">
-            Adicione o site à tela inicial para acessar seus agendamentos mais rápido.
+            {isIos
+              ? 'Toque em Compartilhar e depois em “Adicionar à Tela de Início”.'
+              : isAndroid
+                ? 'Abra o menu ⋮ do Chrome e toque em “Instalar aplicativo”.'
+              : 'Adicione o site à tela inicial para acessar seus agendamentos mais rápido.'}
           </p>
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={handleInstall}
-        className="mt-3 h-10 w-full rounded-[13px] bg-[#8a6f63] text-[10px] font-bold text-white transition hover:bg-[#7c6156]"
-      >
-        Adicionar à tela inicial
-      </button>
+      {installEvent ? (
+        <button
+          type="button"
+          onClick={handleInstall}
+          className="mt-3 h-10 w-full rounded-[13px] bg-[#8a6f63] text-[10px] font-bold text-white transition hover:bg-[#7c6156]"
+        >
+          Adicionar à tela inicial
+        </button>
+      ) : (
+        <p className="mt-3 rounded-[13px] bg-[#f6eee9] px-3 py-2 text-center text-[9px] font-semibold text-[#8a6f63]">
+          {isIos
+            ? 'Use o menu de compartilhamento do Safari.'
+            : isAndroid
+              ? 'Use o menu ⋮ do Chrome para instalar.'
+              : 'Abra o menu do navegador para instalar.'}
+        </p>
+      )}
     </aside>
   );
 }
