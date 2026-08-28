@@ -8,7 +8,6 @@ import {
   ArrowRight,
   CalendarDays,
   Check,
-  ChevronDown,
   Clock3,
   DollarSign,
   Plus,
@@ -16,6 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 
+import { CustomDropdown } from '@/components/CustomDropdown';
 import { EmptyRow } from '@/components/EmptyRow';
 import { AppointmentModal } from '@/components/HomeScreen/Appointment/AppointmentModal';
 import { BookingFlow } from '@/components/HomeScreen/Appointment/NewAppointmentSheet';
@@ -335,24 +335,17 @@ export default function AdminAgendaPage() {
               </div>
 
               <div className="relative">
-                <select
+                <CustomDropdown
                   value={statusFilter}
-                  onChange={(event) =>
-                    setStatusFilter(event.target.value as 'all' | AppointmentStatus)
-                  }
-                  className="h-10 w-full appearance-none rounded-[14px] border border-[#f0e6e0] bg-white/80 px-4 pr-9 text-[10px] font-semibold text-[#80685e] outline-none sm:w-[150px]"
-                >
-                  <option value="all">Todos os status</option>
-                  <option value="confirmed">Confirmados</option>
-                  <option value="scheduled">Agendados</option>
-                  <option value="completed">Concluídos</option>
-                  <option value="no_show">Não compareceram</option>
-                  <option value="cancelled">Cancelados</option>
-                </select>
-
-                <ChevronDown
-                  size={13}
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#b49b90]"
+                  options={[
+                    { value: 'all', label: 'Todos os status' },
+                    { value: 'confirmed', label: 'Confirmados' },
+                    { value: 'scheduled', label: 'Agendados' },
+                    { value: 'completed', label: 'Concluídos' },
+                    { value: 'no_show', label: 'Não compareceram' },
+                    { value: 'cancelled', label: 'Cancelados' },
+                  ]}
+                  onChange={(value) => setStatusFilter(value as 'all' | AppointmentStatus)}
                 />
               </div>
             </div>

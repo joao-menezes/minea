@@ -23,6 +23,8 @@ type BookingFlowProps = {
   servicesError: string | null;
   onClose: () => void;
   onComplete: (appointment: Appointment) => void;
+  initialDate?: Date | null;
+  initialClientId?: string | null;
 };
 
 export function BookingFlow({
@@ -34,13 +36,15 @@ export function BookingFlow({
   servicesError,
   onClose,
   onComplete,
+  initialDate = null,
+  initialClientId = null,
 }: BookingFlowProps) {
   const [step, setStep] = useState<BookingStep>(1);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(
-    adminMode ? null : userId,
+    adminMode ? initialClientId : userId,
   );
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [error, setError] = useState<string | null>('');
   const [paymentOpen, setPaymentOpen] = useState(false);
@@ -70,6 +74,18 @@ export function BookingFlow({
     setError('');
   }
 
+  function isBeforeToday(date: Date): boolean {
+    const today = new Date();
+
+    return (
+      date.getFullYear() < today.getFullYear() ||
+      (date.getFullYear() === today.getFullYear() && date.getMonth() < today.getMonth()) ||
+      (date.getFullYear() === today.getFullYear() &&
+        date.getMonth() === today.getMonth() &&
+        date.getDate() < today.getDate())
+    );
+  }
+
   function next() {
     if (step === 1) {
       if (selectedServiceId === null) {
@@ -85,6 +101,11 @@ export function BookingFlow({
     if (step === 2) {
       if (!selectedDate) {
         setError('Escolha uma data para continuar.');
+        return;
+      }
+
+      if (isBeforeToday(selectedDate)) {
+        setError('Não é possível agendar para uma data anterior a hoje.');
         return;
       }
 
@@ -412,6 +433,7 @@ export function BookingFlow({
 
               <CustomCalendar
                 value={selectedDate}
+                minDate={new Date()}
                 onChange={(date) => {
                   setSelectedDate(date);
                   setSelectedTime(null);

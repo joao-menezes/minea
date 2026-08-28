@@ -4,6 +4,8 @@ import type { Metadata } from 'next';
 import { Cormorant_Garamond, Inter } from 'next/font/google';
 import { Toaster } from 'sonner';
 
+import { ConsoleMessage } from '@/components/ConsoleMessage';
+
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -31,6 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="pt-BR">
       <body className={`${cormorant.variable} ${inter.variable}`}>
         {children}
+        <ConsoleMessage />
         <Toaster position="top-right" richColors />
       </body>
     </html>

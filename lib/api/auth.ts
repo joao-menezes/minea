@@ -98,6 +98,31 @@ export async function signOut(): Promise<void> {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+export async function updateUserProfile(
+  id: string,
+  data: Pick<User, 'name' | 'birthDate'>,
+): Promise<User> {
+  const response = await apiFetch<User | { user: User }>(`/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+
+  const updatedUser = 'user' in response ? response.user : response;
+  localStorage.setItem(SESSION_KEY, JSON.stringify(updatedUser));
+
+  return updatedUser;
+}
+
+export async function changeUserPassword(
+  id: string,
+  data: { currentPassword: string; newPassword: string },
+): Promise<void> {
+  await apiFetch<void>(`/users/${id}/password`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
 function getTokenSubject(token: string): string {
   const payload = token.split('.')[1];
 

@@ -179,16 +179,11 @@ export default function LoginScreen({ onLogin, error, goSignup }: LoginScreenPro
               <div className="minea-inner-1 absolute inset-0 flex items-center justify-center">
                 <div className="relative flex h-[26rem] w-[26rem] items-center justify-center">
                   <div className="absolute inset-6 rounded-full bg-[#d9b8aa]/20 blur-3xl" />
-
                   <div className="minea-ring absolute inset-0 rounded-full border border-white/60 bg-white/10 shadow-[0_30px_80px_-30px_rgba(91,63,55,0.35)] backdrop-blur-[2px]" />
-
-                  {/* segunda camada de argila, mais atrás, para dar profundidade */}
                   <div
                     className="minea-clay-blob-back absolute inset-5 bg-gradient-to-br from-[#e2cabd] via-[#d9b8aa] to-[#c9a191] opacity-70 shadow-[inset_0_2px_10px_rgba(255,255,255,0.35)]"
                     style={{ willChange: 'border-radius, transform' }}
                   />
-
-                  {/* blob de argila principal: molda o "vidro" onde a logo fica */}
                   <div
                     className="minea-clay-blob relative flex h-72 w-72 items-center justify-center overflow-hidden bg-[#f7eee9]/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_25px_60px_-25px_rgba(91,63,55,0.45)] backdrop-blur-xl"
                     style={{ willChange: 'border-radius, transform' }}

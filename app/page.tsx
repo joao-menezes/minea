@@ -2,15 +2,25 @@
 
 import { useEffect, useState } from 'react';
 
+import { toast } from 'sonner';
+
 import { BookingFlow } from '@/components/HomeScreen/Appointment/NewAppointmentSheet';
 import HomeScreen from '@/components/HomeScreen/page';
 import LoginScreen from '@/components/LoginScreen';
 import SignupScreen from '@/components/SignupScreen';
 import { getAppointments } from '@/lib/api/appointments';
-import { getCurrentUser, signIn, signOut, signUp } from '@/lib/api/auth';
+import {
+  changeUserPassword,
+  getCurrentUser,
+  signIn,
+  signOut,
+  signUp,
+  updateUserProfile,
+} from '@/lib/api/auth';
 import { getServices } from '@/lib/api/services';
 import type { Appointment, Service, User } from '@/types';
 
+import ProfileScreen from '@/components/HomeScreen/ProfileScreen';
 type SignupData = {
   birthDate?: string;
   cpf: string;
@@ -25,6 +35,7 @@ export default function Page() {
   const [user, setUser] = useState<User | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loginError, setLoginError] = useState('');
   const [services, setServices] = useState<Service[]>([]);
@@ -55,6 +66,54 @@ export default function Page() {
 
     void loadSession();
   }, []);
+
+  useEffect(() => {
+    if (!appointments.length) return;
+
+    function checkUpcomingAppointments() {
+      const now = Date.now();
+
+      appointments
+        .filter(
+          (appointment) =>
+            appointment.status === 'scheduled' || appointment.status === 'confirmed',
+        )
+        .forEach((appointment) => {
+          const appointmentDate = new Date(
+            `${appointment.date.slice(0, 10)}T${appointment.time.slice(0, 5)}:00`,
+          );
+          const minutesUntilAppointment = (appointmentDate.getTime() - now) / 60000;
+          const reminderKey = `minea_reminder_${appointment.id}_${appointment.date}`;
+
+          if (
+            minutesUntilAppointment > 0 &&
+            minutesUntilAppointment <= 30 &&
+            !sessionStorage.getItem(reminderKey)
+          ) {
+            sessionStorage.setItem(reminderKey, 'shown');
+            const roundedMinutes = Math.max(1, Math.ceil(minutesUntilAppointment));
+            const message = `Seu atendimento começa em aproximadamente ${roundedMinutes} min.`;
+
+            toast('Lembrete de atendimento', {
+              description: `${appointment.title}. ${message}`,
+              duration: 10000,
+            });
+
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification('Lembrete de atendimento', {
+                body: `${appointment.title}. ${message}`,
+                icon: '/icon.ico',
+              });
+            }
+          }
+        });
+    }
+
+    checkUpcomingAppointments();
+    const interval = window.setInterval(checkUpcomingAppointments, 60000);
+
+    return () => window.clearInterval(interval);
+  }, [appointments]);
 
   async function handleLogin(cpf: string, password: string) {
     try {
@@ -103,6 +162,7 @@ export default function Page() {
       setUser(null);
       setAppointments([]);
       setShowNewAppointment(false);
+      setShowProfile(false);
       setScreen('login');
     } catch (error) {
       console.error('Erro ao sair:', error);
@@ -160,13 +220,27 @@ export default function Page() {
       )}
 
       {screen === 'home' && user && (
-        <HomeScreen
-          user={user}
-          appointments={appointments}
-          setAppointments={setAppointments}
-          onLogout={handleLogout}
-          openNew={openNewAppointment}
-        />
+        showProfile ? (
+          <ProfileScreen
+            user={user}
+            onBack={() => setShowProfile(false)}
+            onSave={async (profile) => {
+              const updatedUser = await updateUserProfile(user.id, profile);
+              setUser(updatedUser);
+              setShowProfile(false);
+            }}
+            onChangePassword={(passwords) => changeUserPassword(user.id, passwords)}
+          />
+        ) : (
+          <HomeScreen
+            user={user}
+            appointments={appointments}
+            setAppointments={setAppointments}
+            onLogout={handleLogout}
+            onProfile={() => setShowProfile(true)}
+            openNew={openNewAppointment}
+          />
+        )
       )}
 
       {showNewAppointment && user && (

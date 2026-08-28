@@ -17,6 +17,7 @@ import { router } from 'next/client';
 import { useRouter } from 'next/navigation';
 
 import { AdminShell } from '@/components/admin/AdminShell';
+import { BookingFlow } from '@/components/HomeScreen/Appointment/NewAppointmentSheet';
 import { getAllAppointment } from '@/lib/api/appointments';
 import { getClients } from '@/lib/api/clients';
 import { getServices } from '@/lib/api/services';
@@ -33,6 +34,8 @@ export default function AdminPage() {
   const [loadingAppointments, setLoadingAppointments] = useState(true);
   const [appointmentsError, setAppointmentsError] = useState<string | null>(null);
   const [activeClients, setActiveClients] = useState(0);
+  const [clients, setClients] = useState<Awaited<ReturnType<typeof getClients>>>([]);
+  const [showNewAppointment, setShowNewAppointment] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -57,6 +60,7 @@ export default function AdminPage() {
 
         try {
           const clientsData = await getClients();
+          setClients(clientsData);
           setActiveClients(clientsData.filter((client) => client.isActive).length);
         } catch (error) {
           console.error('Erro ao carregar clientes ativos:', error);
@@ -160,6 +164,7 @@ export default function AdminPage() {
 
             <button
               type="button"
+              onClick={() => setShowNewAppointment(true)}
               className="group flex h-12 items-center justify-between gap-4 rounded-[17px] bg-[#8a6f63] px-4 text-[12px] font-bold text-white shadow-[0_18px_35px_-18px_rgba(138,111,99,.55)] transition-all hover:-translate-y-0.5 hover:bg-[#7c6156] active:scale-[.985]"
             >
               <span className="flex items-center gap-3">
@@ -470,6 +475,22 @@ export default function AdminPage() {
           </section>
         </div>
       </main>
+      {showNewAppointment && (
+        <BookingFlow
+          userId=""
+          services={services}
+          clients={clients}
+          adminMode
+          loadingServices={loadingServices}
+          servicesError={servicesError}
+          initialDate={new Date()}
+          onClose={() => setShowNewAppointment(false)}
+          onComplete={(appointment) => {
+            setAppointments((current) => [...current, appointment]);
+            setShowNewAppointment(false);
+          }}
+        />
+      )}
     </AdminShell>
   );
 }

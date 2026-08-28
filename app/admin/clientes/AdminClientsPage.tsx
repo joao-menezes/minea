@@ -10,9 +10,11 @@ import { ClientToolbar } from '@/app/admin/clientes/ClientToolbar';
 import { NewClientModal } from '@/app/admin/clientes/NewClientModal';
 import { EmptyRow } from '@/components/EmptyRow';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { BookingFlow } from '@/components/HomeScreen/Appointment/NewAppointmentSheet';
 import { getAllAppointment } from '@/lib/api/appointments';
 import { getCurrentUser } from '@/lib/api/auth';
-import type { Client, ClientFilter } from '@/types';
+import { getServices } from '@/lib/api/services';
+import type { Appointment, Client, ClientFilter, Service } from '@/types';
 
 type AdminClientsPageProps = {
   clients: Client[];
@@ -35,6 +37,10 @@ export default function AdminClientsPage({ clients: initialClients }: AdminClien
   const [monthlyAppointments, setMonthlyAppointments] = useState(0);
   const [newClientOpen, setNewClientOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [services, setServices] = useState<Service[]>([]);
+  const [loadingServices, setLoadingServices] = useState(false);
+  const [servicesError, setServicesError] = useState<string | null>(null);
+  const [bookingClient, setBookingClient] = useState<Client | null>(null);
 
   useEffect(() => {
     void getCurrentUser().then((user) => setCurrentUserId(user?.id ?? null));
@@ -67,6 +73,27 @@ export default function AdminClientsPage({ clients: initialClients }: AdminClien
   const debtClients = useMemo(() => {
     return clients.filter((client) => client.inDebt);
   }, [clients]);
+
+  async function handleSchedule(client: Client) {
+    try {
+      setLoadingServices(true);
+      setServicesError(null);
+      setSelectedClient(null);
+
+      const serviceData = services.length > 0 ? services : await getServices();
+
+      setServices(serviceData);
+      setBookingClient(client);
+    } catch (error) {
+      console.error('Erro ao carregar serviços para agendamento:', error);
+      setServicesError(
+        error instanceof Error ? error.message : 'Não foi possível carregar os serviços.',
+      );
+      setBookingClient(client);
+    } finally {
+      setLoadingServices(false);
+    }
+  }
 
   const newClients = useMemo(() => {
     const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
@@ -156,11 +183,37 @@ export default function AdminClientsPage({ clients: initialClients }: AdminClien
             client={selectedClient}
             onClose={() => setSelectedClient(null)}
             currentUserId={currentUserId}
+            onSchedule={handleSchedule}
             onClientUpdated={(updatedClient) => {
               setClients((current) =>
                 current.map((client) => (client.id === updatedClient.id ? updatedClient : client)),
               );
               setSelectedClient(updatedClient);
+            }}
+          />
+        )}
+
+        {bookingClient && (
+          <BookingFlow
+            userId=""
+            services={services}
+            clients={[bookingClient]}
+            adminMode
+            initialClientId={bookingClient.id}
+            initialDate={new Date()}
+            loadingServices={loadingServices}
+            servicesError={servicesError}
+            onClose={() => setBookingClient(null)}
+            onComplete={(appointment: Appointment) => {
+              setBookingClient(null);
+              setClients((current) =>
+                current.map((client) =>
+                  client.id === bookingClient.id
+                    ? { ...client, appointments: (client.appointments ?? 0) + 1 }
+                    : client,
+                ),
+              );
+              console.info('Agendamento criado para o cliente:', appointment.id);
             }}
           />
         )}

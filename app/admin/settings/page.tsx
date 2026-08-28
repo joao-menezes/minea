@@ -84,17 +84,60 @@ const SCHEDULE = [
   { day: 'Domingo', enabled: false, start: '—', end: '—' },
 ];
 
+const SETTINGS_STORAGE_KEY = 'minea_admin_settings';
+
+type ClinicSettings = {
+  clinicName: string;
+  phone: string;
+  email: string;
+  instagram: string;
+  address: string;
+  showAddress: boolean;
+  schedule: typeof SCHEDULE;
+  notifications: boolean;
+  reminders: boolean;
+  emailNotifications: boolean;
+  whatsappNotifications: boolean;
+  autoConfirm: boolean;
+  language: string;
+  appearance: string;
+};
+
+const DEFAULT_SETTINGS: ClinicSettings = {
+  clinicName: 'Minea',
+  phone: '(19) 99999-9999',
+  email: 'contato@minea.com.br',
+  instagram: '@minea.estetica',
+  address: 'Rua das Flores, 120 — Centro',
+  showAddress: true,
+  schedule: SCHEDULE,
+  notifications: true,
+  reminders: true,
+  emailNotifications: false,
+  whatsappNotifications: true,
+  autoConfirm: false,
+  language: 'Português (Brasil)',
+  appearance: 'Automática',
+};
+
 export default function AdminSettingsPage() {
   const router = useRouter();
   const [activeSection, setActiveSection] = useState<SettingsSectionId>('clinica');
 
-  const [notifications, setNotifications] = useState(true);
-  const [reminders, setReminders] = useState(true);
-  const [emailNotifications, setEmailNotifications] = useState(false);
-  const [whatsappNotifications, setWhatsappNotifications] = useState(true);
-  const [autoConfirm, setAutoConfirm] = useState(false);
-  const [showAddress, setShowAddress] = useState(true);
+  const [settings, setSettings] = useState<ClinicSettings>(DEFAULT_SETTINGS);
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    const storedSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+
+    if (!storedSettings) return;
+
+    try {
+      setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(storedSettings) });
+    } catch {
+      window.localStorage.removeItem(SETTINGS_STORAGE_KEY);
+    }
+  }, []);
 
   useEffect(() => {
     const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-settings-section]'));
@@ -163,11 +206,28 @@ export default function AdminSettingsPage() {
   }, []);
 
   function handleSave() {
+    window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
     setSaved(true);
 
     window.setTimeout(() => {
       setSaved(false);
     }, 2200);
+  }
+
+  function updateSetting<K extends keyof ClinicSettings>(key: K, value: ClinicSettings[K]) {
+    setSettings((current) => ({ ...current, [key]: value }));
+  }
+
+  function updateSchedule(
+    index: number,
+    values: Partial<(typeof SCHEDULE)[number]>,
+  ) {
+    setSettings((current) => ({
+      ...current,
+      schedule: current.schedule.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, ...values } : item,
+      ),
+    }));
   }
 
   async function handleLogout() {
@@ -195,17 +255,38 @@ export default function AdminSettingsPage() {
                   icon={Building2}
                 >
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <InputField label="Nome da clínica" value="Minea" />
+                    <InputField
+                      label="Nome da clínica"
+                      value={settings.clinicName}
+                      onChange={(value) => updateSetting('clinicName', value)}
+                    />
 
-                    <InputField label="Telefone" value="(19) 99999-9999" />
+                    <InputField
+                      label="Telefone"
+                      value={settings.phone}
+                      onChange={(value) => updateSetting('phone', value)}
+                    />
 
-                    <InputField label="E-mail" value="contato@minea.com.br" type="email" />
+                    <InputField
+                      label="E-mail"
+                      value={settings.email}
+                      type="email"
+                      onChange={(value) => updateSetting('email', value)}
+                    />
 
-                    <InputField label="Instagram" value="@minea.estetica" />
+                    <InputField
+                      label="Instagram"
+                      value={settings.instagram}
+                      onChange={(value) => updateSetting('instagram', value)}
+                    />
                   </div>
 
                   <div className="mt-4">
-                    <InputField label="Endereço" value="Rua das Flores, 120 — Centro" />
+                    <InputField
+                      label="Endereço"
+                      value={settings.address}
+                      onChange={(value) => updateSetting('address', value)}
+                    />
                   </div>
 
                   <div className="mt-4">
@@ -213,8 +294,8 @@ export default function AdminSettingsPage() {
                       icon={MapPin}
                       title="Mostrar endereço para clientes"
                       description="Permite que o cliente veja como chegar até a clínica."
-                      checked={showAddress}
-                      onChange={setShowAddress}
+                      checked={settings.showAddress}
+                      onChange={(value) => updateSetting('showAddress', value)}
                     />
                   </div>
                 </SettingsSection>
@@ -231,8 +312,13 @@ export default function AdminSettingsPage() {
                   icon={Clock3}
                 >
                   <div className="space-y-2">
-                    {SCHEDULE.map((schedule) => (
-                      <ScheduleRow key={schedule.day} {...schedule} />
+                    {settings.schedule.map((schedule, index) => (
+                      <ScheduleRow
+                        key={schedule.day}
+                        {...schedule}
+                        onToggle={(enabled) => updateSchedule(index, { enabled })}
+                        onTimeChange={(field, value) => updateSchedule(index, { [field]: value })}
+                      />
                     ))}
                   </div>
                 </SettingsSection>
@@ -248,16 +334,16 @@ export default function AdminSettingsPage() {
                       icon={CalendarClock}
                       title="Confirmação automática"
                       description="Novos agendamentos são confirmados automaticamente."
-                      checked={autoConfirm}
-                      onChange={setAutoConfirm}
+                      checked={settings.autoConfirm}
+                      onChange={(value) => updateSetting('autoConfirm', value)}
                     />
 
                     <SettingRow
                       icon={Clock3}
                       title="Lembrete de atendimento"
                       description="Enviar lembrete antes do horário agendado."
-                      checked={reminders}
-                      onChange={setReminders}
+                      checked={settings.reminders}
+                      onChange={(value) => updateSetting('reminders', value)}
                     />
                   </div>
                 </SettingsSection>
@@ -275,24 +361,24 @@ export default function AdminSettingsPage() {
                       icon={Bell}
                       title="Notificações da agenda"
                       description="Receber avisos quando um novo agendamento for criado."
-                      checked={notifications}
-                      onChange={setNotifications}
+                      checked={settings.notifications}
+                      onChange={(value) => updateSetting('notifications', value)}
                     />
 
                     <SettingRow
                       icon={Smartphone}
                       title="WhatsApp"
                       description="Enviar confirmações e lembretes pelo WhatsApp."
-                      checked={whatsappNotifications}
-                      onChange={setWhatsappNotifications}
+                      checked={settings.whatsappNotifications}
+                      onChange={(value) => updateSetting('whatsappNotifications', value)}
                     />
 
                     <SettingRow
                       icon={Mail}
                       title="E-mail"
                       description="Receber atualizações e relatórios por e-mail."
-                      checked={emailNotifications}
-                      onChange={setEmailNotifications}
+                      checked={settings.emailNotifications}
+                      onChange={(value) => updateSetting('emailNotifications', value)}
                     />
                   </div>
                 </SettingsSection>
@@ -310,8 +396,8 @@ export default function AdminSettingsPage() {
                       icon={MapPin}
                       title="Mostrar endereço"
                       description="Permitir que clientes visualizem o endereço da clínica."
-                      checked={showAddress}
-                      onChange={setShowAddress}
+                      checked={settings.showAddress}
+                      onChange={(value) => updateSetting('showAddress', value)}
                     />
 
                     <SettingRow
@@ -344,9 +430,29 @@ export default function AdminSettingsPage() {
                   icon={Settings2}
                 >
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <PreferenceCard icon={Globe2} label="Idioma" value="Português (Brasil)" />
+                    <PreferenceCard
+                      icon={Globe2}
+                      label="Idioma"
+                      value={settings.language}
+                      onClick={() =>
+                        updateSetting(
+                          'language',
+                          settings.language === 'Português (Brasil)' ? 'English' : 'Português (Brasil)',
+                        )
+                      }
+                    />
 
-                    <PreferenceCard icon={Moon} label="Aparência" value="Automática" />
+                    <PreferenceCard
+                      icon={Moon}
+                      label="Aparência"
+                      value={settings.appearance}
+                      onClick={() =>
+                        updateSetting(
+                          'appearance',
+                          settings.appearance === 'Automática' ? 'Clara' : 'Automática',
+                        )
+                      }
+                    />
                   </div>
                 </SettingsSection>
               </section>
@@ -576,10 +682,12 @@ function InputField({
   label,
   value,
   type = 'text',
+  onChange,
 }: {
   label: string;
   value: string;
   type?: string;
+  onChange: (value: string) => void;
 }) {
   return (
     <label className="block">
@@ -589,7 +697,8 @@ function InputField({
 
       <input
         type={type}
-        defaultValue={value}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
         className="h-11 w-full rounded-[14px] border border-[#eee4df] bg-[#fffdfc] px-4 text-[10px] font-medium text-[#80685e] outline-none transition placeholder:text-[#c5b4ac] focus:border-[#d5beb4] focus:ring-2 focus:ring-[#f4ebe7]"
       />
     </label>
@@ -653,18 +762,27 @@ function ScheduleRow({
   enabled,
   start,
   end,
+  onToggle,
+  onTimeChange,
 }: {
   day: string;
   enabled: boolean;
   start: string;
   end: string;
+  onToggle: (enabled: boolean) => void;
+  onTimeChange: (field: 'start' | 'end', value: string) => void;
 }) {
   return (
     <div className="flex flex-col gap-3 rounded-[17px] bg-[#faf6f3] px-4 py-3 sm:flex-row sm:items-center">
       <div className="flex flex-1 items-center gap-3">
-        <span
+        <button
+          type="button"
+          role="switch"
+          aria-checked={enabled}
+          aria-label={`Ativar ${day}`}
+          onClick={() => onToggle(!enabled)}
           className={[
-            'h-2 w-2 shrink-0 rounded-full',
+            'h-2 w-2 shrink-0 rounded-full transition-colors',
             enabled ? 'bg-[#91a695]' : 'bg-[#d4c6bf]',
           ].join(' ')}
         />
@@ -673,21 +791,38 @@ function ScheduleRow({
       </div>
 
       <div className="flex items-center gap-2">
-        <TimeInput value={start} disabled={!enabled} />
+        <TimeInput
+          value={start}
+          disabled={!enabled}
+          onChange={(value) => onTimeChange('start', value)}
+        />
 
         <span className="text-[9px] text-[#c0aaa0]">até</span>
 
-        <TimeInput value={end} disabled={!enabled} />
+        <TimeInput
+          value={end}
+          disabled={!enabled}
+          onChange={(value) => onTimeChange('end', value)}
+        />
       </div>
     </div>
   );
 }
 
-function TimeInput({ value, disabled }: { value: string; disabled: boolean }) {
+function TimeInput({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: string;
+  disabled: boolean;
+  onChange: (value: string) => void;
+}) {
   return (
     <input
       type="time"
-      defaultValue={value === '—' ? undefined : value}
+      value={value === '—' ? '' : value}
+      onChange={(event) => onChange(event.target.value)}
       disabled={disabled}
       className="h-9 rounded-[11px] border border-[#eee4df] bg-white px-2 text-[9px] font-semibold text-[#80685e] outline-none disabled:bg-[#f3eeeb] disabled:text-[#c4b5ae]"
     />
@@ -698,14 +833,17 @@ function PreferenceCard({
   icon: Icon,
   label,
   value,
+  onClick,
 }: {
   icon: LucideIcon;
   label: string;
   value: string;
+  onClick: () => void;
 }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className="group flex items-center gap-3 rounded-[18px] border border-[#eee5df] bg-[#fffdfc] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[#e2d3cc] hover:bg-[#fffaf8]"
     >
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#f6ede8] text-[#ab8f83]">

@@ -32,6 +32,23 @@ body {
   font-family: 'Fraunces', serif;
 }
 
+@keyframes lock-cursor-glow {
+  0%,
+  100% {
+    box-shadow: 0 4px 10px rgba(138, 111, 99, 0.22);
+  }
+
+  50% {
+    box-shadow:
+      0 5px 14px rgba(138, 111, 99, 0.38),
+      0 0 0 4px rgba(201, 175, 165, 0.16);
+  }
+}
+
+.lock-cursor-indicator {
+  animation: lock-cursor-glow 1.6s ease-in-out infinite;
+}
+
 /*.font-sans-premium {*/
 /*  font-family: "Inter", sans-serif;*/
 /*}*/
