@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   icons: {
     icon: '/icon.ico',
   },
+  manifest: '/manifest.webmanifest',
 };
 
 const cormorant = Cormorant_Garamond({

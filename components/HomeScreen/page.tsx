@@ -9,6 +9,7 @@ import { AppointmentCalendar } from '@/components/HomeScreen/Appointment/Appoint
 import { AppointmentList } from '@/components/HomeScreen/Appointment/AppointmentList';
 import { AppointmentModal } from '@/components/HomeScreen/Appointment/AppointmentModal';
 import { AppointmentHistoryModal } from '@/components/HomeScreen/Appointment/AppointmentHistoryModal';
+import { InstallAppPrompt } from '@/components/HomeScreen/InstallAppPrompt';
 import { NewAppointmentButton } from '@/components/HomeScreen/Appointment/NewAppointmentButton';
 import { HomeHeader } from '@/components/HomeScreen/HomeHeader';
 import { deleteAppointment, updateAppointment } from '@/lib/api/appointments';
@@ -118,6 +119,8 @@ export default function Page({
       />
 
       {historyOpen && <AppointmentHistoryModal appointments={appointments} onClose={() => setHistoryOpen(false)} />}
+
+      <InstallAppPrompt />
     </main>
   );
 }

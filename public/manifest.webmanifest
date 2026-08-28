@@ -1,0 +1,18 @@
+{
+  "name": "Minea — seu momento de cuidado",
+  "short_name": "Minea",
+  "description": "Agende seus procedimentos de beleza e autocuidado.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf6f3",
+  "theme_color": "#8a6f63",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/minea-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
