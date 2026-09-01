@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation';
 
 import { AmbientBackground } from '@/components/HomeScreen/AmbientBackground';
 import { AppointmentCalendar } from '@/components/HomeScreen/Appointment/AppointmentCalendar';
+import { AppointmentHistoryModal } from '@/components/HomeScreen/Appointment/AppointmentHistoryModal';
 import { AppointmentList } from '@/components/HomeScreen/Appointment/AppointmentList';
 import { AppointmentModal } from '@/components/HomeScreen/Appointment/AppointmentModal';
-import { AppointmentHistoryModal } from '@/components/HomeScreen/Appointment/AppointmentHistoryModal';
-import { InstallAppPrompt } from '@/components/HomeScreen/InstallAppPrompt';
 import { NewAppointmentButton } from '@/components/HomeScreen/Appointment/NewAppointmentButton';
 import { HomeHeader } from '@/components/HomeScreen/HomeHeader';
+import { InstallAppPrompt } from '@/components/HomeScreen/InstallAppPrompt';
 import { deleteAppointment, updateAppointment } from '@/lib/api/appointments';
 import type { Appointment, User } from '@/types';
 import { buildWeekStrip, sameDay } from '@/utils/utils';
@@ -116,9 +116,15 @@ export default function Page({
 
           setSelectedAppointment(null);
         }}
+        isAdmin={user.isAdmin}
       />
 
-      {historyOpen && <AppointmentHistoryModal appointments={appointments} onClose={() => setHistoryOpen(false)} />}
+      {historyOpen && (
+        <AppointmentHistoryModal
+          appointments={appointments}
+          onClose={() => setHistoryOpen(false)}
+        />
+      )}
 
       <InstallAppPrompt />
     </main>

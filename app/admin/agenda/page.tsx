@@ -498,6 +498,16 @@ export default function AdminAgendaPage() {
             );
             setSelectedAppointment(updated);
           }}
+          onApprove={async (appointment) => {
+            const updated = await updateAppointment(appointment.id, {
+              status: 'confirmed',
+            });
+
+            setAppointments((current) =>
+              current.map((item) => (item.id === updated.id ? updated : item)),
+            );
+            setSelectedAppointment(updated);
+          }}
           onComplete={async (appointment) => {
             const updated = await updateAppointment(appointment.id, {
               status: 'completed',
@@ -518,6 +528,7 @@ export default function AdminAgendaPage() {
             );
             setSelectedAppointment(updated);
           }}
+          isAdmin={true}
         />
 
         {showNewAppointment && (

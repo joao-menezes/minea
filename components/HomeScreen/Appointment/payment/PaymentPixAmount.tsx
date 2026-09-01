@@ -15,12 +15,7 @@ export function PaymentPixAmount({ amount }: PaymentPixAmountProps) {
             Total do agendamento
           </p>
 
-          <p className="mt-1 text-[30px] font-bold tracking-[-0.04em]">
-            {amount.toLocaleString('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-            })}
-          </p>
+          <p className="mt-1 text-[30px] font-bold tracking-[-0.04em]">{amount}</p>
         </div>
 
         <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 backdrop-blur">

@@ -4,8 +4,8 @@ import { useMemo, useState } from 'react';
 
 import { ArrowLeft, ArrowRight, Check, Sparkles, X } from 'lucide-react';
 
-import { CustomDropdown } from '@/components/CustomDropdown';
 import { CustomCalendar } from '@/components/CustomCalendar';
+import { CustomDropdown } from '@/components/CustomDropdown';
 import { CustomTimePicker } from '@/components/CustomTimePicker';
 import { PaymentPixModal } from '@/components/HomeScreen/Appointment/payment/PaymentPixModal';
 import { createAppointment, deleteAppointment } from '@/lib/api/appointments';
@@ -51,6 +51,8 @@ export function BookingFlow({
   const [pendingAppointment, setPendingAppointment] = useState<PendingAppointment | null>(null);
   const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
   const [payment, setPayment] = useState<PixPayment | null>(null);
+  const [sinalAck, setSinalAck] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const selectedService = useMemo(
     () => services.find((service) => service.id === selectedServiceId) ?? null,
@@ -135,12 +137,6 @@ export function BookingFlow({
       return;
     }
 
-    const appointmentDate = new Date(selectedDate);
-
-    const [hours, minutes] = selectedTime.split(':');
-
-    appointmentDate.setHours(Number(hours), Number(minutes), 0, 0);
-
     const targetUserId = adminMode ? selectedClientId : userId;
 
     if (!targetUserId) {
@@ -148,25 +144,26 @@ export function BookingFlow({
       return;
     }
 
-    const pending: PendingAppointment = {
-      appointmentId: '',
-      userId: targetUserId,
-      serviceId: selectedService.id,
-      date: appointmentDate.toISOString(),
-      time: selectedTime,
-      service: selectedService,
-    };
+    if (!adminMode && !sinalAck) {
+      setError('Confirme que está ciente do sinal de R$ 30 para concluir o agendamento.');
+      return;
+    }
+
+    const appointmentDate = new Date(selectedDate);
+    const [hours, minutes] = selectedTime.split(':');
+    appointmentDate.setHours(Number(hours), Number(minutes), 0, 0);
 
     setError('');
+    setSubmitting(true);
 
     let savedAppointment: Appointment | null = null;
 
     try {
       savedAppointment = await createAppointment({
-        userId: pending.userId,
-        serviceId: pending.serviceId,
-        date: pending.date,
-        time: pending.time,
+        userId: targetUserId,
+        serviceId: selectedService.id,
+        date: appointmentDate.toISOString(),
+        time: selectedTime,
       });
 
       if (adminMode) {
@@ -174,21 +171,23 @@ export function BookingFlow({
         return;
       }
 
-      const pixPayment = await createPixPayment(savedAppointment.id);
-      setCreatedAppointment(savedAppointment);
-      setPendingAppointment({ ...pending, appointmentId: savedAppointment.id });
-      setPayment(pixPayment);
-      setPaymentOpen(true);
+      await createPixPayment(savedAppointment.id);
+      onComplete(savedAppointment);
     } catch (error) {
       if (savedAppointment && !adminMode) {
         try {
-          await deleteAppointment(savedAppointment.id, pending.userId);
+          await deleteAppointment(savedAppointment.id, targetUserId);
         } catch (rollbackError) {
-          console.error('Não foi possível desfazer o agendamento após falha no PIX:', rollbackError);
+          console.error(
+            'Não foi possível desfazer o agendamento após falha no registro do sinal:',
+            rollbackError,
+          );
         }
       }
 
-      setError(error instanceof Error ? error.message : 'Não foi possível iniciar o pagamento.');
+      setError(error instanceof Error ? error.message : 'Não foi possível concluir o agendamento.');
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -221,7 +220,8 @@ export function BookingFlow({
             </p>
 
             <p className="mt-0.5 text-sm font-bold text-[#4b3b36]">
-              {step === 1 && (adminMode ? 'Escolha cliente e procedimento' : 'Escolha seu procedimento')}
+              {step === 1 &&
+                (adminMode ? 'Escolha cliente e procedimento' : 'Escolha seu procedimento')}
               {step === 2 && 'Escolha data e horário'}
               {step === 3 && 'Confirme seu agendamento'}
             </p>
@@ -502,6 +502,33 @@ export function BookingFlow({
                   </div>
                 </div>
               </div>
+              {!adminMode && (
+                <div className="mt-4 rounded-[22px] border border-[#e7ded9] bg-[#faf3ee] p-4">
+                  <p className="text-xs leading-relaxed text-[#80665c]">
+                    Para confirmar sua reserva, é necessário efetuar um{' '}
+                    <strong>sinal de R$ 30</strong> (valor descontado do total no dia do
+                    atendimento). O agendamento fica <strong>pendente</strong> até a confirmação do
+                    pagamento e aprovação.
+                  </p>
+
+                  <label className="mt-3 flex cursor-pointer items-start gap-2.5">
+                    <input
+                      type="checkbox"
+                      checked={sinalAck}
+                      onChange={(event) => {
+                        setSinalAck(event.target.checked);
+                        setError('');
+                      }}
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-[#d8c9c3] text-[#80665c] focus:ring-[#80665c]"
+                    />
+
+                    <span className="text-[11px] font-semibold text-[#5c4a43]">
+                      Estou ciente de que preciso pagar o sinal de R$ 30 para confirmar este
+                      agendamento.
+                    </span>
+                  </label>
+                </div>
+              )}
             </div>
           )}
 

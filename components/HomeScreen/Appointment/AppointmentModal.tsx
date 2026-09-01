@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { CustomCalendar } from '@/components/CustomCalendar';
 import { CustomTimePicker, DEFAULT_TIMES } from '@/components/CustomTimePicker';
 import { Modal } from '@/components/Modal';
+import { updateAppointment } from '@/lib/api/appointments';
 import type { Appointment } from '@/types';
 import { getAppointmentStatusLabel } from '@/utils/utils';
 
@@ -27,6 +28,8 @@ type AppointmentModalProps = {
   onSave?: (appointment: Appointment) => Promise<void>;
   onCancel?: (appointment: Appointment) => Promise<void>;
   onComplete?: (appointment: Appointment) => Promise<void>;
+  onApprove?: (appointment: Appointment) => Promise<void>;
+  isAdmin?: boolean;
 };
 
 export function AppointmentModal({
@@ -36,6 +39,8 @@ export function AppointmentModal({
   onSave,
   onCancel,
   onComplete,
+  onApprove,
+  isAdmin = false,
 }: AppointmentModalProps) {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
@@ -44,6 +49,26 @@ export function AppointmentModal({
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
+
+  const isLocked =
+    (!isAdmin && appointment?.status === 'completed') || appointment?.status === 'cancelled';
+
+  async function handleApprove() {
+    if (!onApprove || !appointment) return;
+
+    try {
+      setSaving(true);
+      setError('');
+
+      await onApprove(appointment);
+      toast.success('Agendamento aprovado com sucesso!');
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao aprovar agendamento');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   useEffect(() => {
     if (!appointment) return;
@@ -131,7 +156,7 @@ export function AppointmentModal({
         open={open}
         onClose={onClose}
         title="Seu agendamento"
-        description="Confira ou altere os detalhes da sua reserva."
+        description="Confira ou altere os detalhes da reserva."
         size="lg"
         contentClassName="bg-[#fdfaf8]"
         footer={
@@ -144,7 +169,7 @@ export function AppointmentModal({
               Fechar
             </button>
 
-            {onSave && (
+            {onSave && !isLocked && (
               <button
                 type="button"
                 onClick={() => (editing ? handleSave() : setEditing(true))}
@@ -249,6 +274,19 @@ export function AppointmentModal({
               </div>
             </button>
           )}
+
+          {onApprove && appointment.status === 'scheduled' && (
+            <button
+              type="button"
+              onClick={handleApprove}
+              disabled={saving}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#cfe0d1] bg-[#f5fbf5] px-4 py-3 text-xs font-bold text-[#64836a] transition hover:border-[#b6d1ba] hover:bg-[#edf8ee] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Check size={15} />
+              {saving ? 'Aprovando...' : 'Aprovar agendamento (sinal recebido)'}
+            </button>
+          )}
+
           {onComplete &&
             appointment.status !== 'completed' &&
             appointment.status !== 'cancelled' && (
@@ -262,7 +300,7 @@ export function AppointmentModal({
                 {saving ? 'Atualizando...' : 'Marcar como concluído'}
               </button>
             )}
-          {onCancel && (
+          {onCancel && appointment.status !== 'completed' && (
             <div className="border-t border-[#eadfd9] pt-5">
               <button
                 type="button"
