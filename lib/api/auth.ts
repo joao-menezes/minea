@@ -2,6 +2,7 @@ import { SignInData, SignUpData, User } from '@/types';
 
 import { ApiRequestError, apiFetch } from './client';
 import { TOKEN_KEY } from './client';
+import { unregisterPushNotifications } from '@/lib/push-notifications';
 
 const SESSION_KEY = 'minea_user';
 
@@ -94,8 +95,14 @@ export async function getCurrentUser(): Promise<User | null> {
 }
 
 export async function signOut(): Promise<void> {
-  localStorage.removeItem(SESSION_KEY);
-  localStorage.removeItem(TOKEN_KEY);
+  try {
+    await unregisterPushNotifications();
+  } catch (error) {
+    console.warn('Não foi possível remover o token de notificações:', error);
+  } finally {
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+  }
 }
 
 export async function updateUserProfile(

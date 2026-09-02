@@ -1,5 +1,6 @@
 import { LogOut, UserRound } from 'lucide-react';
 
+import { PushNotificationButton } from '@/components/PushNotificationButton';
 import type { User } from '@/types';
 
 type HomeHeaderProps = {
@@ -32,6 +33,8 @@ export function HomeHeader({ user, onLogout, onProfile }: HomeHeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
+        <PushNotificationButton />
+
         <button
           type="button"
           onClick={onProfile}
