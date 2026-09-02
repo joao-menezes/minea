@@ -110,6 +110,8 @@ export function AppointmentModal({
       toast.success('Agendamento atualizado com sucesso!');
       onClose();
     } catch (err) {
+      const errorMessage = String(err);
+      toast.error(errorMessage.includes(':') ? errorMessage.slice(errorMessage.indexOf(':') + 1).trim() : errorMessage);
       setError(err instanceof Error ? err.message : 'Erro ao atualizar agendamento');
     } finally {
       setSaving(false);
@@ -173,7 +175,7 @@ export function AppointmentModal({
               <button
                 type="button"
                 onClick={() => (editing ? handleSave() : setEditing(true))}
-                disabled={saving}
+                disabled={saving || !isAdmin}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#493a35] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#3f322e]"
               >
                 {editing ? <Check size={16} /> : <Pencil size={15} />}

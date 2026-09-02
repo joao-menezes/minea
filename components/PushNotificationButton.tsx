@@ -1,13 +1,16 @@
 'use client';
 
-import { Bell, BellOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
+import { Bell, BellOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { enablePushNotifications } from '@/lib/push-notifications';
 
 export function PushNotificationButton() {
-  const [permission, setPermission] = useState<NotificationPermission | 'unsupported'>('unsupported');
+  const [permission, setPermission] = useState<NotificationPermission | 'unsupported'>(
+    'unsupported',
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -55,7 +58,11 @@ export function PushNotificationButton() {
       onClick={() => void enable()}
       disabled={loading || permission === 'denied'}
       aria-label="Ativar notificações"
-      title={permission === 'denied' ? 'Permita as notificações nas configurações do navegador' : 'Ativar notificações'}
+      title={
+        permission === 'denied'
+          ? 'Permita as notificações nas configurações do navegador'
+          : 'Ativar notificações'
+      }
       className="group flex h-11 w-11 items-center justify-center rounded-full border border-[#f0e6de] bg-white/80 text-[#a68b7f] shadow-[0_10px_30px_-18px_rgba(66,48,42,.25)] backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
     >
       <BellOff size={16} strokeWidth={1.7} className="transition-transform group-hover:scale-105" />

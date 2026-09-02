@@ -163,6 +163,11 @@ export function AppointmentCalendar({
     setIsCalendarOpen((current) => !current);
   };
 
+  const activeAppointments = useMemo(
+    () => appointments.filter((a) => a.status !== 'cancelled' && a.status !== 'completed'),
+    [appointments],
+  );
+
   return (
     <section className="mt-9">
       <div className="mb-4 flex items-end justify-between">
@@ -206,7 +211,8 @@ export function AppointmentCalendar({
           />
 
           <span className="text-[9px] font-bold uppercase tracking-wide">
-            {appointmentCount} {appointmentCount === 1 ? 'agendamento' : 'agendamentos'}
+            {activeAppointments.length}{' '}
+            {activeAppointments.length === 1 ? 'agendamento' : 'agendamentos'}
           </span>
         </button>
       </div>
@@ -410,7 +416,7 @@ export function AppointmentCalendar({
             </div>
 
             <div className="max-h-[65vh] overflow-y-auto p-5">
-              {appointments.length === 0 ? (
+              {activeAppointments.length === 0 ? (
                 <div className="rounded-[22px] border border-[#eee4df] bg-[#faf7f5] px-5 py-10 text-center">
                   <CalendarDays size={24} strokeWidth={1.5} className="mx-auto text-[#b99d91]" />
 
@@ -422,7 +428,7 @@ export function AppointmentCalendar({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {appointments.map((appointment) => {
+                  {activeAppointments.map((appointment) => {
                     const appointmentDate = new Date(appointment.date);
 
                     return (
