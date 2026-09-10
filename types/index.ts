@@ -9,7 +9,7 @@ export type Service = {
   description: string | null;
 
   duration: number;
-  price: number;
+  price: number | string;
 
   active: boolean;
 
@@ -29,7 +29,7 @@ export type CreateServiceData = {
   name: string;
   description: string | null;
   duration: number;
-  price: number;
+  price: number | string;
   active: boolean;
 };
 
@@ -112,7 +112,7 @@ export type Appointment = {
   services: string[];
 
   duration: number;
-  price: number;
+  price: number | string;
 
   categoria: string;
   cor: string;
@@ -198,7 +198,7 @@ export type FinancialAppointmentData = {
   date: string;
   time: string;
   title: string;
-  price: number;
+  price: number | string;
 };
 
 export type FinancialReport = {
@@ -233,12 +233,15 @@ export type FinancialSummary = {
 
 export type PixPayment = {
   id: string;
+  appointmentId: string;
   status: PixPaymentStatus;
-  transactionAmount: number;
-  qrCode: string | null;
-  qrCodeBase64: string | null;
-  ticketUrl: string | null;
-  dateOfExpiration: string | null;
+  amount: number;
+  appointmentStatus: AppointmentStatus;
+  transactionAmount?: number;
+  qrCode?: string | null;
+  qrCodeBase64?: string | null;
+  ticketUrl?: string | null;
+  dateOfExpiration?: string | null;
   statusDetail?: string | null;
 };
 

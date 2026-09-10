@@ -2,12 +2,12 @@ import { Appointment, CreateAppointmentData, UpdateAppointmentData } from '@/typ
 
 import { apiFetch } from './client';
 
-export async function getAppointments(userId: string): Promise<Appointment[]> {
-  return apiFetch<Appointment[]>(`/appointments?userId=${encodeURIComponent(userId)}`);
+export async function getAppointments(_userId?: string, page = 1, limit = 50): Promise<Appointment[]> {
+  return apiFetch<Appointment[]>(`/appointments?page=${page}&limit=${limit}`);
 }
 
-export async function getAllAppointment(): Promise<Appointment[]> {
-  return apiFetch<Appointment[]>('/appointments');
+export async function getAllAppointment(page = 1, limit = 100): Promise<Appointment[]> {
+  return apiFetch<Appointment[]>(`/appointments?page=${page}&limit=${limit}`);
 }
 
 export async function createAppointment(data: CreateAppointmentData): Promise<Appointment> {
@@ -27,11 +27,6 @@ export async function updateAppointment(
   });
 }
 
-export async function deleteAppointment(id: string, userId: string): Promise<void> {
-  await apiFetch<void>(`/appointments/${id}`, {
-    method: 'DELETE',
-    body: JSON.stringify({
-      userId,
-    }),
-  });
+export async function deleteAppointment(id: string, _userId?: string): Promise<void> {
+  await apiFetch<void>(`/appointments/${id}`, { method: 'DELETE' });
 }

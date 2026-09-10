@@ -359,7 +359,7 @@ export default function AdminServicesPage() {
           onSave={async (updatedService) => {
             const savedService = await updateService(updatedService.id, {
               name: updatedService.name,
-              price: updatedService.price,
+              price: Number(updatedService.price),
               duration: updatedService.duration,
             });
 

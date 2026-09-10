@@ -181,7 +181,7 @@ export function exportFinancialReport(data: FinancialReportData): void {
     body: data.appointmentsData.map((appointment) => [
       formatDate(appointment.date),
       appointment.title,
-      formatCurrency(appointment.price),
+      formatCurrency(Number(appointment.price)),
     ]),
 
     theme: 'plain',

@@ -68,6 +68,20 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
+    function handleUnauthorized() {
+      setUser(null);
+      setAppointments([]);
+      setShowNewAppointment(false);
+      setShowProfile(false);
+      setScreen('login');
+      setLoginError('Sua sessão expirou. Entre novamente.');
+    }
+
+    window.addEventListener('minea:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('minea:unauthorized', handleUnauthorized);
+  }, []);
+
+  useEffect(() => {
     if (!appointments.length) return;
 
     function checkUpcomingAppointments() {

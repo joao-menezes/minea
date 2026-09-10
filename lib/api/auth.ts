@@ -7,26 +7,19 @@ import { unregisterPushNotifications } from '@/lib/push-notifications';
 const SESSION_KEY = 'minea_user';
 
 export async function signIn({ cpf, password }: SignInData): Promise<User> {
-  let data: {
-    token?: string;
-    user?: {
-      token?: string;
-    };
-  };
+  let data: { token?: string; user?: { message?: string; token?: string } };
 
   try {
-    data = await apiFetch<{
-      token?: string;
-      user?: {
-        token?: string;
-      };
-    }>('/auth/signin', {
+    data = await apiFetch<{ token?: string; user?: { message?: string; token?: string } }>(
+      '/auth/signin',
+      {
       method: 'POST',
       body: JSON.stringify({
         cpf: cpf.replace(/\D/g, ''),
         password,
       }),
-    });
+      },
+    );
   } catch (error) {
     if (
       error instanceof ApiRequestError &&
@@ -38,7 +31,7 @@ export async function signIn({ cpf, password }: SignInData): Promise<User> {
     throw error;
   }
 
-  const token = data.token ?? data.user?.token;
+  const token = data.user?.token ?? data.token;
 
   if (!token) {
     throw new Error('O servidor não retornou um token de autenticação.');
@@ -46,16 +39,9 @@ export async function signIn({ cpf, password }: SignInData): Promise<User> {
 
   localStorage.setItem(TOKEN_KEY, token);
 
-  const user = await apiFetch<{ user: User }>(`/auth/me/${getTokenSubject(token)}`);
-
-  if (user.user.isActive === false) {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(SESSION_KEY);
-    throw new Error('Sua conta está desativada. Entre em contato com a clínica.');
-  }
-
-  localStorage.setItem(SESSION_KEY, JSON.stringify(user.user));
-  return user.user;
+  const user = decodeUserFromToken(token);
+  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+  return user;
 }
 
 export async function signUp({ cpf, name, birthDate, password }: SignUpData): Promise<User> {
@@ -64,7 +50,7 @@ export async function signUp({ cpf, name, birthDate, password }: SignUpData): Pr
     body: JSON.stringify({
       cpf: cpf.replace(/\D/g, ''),
       name,
-      birthDate,
+      birthDate: birthDate ? toApiDate(birthDate) : undefined,
       password,
     }),
   });
@@ -130,7 +116,7 @@ export async function changeUserPassword(
   });
 }
 
-function getTokenSubject(token: string): string {
+function decodeUserFromToken(token: string): User {
   const payload = token.split('.')[1];
 
   if (!payload) {
@@ -140,14 +126,36 @@ function getTokenSubject(token: string): string {
   try {
     const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as {
       id?: string;
+      sub?: string;
+      userId?: string;
+      name?: string;
+      cpf?: string;
+      birthDate?: string | null;
+      isAdmin?: boolean;
+      role?: string;
     };
 
-    if (!decoded.id) {
+    const id = decoded.id ?? decoded.userId ?? decoded.sub;
+
+    if (!id) {
       throw new Error('Token de autenticação inválido.');
     }
 
-    return decoded.id;
+    return {
+      id,
+      name: decoded.name ?? '',
+      cpf: decoded.cpf ?? '',
+      birthDate: decoded.birthDate,
+      isAdmin: decoded.isAdmin ?? decoded.role === 'admin',
+    };
   } catch {
     throw new Error('Token de autenticação inválido.');
   }
+}
+
+function toApiDate(value: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+
+  const [day, month, year] = value.split('/');
+  return `${year}-${month}-${day}`;
 }

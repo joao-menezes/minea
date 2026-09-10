@@ -2,8 +2,8 @@ import { CreateServiceData, Service, UpdateServiceData } from '@/types';
 
 import { apiFetch } from './client';
 
-export async function getServices(): Promise<Service[]> {
-  return apiFetch<Service[]>('/services');
+export async function getServices(page = 1, limit = 100): Promise<Service[]> {
+  return apiFetch<Service[]>(`/services?page=${page}&limit=${limit}`);
 }
 
 export async function getActiveServices(): Promise<Service[]> {

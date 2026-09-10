@@ -103,7 +103,7 @@ export function AppointmentSummary({
         <span className="text-sm text-[#8e817b]">Total</span>
 
         <span className="text-2xl font-semibold text-[#403936]">
-          {price.toLocaleString('pt-BR', {
+          {Number(price).toLocaleString('pt-BR', {
             style: 'currency',
             currency: 'BRL',
           })}

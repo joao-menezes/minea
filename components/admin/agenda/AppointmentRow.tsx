@@ -68,7 +68,9 @@ export function AppointmentRow({ appointment, onClick }: AppointmentRowProps) {
           }).format(new Date(appointment.date))}
         </p>
 
-        <p className="mt-1 text-[11px] text-[#b49b90]">R$ {appointment.price.toFixed(2)}</p>
+        <p className="mt-1 text-[11px] text-[#b49b90]">
+          R$ {Number(appointment.price).toFixed(2)}
+        </p>
       </div>
     </button>
   );

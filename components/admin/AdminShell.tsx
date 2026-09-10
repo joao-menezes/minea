@@ -77,12 +77,20 @@ export function AdminShell({ children }: AdminShellProps) {
     void checkAccess();
   }, [pathname, router]);
 
-  // Fecha o drawer quando muda de página
+  useEffect(() => {
+    function handleUnauthorized() {
+      setAuthenticated(false);
+      router.replace('/admin/login');
+    }
+
+    window.addEventListener('minea:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('minea:unauthorized', handleUnauthorized);
+  }, [router]);
+
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
 
-  // Impede scroll da página quando o menu está aberto
   useEffect(() => {
     if (!mobileMenuOpen) return;
 

@@ -506,7 +506,7 @@ function ServiceRow({ service }: { service: Service }) {
         </div>
 
         <p className="shrink-0 text-[11px] font-bold text-[#80685e]">
-          {formatCurrency(service.price)}
+          {formatCurrency(Number(service.price))}
         </p>
       </div>
 

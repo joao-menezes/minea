@@ -70,7 +70,7 @@ export function PaymentPix({ payment, onSkipPayment, onBack, onConfirmed }: Paym
     <div className="bg-[#fffdfc] px-5 pb-7 pt-4">
       <PaymentPixHeader onBack={onBack} />
 
-      <PaymentPixAmount amount={payment.transactionAmount} />
+      <PaymentPixAmount amount={payment.transactionAmount ?? payment.amount} />
 
       <PaymentPixQrCode base64={payment.qrCodeBase64} />
 

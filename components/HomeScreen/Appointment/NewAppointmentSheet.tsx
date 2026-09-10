@@ -7,10 +7,9 @@ import { ArrowLeft, ArrowRight, Check, Sparkles, X } from 'lucide-react';
 import { CustomCalendar } from '@/components/CustomCalendar';
 import { CustomDropdown } from '@/components/CustomDropdown';
 import { CustomTimePicker } from '@/components/CustomTimePicker';
-import { PaymentPixModal } from '@/components/HomeScreen/Appointment/payment/PaymentPixModal';
-import { createAppointment, deleteAppointment } from '@/lib/api/appointments';
+import { createAppointment } from '@/lib/api/appointments';
 import { createPixPayment } from '@/lib/api/payment';
-import type { Appointment, Client, PendingAppointment, PixPayment, Service } from '@/types';
+import type { Appointment, Client, Service } from '@/types';
 
 type BookingStep = 1 | 2 | 3;
 
@@ -47,10 +46,6 @@ export function BookingFlow({
   const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [error, setError] = useState<string | null>('');
-  const [paymentOpen, setPaymentOpen] = useState(false);
-  const [pendingAppointment, setPendingAppointment] = useState<PendingAppointment | null>(null);
-  const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
-  const [payment, setPayment] = useState<PixPayment | null>(null);
   const [sinalAck, setSinalAck] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -149,56 +144,28 @@ export function BookingFlow({
       return;
     }
 
-    const appointmentDate = new Date(selectedDate);
-    const [hours, minutes] = selectedTime.split(':');
-    appointmentDate.setHours(Number(hours), Number(minutes), 0, 0);
-
     setError('');
     setSubmitting(true);
 
-    let savedAppointment: Appointment | null = null;
-
     try {
-      savedAppointment = await createAppointment({
+      const savedAppointment = await createAppointment({
         userId: targetUserId,
         serviceId: selectedService.id,
-        date: appointmentDate.toISOString(),
+        date: formatDateForApi(selectedDate),
         time: selectedTime,
+        notes: undefined,
       });
 
-      if (adminMode) {
-        onComplete(savedAppointment);
-        return;
+      if (!adminMode) {
+        await createPixPayment(savedAppointment.id);
       }
 
-      await createPixPayment(savedAppointment.id);
       onComplete(savedAppointment);
     } catch (error) {
-      if (savedAppointment && !adminMode) {
-        try {
-          await deleteAppointment(savedAppointment.id, targetUserId);
-        } catch (rollbackError) {
-          console.error(
-            'Não foi possível desfazer o agendamento após falha no registro do sinal:',
-            rollbackError,
-          );
-        }
-      }
-
       setError(error instanceof Error ? error.message : 'Não foi possível concluir o agendamento.');
     } finally {
       setSubmitting(false);
     }
-  }
-
-  function confirmAppointment() {
-    if (!pendingAppointment || !createdAppointment) return;
-
-    setPaymentOpen(false);
-    setPendingAppointment(null);
-    setPayment(null);
-    setCreatedAppointment(null);
-    onComplete(createdAppointment);
   }
 
   return (
@@ -544,11 +511,12 @@ export function BookingFlow({
             type="button"
             onClick={step === 3 ? finish : next}
             disabled={
-              step === 1
+              submitting ||
+              (step === 1
                 ? loadingServices ||
                   services.length === 0 ||
                   (adminMode && (!selectedClientId || clients.length === 0))
-                : false
+                : false)
             }
             className="flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#80665c] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[#6f574e] disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -558,26 +526,20 @@ export function BookingFlow({
           </button>
         </div>
       </div>
-      {pendingAppointment && payment && (
-        <PaymentPixModal
-          pendingAppointment={pendingAppointment}
-          payment={payment}
-          open={paymentOpen}
-          onClose={() => {
-            setPaymentOpen(false);
-            setPendingAppointment(null);
-          }}
-          onPaymentApproved={confirmAppointment}
-          onSkipPayment={confirmAppointment}
-        />
-      )}
     </div>
   );
 }
 
-function formatCurrency(value: number): string {
-  return value.toLocaleString('pt-BR', {
+function formatCurrency(value: number | string): string {
+  return Number(value).toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
   });
+}
+
+function formatDateForApi(value: Date): string {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }

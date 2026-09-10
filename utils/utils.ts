@@ -1,10 +1,10 @@
 import type { AppointmentStatus } from '@/types';
 
-export function formatCurrency(value: number): string {
+export function formatCurrency(value: number | string): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
-  }).format(value);
+  }).format(Number(value));
 }
 
 export function buildWeekStrip(centerDate: Date): Date[] {
