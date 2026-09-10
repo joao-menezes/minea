@@ -76,7 +76,8 @@ export default function AdminAgendaPage() {
   const filteredAppointments = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return appointments.filter((appointment) => {
+    return appointments
+      .filter((appointment) => {
       const appointmentDate = new Date(appointment.date);
       const matchesDay =
         sameDay(appointmentDate, selectedDay) ||
@@ -90,8 +91,9 @@ export default function AdminAgendaPage() {
         appointment.clientName?.toLowerCase().includes(query) ||
         appointment.title.toLowerCase().includes(query);
 
-      return matchesDay && matchesStatus && matchesSearch;
-    });
+        return matchesDay && matchesStatus && matchesSearch;
+      })
+      .sort((first, second) => getAppointmentMinutes(first) - getAppointmentMinutes(second));
   }, [appointments, search, selectedDay, statusFilter]);
 
   const selectDay = (date: Date) => {
@@ -272,6 +274,9 @@ export default function AdminAgendaPage() {
               {displayedWeek.map((date) => {
                 const selected = sameDay(selectedDay, date);
                 const isToday = sameDay(new Date(), date);
+                const hasAppointments = appointments.some((appointment) =>
+                  sameDay(new Date(appointment.date), date),
+                );
 
                 return (
                   <button
@@ -279,16 +284,16 @@ export default function AdminAgendaPage() {
                     type="button"
                     onClick={() => selectDay(date)}
                     className={[
-                      `relative flex min-h-[76px] flex-col items-center justify-center rounded-[20px] transition-all`,
+                      `relative flex min-h-[76px] flex-col items-center justify-center rounded-[16px] border transition-all`,
                       selected
-                        ? `bg-[#a98d81] text-white shadow-[0_12px_25px_-13px_rgba(169,141,129,.7)]`
-                        : `text-[#a9948b] hover:bg-[#faf4f1]`,
+                        ? `border-[#806057] bg-[#806057] text-white shadow-[0_12px_25px_-13px_rgba(128,96,87,.55)]`
+                        : `border-transparent text-[#80685e] hover:border-[#eaded8] hover:bg-[#faf4f1]`,
                     ].join(' ')}
                   >
                     <span
                       className={[
                         'text-[8px] font-bold tracking-[0.1em]',
-                        selected ? 'text-white/65' : 'text-[#c5b2a9]',
+                        selected ? 'text-white/70' : 'text-[#b49b90]',
                       ].join(' ')}
                     >
                       {date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}
@@ -296,8 +301,11 @@ export default function AdminAgendaPage() {
 
                     <span className="mt-1 text-[17px] font-semibold">{date.getDate()}</span>
 
-                    {isToday && !selected && (
-                      <span className="absolute bottom-2 h-1 w-1 rounded-full bg-[#d4b6a8]" />
+                    {hasAppointments && !selected && (
+                      <span className="absolute bottom-2 h-1.5 w-1.5 rounded-full bg-[#b99386]" />
+                    )}
+                    {isToday && !selected && !hasAppointments && (
+                      <span className="absolute bottom-2 h-1.5 w-1.5 rounded-full bg-[#806057]" />
                     )}
                   </button>
                 );
@@ -358,38 +366,39 @@ export default function AdminAgendaPage() {
           )}
 
           <section className="mt-5 grid gap-5 xl:grid-cols-[1.5fr_.8fr]">
-            <div className="rounded-[30px] border border-white/70 bg-white/85 p-5 shadow-[0_22px_50px_-34px_rgba(64,46,40,.28)] backdrop-blur lg:p-6">
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Clock3 size={14} className="text-[#ab8f83]" />
-
-                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#a98d81]">
-                    Horários do dia
-                  </span>
+            <div className="overflow-hidden rounded-[22px] border border-[#dfe3e8] bg-white shadow-[0_8px_24px_-18px_rgba(52,64,78,.35)]">
+              <div className="flex items-center justify-between border-b border-[#e7eaee] px-5 py-4 lg:px-6">
+                <div>
+                  <p className="text-[11px] font-semibold text-[#344054]">Agenda do dia</p>
+                  <p className="mt-1 text-[10px] text-[#98a2b3]">Horários e atendimentos programados</p>
                 </div>
-
-                <span className="text-[9px] font-semibold text-[#c1aaa0]">08:00 — 18:00</span>
+                <span className="text-[10px] font-medium text-[#667085]">08:00 — 18:00</span>
               </div>
 
-              <div className="divide-y divide-[#f3ebe7]">
+              <div className="bg-[#fbfcfd] px-4 py-3 lg:px-5">
                 {loading ? (
                   <div className="py-16 text-center text-[10px] text-[#b49b90]">
                     Carregando agenda...
                   </div>
                 ) : (
                   <>
-                    {filteredAppointments.map((appointment) => (
-                      <AppointmentRow
-                        key={appointment.id}
-                        appointment={appointment}
-                        onClick={() => setSelectedAppointment(appointment)}
-                      />
-                    ))}
+                    {filteredAppointments.length > 0 && (
+                      <div className="relative">
+                        <div className="absolute bottom-3 left-[61px] top-3 w-px bg-[#e4e7ec]" />
+                        {filteredAppointments.map((appointment) => (
+                          <AppointmentRow
+                            key={appointment.id}
+                            appointment={appointment}
+                            onClick={() => setSelectedAppointment(appointment)}
+                          />
+                        ))}
+                      </div>
+                    )}
 
                     {filteredAppointments.length === 0 && (
                       <EmptyRow
-                        title={'Agenda livre'}
-                        message={'Nenhum atendimento encontrado para este dia.'}
+                        title="Agenda livre"
+                        message="Nenhum atendimento encontrado para este dia."
                       />
                     )}
                   </>
@@ -446,7 +455,8 @@ export default function AdminAgendaPage() {
                     <>
                       <div className="mt-7">
                         <p className="text-[10px] font-bold text-[#a98d81]">
-                          {nextAppointment.date}
+                          {formatAppointmentDate(nextAppointment.date)} ·{' '}
+                          {nextAppointment.time.slice(0, 5)}
                         </p>
 
                         <p className="mt-2 font-display text-[27px] tracking-[-0.025em] text-[#6b5850]">
@@ -550,4 +560,18 @@ export default function AdminAgendaPage() {
       </main>
     </AdminShell>
   );
+}
+
+function getAppointmentMinutes(appointment: Appointment): number {
+  const [hours, minutes] = appointment.time.split(':').map(Number);
+  return (hours || 0) * 60 + (minutes || 0);
+}
+
+function formatAppointmentDate(value: string): string {
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+  })
+    .format(new Date(value))
+    .replace('.', '');
 }
