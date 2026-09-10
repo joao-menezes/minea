@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 
 import { getCurrentUser, signOut } from '@/lib/api/auth';
 import type { User } from '@/types';
+import { repairMojibake } from '@/utils/utils';
 
 type AdminHeaderProps = {
   onMenuClick?: () => void;
@@ -96,8 +97,9 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
     }
   }
 
+  const displayName = user?.name ? repairMojibake(user.name) : 'Administrador';
   const initials =
-    user?.name
+    displayName
       ?.split(' ')
       .map((part) => part[0])
       .join('')
@@ -188,7 +190,7 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
 
             <div className="hidden text-left sm:block">
               <p className="text-[11px] font-bold text-[#493a35]">
-                {user?.name ?? 'Administrador'}
+                {displayName}
               </p>
               <p className="text-[9px] text-[#a18b83]">Administrador</p>
             </div>
@@ -205,7 +207,7 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
             <div className="absolute right-0 top-[calc(100%+8px)] w-52 overflow-hidden rounded-xl border border-[#e9e1dc] bg-white shadow-lg">
               <div className="border-b border-[#e9e1dc] px-4 py-3 sm:hidden">
                 <p className="text-[11px] font-bold text-[#493a35]">
-                  {user?.name ?? 'Administrador'}
+                  {displayName}
                 </p>
                 <p className="text-[9px] text-[#a18b83]">Administrador</p>
               </div>

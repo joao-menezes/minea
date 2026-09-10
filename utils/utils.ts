@@ -1,5 +1,18 @@
 import type { AppointmentStatus } from '@/types';
 
+export function repairMojibake(value: string): string {
+  if (!/[ÃÂâ]/.test(value)) return value;
+
+  try {
+    const bytes = Uint8Array.from(value, (character) => character.charCodeAt(0));
+    const repaired = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+
+    return repaired.includes('\uFFFD') ? value : repaired;
+  } catch {
+    return value;
+  }
+}
+
 export function formatCurrency(value: number | string): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',

@@ -3,6 +3,7 @@ import { SignInData, SignUpData, User } from '@/types';
 import { ApiRequestError, apiFetch } from './client';
 import { TOKEN_KEY } from './client';
 import { unregisterPushNotifications } from '@/lib/push-notifications';
+import { repairMojibake } from '@/utils/utils';
 
 const SESSION_KEY = 'minea_user';
 
@@ -73,7 +74,10 @@ export async function getCurrentUser(): Promise<User | null> {
   }
 
   try {
-    return JSON.parse(value) as User;
+    const user = JSON.parse(value) as User;
+    user.name = repairMojibake(user.name);
+    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    return user;
   } catch {
     localStorage.removeItem(SESSION_KEY);
     return null;
@@ -143,7 +147,7 @@ function decodeUserFromToken(token: string): User {
 
     return {
       id,
-      name: decoded.name ?? '',
+      name: repairMojibake(decoded.name ?? ''),
       cpf: decoded.cpf ?? '',
       birthDate: decoded.birthDate,
       isAdmin: decoded.isAdmin ?? decoded.role === 'admin',

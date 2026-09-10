@@ -2,6 +2,7 @@ import { LogOut, UserRound } from 'lucide-react';
 
 import { PushNotificationButton } from '@/components/PushNotificationButton';
 import type { User } from '@/types';
+import { repairMojibake } from '@/utils/utils';
 
 type HomeHeaderProps = {
   user: User;
@@ -10,7 +11,7 @@ type HomeHeaderProps = {
 };
 
 export function HomeHeader({ user, onLogout, onProfile }: HomeHeaderProps) {
-  const firstName = user.name?.split(' ')[0] || 'você';
+  const firstName = repairMojibake(user.name ?? '').split(' ')[0] || 'você';
 
   return (
     <header className="flex items-center justify-between">
