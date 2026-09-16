@@ -14,7 +14,7 @@ import { HomeHeader } from '@/components/HomeScreen/HomeHeader';
 import { InstallAppPrompt } from '@/components/HomeScreen/InstallAppPrompt';
 import { deleteAppointment, updateAppointment } from '@/lib/api/appointments';
 import type { Appointment, User } from '@/types';
-import { buildWeekStrip, sameDay } from '@/utils/utils';
+import { buildWeekStrip, isLateCancellation, sameDay } from '@/utils/utils';
 
 import { HomeHero } from './HomeHero';
 
@@ -110,9 +110,17 @@ export default function Page({
         }}
 
         onCancel={async (appointment) => {
-          await deleteAppointment(appointment.id, user.id);
+          if (appointment.status === 'confirmed' && isLateCancellation(appointment)) {
+            const updated = await updateAppointment(appointment.id, { status: 'completed' });
 
-          setAppointments((current) => current.filter((item) => item.id !== appointment.id));
+            setAppointments((current) =>
+              current.map((item) => (item.id === updated.id ? updated : item)),
+            );
+          } else {
+            await deleteAppointment(appointment.id, user.id);
+
+            setAppointments((current) => current.filter((item) => item.id !== appointment.id));
+          }
 
           setSelectedAppointment(null);
         }}

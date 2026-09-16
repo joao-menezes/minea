@@ -10,6 +10,7 @@ import { CustomTimePicker } from '@/components/CustomTimePicker';
 import { createAppointment } from '@/lib/api/appointments';
 import { createPixPayment } from '@/lib/api/payment';
 import type { Appointment, Client, Service } from '@/types';
+import { getCurrentTimeValue } from '@/utils/utils';
 
 type BookingStep = 1 | 2 | 3;
 
@@ -83,6 +84,18 @@ export function BookingFlow({
     );
   }
 
+  function isSameDayAsToday(date: Date): boolean {
+    const today = new Date();
+
+    return (
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
+    );
+  }
+
+  const minTime = selectedDate && isSameDayAsToday(selectedDate) ? getCurrentTimeValue() : undefined;
+
   function next() {
     if (step === 1) {
       if (selectedServiceId === null) {
@@ -108,6 +121,11 @@ export function BookingFlow({
 
       if (!selectedTime) {
         setError('Escolha um horário para continuar.');
+        return;
+      }
+
+      if (isSameDayAsToday(selectedDate) && selectedTime < getCurrentTimeValue()) {
+        setError('Não é possível agendar para um horário anterior ao horário atual.');
         return;
       }
 
@@ -410,6 +428,7 @@ export function BookingFlow({
 
               <CustomTimePicker
                 value={selectedTime}
+                minTime={minTime}
                 onChange={(time) => {
                   setSelectedTime(time);
                   setError('');

@@ -19,11 +19,12 @@ import { useRouter } from 'next/navigation';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { BookingFlow } from '@/components/HomeScreen/Appointment/NewAppointmentSheet';
 import { getAllAppointment } from '@/lib/api/appointments';
+import { getCurrentUser } from '@/lib/api/auth';
 import { getClients } from '@/lib/api/clients';
 import { getServices } from '@/lib/api/services';
 import { formatCurrency } from '@/lib/financial';
 import type { Appointment, Service } from '@/types';
-import { getAppointmentStatusLabel } from '@/utils/utils';
+import { getAppointmentStatusLabel, repairMojibake } from '@/utils/utils';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -36,6 +37,13 @@ export default function AdminPage() {
   const [activeClients, setActiveClients] = useState(0);
   const [clients, setClients] = useState<Awaited<ReturnType<typeof getClients>>>([]);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
+  const [firstName, setFirstName] = useState('');
+
+  useEffect(() => {
+    void getCurrentUser().then((user) => {
+      setFirstName(repairMojibake(user?.name ?? '').split(' ')[0] || 'você');
+    });
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -156,7 +164,7 @@ export default function AdminPage() {
               </div>
 
               <h1 className="mt-3 font-display text-[32px] leading-none tracking-[-0.03em] text-[#6b5850] lg:text-[39px]">
-                Bom dia, Rebeca
+                Olá, {firstName}
               </h1>
 
               <p className="mt-3 text-xs text-[#a48a7f]">Aqui está o resumo da sua clínica hoje.</p>

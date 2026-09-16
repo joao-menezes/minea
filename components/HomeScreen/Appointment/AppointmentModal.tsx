@@ -15,11 +15,11 @@ import {
 import { toast } from 'sonner';
 
 import { CustomCalendar } from '@/components/CustomCalendar';
-import { CustomTimePicker, DEFAULT_TIMES } from '@/components/CustomTimePicker';
+import { CustomTimePicker } from '@/components/CustomTimePicker';
 import { Modal } from '@/components/Modal';
 import { updateAppointment } from '@/lib/api/appointments';
 import type { Appointment } from '@/types';
-import { getAppointmentStatusLabel } from '@/utils/utils';
+import { getAppointmentStatusLabel, getCurrentTimeValue, isLateCancellation } from '@/utils/utils';
 
 type AppointmentModalProps = {
   appointment: Appointment | null;
@@ -90,8 +90,16 @@ export function AppointmentModal({
 
   if (!appointment) return null;
 
+  const lateWithDeposit = appointment.status === 'confirmed' && isLateCancellation(appointment);
+  const editMinTime = date === formatDate(new Date()) ? getCurrentTimeValue() : undefined;
+
   async function handleSave() {
     if (!onSave || !appointment || !date || !time) return;
+
+    if (editMinTime && time < editMinTime) {
+      setError('Não é possível agendar para um horário anterior ao horário atual.');
+      return;
+    }
 
     try {
       setSaving(true);
@@ -126,7 +134,11 @@ export function AppointmentModal({
       setError('');
 
       await onCancel(appointment);
-      toast.success('Agendamento Cancelado com sucesso!');
+      toast.success(
+        lateWithDeposit
+          ? 'Cancelado com menos de 24h: o sinal foi retido e o agendamento ficou como concluído.'
+          : 'Agendamento Cancelado com sucesso!',
+      );
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao cancelar agendamento');
@@ -208,11 +220,7 @@ export function AppointmentModal({
                 onChange={(selectedDate) => setDate(formatDate(selectedDate))}
               />
 
-              <CustomTimePicker
-                value={time || null}
-                options={Array.from(new Set([...DEFAULT_TIMES, time].filter(Boolean)))}
-                onChange={setTime}
-              />
+              <CustomTimePicker value={time || null} minTime={editMinTime} onChange={setTime} />
 
               <button
                 type="button"
@@ -326,7 +334,11 @@ export function AppointmentModal({
         open={confirmCancel}
         onClose={() => setConfirmCancel(false)}
         title="Cancelar agendamento?"
-        description="Essa ação não poderá ser desfeita."
+        description={
+          lateWithDeposit
+            ? 'Faltam menos de 24h para o atendimento. O sinal pago não será reembolsado.'
+            : 'Essa ação não poderá ser desfeita.'
+        }
         size="sm"
         contentClassName="bg-[#fdfaf8]"
         footer={
@@ -357,6 +369,13 @@ export function AppointmentModal({
         <div className="px-6 py-5">
           <p className="text-sm leading-relaxed text-[#705b53]">
             Tem certeza que deseja cancelar o agendamento de <strong>{appointment.title}</strong>?
+            {lateWithDeposit && (
+              <>
+                {' '}
+                Como faltam menos de 24h, o sinal será considerado recebido e o agendamento ficará
+                marcado como <strong>concluído</strong>.
+              </>
+            )}
           </p>
         </div>
       </Modal>

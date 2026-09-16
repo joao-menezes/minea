@@ -1,4 +1,4 @@
-import type { AppointmentStatus } from '@/types';
+import type { Appointment, AppointmentStatus } from '@/types';
 
 
 
@@ -42,6 +42,25 @@ export function sameDay(a: Date, b: Date): boolean {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate()
   );
+}
+
+export function getCurrentTimeValue(): string {
+  const now = new Date();
+
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+}
+
+const MS_IN_24_HOURS = 24 * 60 * 60 * 1000;
+
+export function isLateCancellation(appointment: Pick<Appointment, 'date' | 'time'>): boolean {
+  const appointmentDate = new Date(appointment.date);
+  const [hours, minutes] = (appointment.time ?? '').split(':').map(Number);
+
+  if (!Number.isNaN(hours) && !Number.isNaN(minutes)) {
+    appointmentDate.setHours(hours, minutes, 0, 0);
+  }
+
+  return appointmentDate.getTime() - Date.now() < MS_IN_24_HOURS;
 }
 
 export function getAppointmentStatusLabel(status: AppointmentStatus): string {

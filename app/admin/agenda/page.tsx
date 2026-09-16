@@ -24,7 +24,7 @@ import { getAllAppointment, updateAppointment } from '@/lib/api/appointments';
 import { getClients } from '@/lib/api/clients';
 import { getServices } from '@/lib/api/services';
 import type { Appointment, AppointmentStatus, Client, Service } from '@/types';
-import { buildWeekStrip, sameDay } from '@/utils/utils';
+import { buildWeekStrip, isLateCancellation, sameDay } from '@/utils/utils';
 
 export default function AdminAgendaPage() {
   const [selectedDay, setSelectedDay] = useState(new Date());
@@ -529,8 +529,11 @@ export default function AdminAgendaPage() {
             setSelectedAppointment(updated);
           }}
           onCancel={async (appointment) => {
+            const forfeitsDeposit =
+              appointment.status === 'confirmed' && isLateCancellation(appointment);
+
             const updated = await updateAppointment(appointment.id, {
-              status: 'cancelled',
+              status: forfeitsDeposit ? 'completed' : 'cancelled',
             });
 
             setAppointments((current) =>
