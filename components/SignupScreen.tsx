@@ -2,15 +2,30 @@
 
 import { type FormEvent, useState } from 'react';
 
-import { ArrowLeft, ArrowRight, Cake, Eye, EyeOff, Lock, ShieldCheck, User } from 'lucide-react';
 
-import { maskCPF, maskDate } from '@/utils/utils';
+
+import { ArrowLeft, ArrowRight, Cake, Eye, EyeOff, Lock, Phone, ShieldCheck, User } from 'lucide-react';
+
+
+
+import { isValidPhoneNumber, maskDate, maskPhone } from '@/utils/utils';
+
+
 
 import { Bow } from './decor';
 
+
+
+
+
+
+
+
+
+
 type SignupData = {
   name: string;
-  cpf: string;
+  phoneNumber: string;
   birthDate: string;
   password: string;
 };
@@ -22,7 +37,7 @@ type SignupScreenProps = {
 
 export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
   const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [querAniversario, setQuerAniversario] = useState(false);
@@ -36,8 +51,8 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
       return setError('Conta pra gente como podemos te chamar.');
     }
 
-    if (cpf.replace(/\D/g, '').length !== 11) {
-      return setError('Digite um CPF válido, com os 11 números.');
+    if (!isValidPhoneNumber(phoneNumber)) {
+      return setError('Digite um telefone válido.');
     }
 
     if (password.length < 6) {
@@ -54,7 +69,7 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
       await onCreated(
         {
           name: nome,
-          cpf,
+          phoneNumber,
           birthDate,
           password,
         },
@@ -257,22 +272,23 @@ export default function SignupScreen({ onCreated, goBack }: SignupScreenProps) {
 
               <div className="mt-5">
                 <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#79665e]">
-                  CPF
+                  Telefone
                 </label>
 
                 <div className="flex h-14 items-center gap-3 rounded-2xl border border-[#e9e1dd] bg-[#fcfaf9] px-4 transition-all focus-within:border-[#b7978b] focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgba(183,151,139,.08)]">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f0e7e3]">
-                    <span className="text-[11px] font-semibold text-[#96786e]">ID</span>
+                    <Phone size={16} strokeWidth={1.8} className="text-[#96786e]" />
                   </div>
 
                   <input
-                    value={cpf}
+                    value={phoneNumber}
                     onChange={(e) => {
-                      setCpf(maskCPF(e.target.value));
+                      setPhoneNumber(maskPhone(e.target.value));
                       setError('');
                     }}
-                    placeholder="000.000.000-00"
-                    inputMode="numeric"
+                    placeholder="(99) 99999-9999"
+                    inputMode="tel"
+                    autoComplete="tel"
                     className="w-full bg-transparent text-sm text-[#443834] outline-none placeholder:text-[#c0b1aa]"
                   />
                 </div>

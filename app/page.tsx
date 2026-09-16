@@ -2,28 +2,131 @@
 
 import { useEffect, useState } from 'react';
 
+
+
 import { toast } from 'sonner';
 
+
+
 import { BookingFlow } from '@/components/HomeScreen/Appointment/NewAppointmentSheet';
+import ProfileScreen from '@/components/HomeScreen/ProfileScreen';
 import HomeScreen from '@/components/HomeScreen/page';
 import LoginScreen from '@/components/LoginScreen';
 import SignupScreen from '@/components/SignupScreen';
 import { getAppointments } from '@/lib/api/appointments';
-import {
-  changeUserPassword,
-  getCurrentUser,
-  signIn,
-  signOut,
-  signUp,
-  updateUserProfile,
-} from '@/lib/api/auth';
+import { changeUserPassword, getCurrentUser, signIn, signOut, signUp, updateUserProfile } from '@/lib/api/auth';
 import { getServices } from '@/lib/api/services';
 import type { Appointment, Service, User } from '@/types';
 
-import ProfileScreen from '@/components/HomeScreen/ProfileScreen';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 type SignupData = {
   birthDate?: string;
-  cpf: string;
+  phoneNumber: string;
   name: string;
   password: string;
 };
@@ -129,10 +232,10 @@ export default function Page() {
     return () => window.clearInterval(interval);
   }, [appointments]);
 
-  async function handleLogin(cpf: string, password: string) {
+  async function handleLogin(phoneNumber: string, password: string) {
     try {
       const user = await signIn({
-        cpf,
+        phoneNumber,
         password,
       });
 
@@ -144,14 +247,14 @@ export default function Page() {
     } catch (error) {
       console.error('Erro ao fazer login:', error);
 
-      throw new Error(error instanceof Error ? error.message : 'CPF ou senha incorretos.');
+      throw new Error(error instanceof Error ? error.message : 'Telefone ou senha incorretos.');
     }
   }
 
   async function handleSignup(data: SignupData) {
     try {
       const createdUser = await signUp({
-        cpf: data.cpf.replace(/\D/g, ''),
+        phoneNumber: data.phoneNumber,
         name: data.name,
         birthDate: data.birthDate,
         password: data.password,

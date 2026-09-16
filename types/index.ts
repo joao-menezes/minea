@@ -43,9 +43,8 @@ export type Client = {
   id: string;
 
   name: string;
-  email: string | null;
+  phoneNumber: string | null;
   phone: string | null;
-  cpf: string | null;
   birthDate: string | null;
 
   isActive: boolean;
@@ -67,7 +66,7 @@ export type Client = {
 export type User = {
   id: string;
   name: string;
-  cpf: string;
+  phoneNumber: string | null;
   birthDate?: string | null;
   isActive?: boolean;
   isAdmin?: boolean;
@@ -75,19 +74,19 @@ export type User = {
 
 export type CreateClientData = {
   name: string;
-  cpf: string;
+  phoneNumber: string;
   birthDate?: string;
   password: string;
   isAdmin?: boolean;
 };
 
 export type SignInData = {
-  cpf: string;
+  phoneNumber: string;
   password: string;
 };
 
 export type SignUpData = {
-  cpf: string;
+  phoneNumber: string;
   name: string;
   birthDate?: string;
   password: string;

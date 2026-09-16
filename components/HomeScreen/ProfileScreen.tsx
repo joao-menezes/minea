@@ -2,20 +2,43 @@
 
 import { FormEvent, useState } from 'react';
 
-import {
-  ArrowLeft,
-  CalendarDays,
-  Check,
-  ChevronDown,
-  LockKeyhole,
-  Save,
-  UserRound,
-} from 'lucide-react';
+
+
+import { ArrowLeft, CalendarDays, Check, ChevronDown, LockKeyhole, Save, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
+
+
 
 import { CustomCalendar } from '@/components/CustomCalendar';
 import type { User } from '@/types';
-import { maskCPF } from '@/utils/utils';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 type ProfileScreenProps = {
   user: User;
@@ -42,8 +65,8 @@ export default function ProfileScreen({
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [cpfHover, setCpfHover] = useState(false);
-  const [cpfCursor, setCpfCursor] = useState({ x: 0, y: 0 });
+  const [phoneHover, setPhoneHover] = useState(false);
+  const [phoneCursor, setPhoneCursor] = useState({ x: 0, y: 0 });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -181,36 +204,36 @@ export default function ProfileScreen({
 
               <div>
                 <label className="mb-2 block text-[9px] font-bold uppercase tracking-[0.14em] text-[#b09a91]">
-                  CPF
+                  Telefone
                 </label>
                 <div
                   className="relative flex h-11 items-center rounded-[13px] border border-[#eee4df] bg-[#f7f2ef] px-4 text-[10px] font-medium text-[#a48a7f]"
-                  onMouseEnter={() => setCpfHover(true)}
-                  onMouseLeave={() => setCpfHover(false)}
+                  onMouseEnter={() => setPhoneHover(true)}
+                  onMouseLeave={() => setPhoneHover(false)}
                   onMouseMove={(event) => {
                     const bounds = event.currentTarget.getBoundingClientRect();
-                    setCpfCursor({
+                    setPhoneCursor({
                       x: event.clientX - bounds.left + 10,
                       y: event.clientY - bounds.top + 10,
                     });
                   }}
                 >
-                  {cpfHover && (
+                  {phoneHover && (
                     <span
                       className="lock-cursor-indicator pointer-events-none absolute z-10 flex h-6 w-6 items-center justify-center rounded-full bg-[#8a6f63] text-white shadow-md transition-all duration-150 ease-out"
                       style={{
-                        left: cpfCursor.x,
-                        top: cpfCursor.y,
+                        left: phoneCursor.x,
+                        top: phoneCursor.y,
                         transform: 'translate(-50%, -50%)',
                       }}
                     >
                       <LockKeyhole size={11} strokeWidth={2} />
                     </span>
                   )}
-                  {maskCPF(user.cpf)}
+                  {user.phoneNumber ?? 'Não informado'}
                 </div>
                 <p className="mt-2 text-[9px] text-[#b49b90]">
-                  O CPF é protegido e não pode ser alterado.
+                  O telefone é protegido e não pode ser alterado.
                 </p>
               </div>
             </div>

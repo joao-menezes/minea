@@ -8,18 +8,20 @@ import { FinanceFilters } from '@/components/admin/financial/FinanceFilters';
 import { FinanceHeader } from '@/components/admin/financial/FinanceHeader';
 import { FinanceInsights } from '@/components/admin/financial/FinanceInsights';
 import { FinanceStats } from '@/components/admin/financial/FinanceStats';
-import { NewTransactionModal } from '@/components/admin/financial/NewTransactionModal';
 import { RevenueChart } from '@/components/admin/financial/RevenueChart';
+import { TransactionModal } from '@/components/admin/financial/TransactionModal';
 import { TransactionsList } from '@/components/admin/financial/TransactionsList';
 import { getFinancialReport } from '@/lib/api/financial';
+import { exportFinancialReport } from '@/lib/exportFinancialReport';
 import {
   getBestRevenueDay,
   getFinancialPeriodDates,
   getMonthValue,
   getPaymentMethodPercentages,
   getProfitMargin,
+  toFinancialReportData,
 } from '@/lib/financial';
-import type { FinancialReport } from '@/types';
+import type { FinancialReport, FinancialTransaction } from '@/types';
 import type { Period } from '@/components/admin/financial/FinanceFilters';
 
 type Props = {
@@ -33,6 +35,9 @@ export default function FinanceiroClient({ report }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [newTransactionOpen, setNewTransactionOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<FinancialTransaction | null>(
+    null,
+  );
   const requestId = useRef(0);
 
   const margin = useMemo(() => getProfitMargin(currentReport), [currentReport]);
@@ -111,21 +116,40 @@ export default function FinanceiroClient({ report }: Props) {
             <FinanceStats report={currentReport} />
 
             <section className="mt-6 grid gap-5 xl:grid-cols-[1.55fr_1fr]">
-              <RevenueChart report={currentReport} />
+              <RevenueChart
+                report={currentReport}
+                onExport={() => exportFinancialReport(toFinancialReportData(currentReport))}
+                onRefresh={() => void loadReport(period, month)}
+              />
 
               <FinanceBreakdown report={currentReport} margin={margin} />
             </section>
 
-            <TransactionsList transactions={currentReport.transactions} />
+            <TransactionsList
+              transactions={currentReport.transactions}
+              onSelect={(transaction) => setSelectedTransaction(transaction)}
+            />
 
             <FinanceInsights bestDay={bestDay} paymentMethods={paymentMethods} />
           </div>
         </div>
 
-        <NewTransactionModal
+        <TransactionModal
           open={newTransactionOpen}
           onClose={() => setNewTransactionOpen(false)}
           onCreated={() => {
+            void loadReport(period, month);
+          }}
+        />
+
+        <TransactionModal
+          open={Boolean(selectedTransaction)}
+          transaction={selectedTransaction}
+          onClose={() => setSelectedTransaction(null)}
+          onUpdated={() => {
+            void loadReport(period, month);
+          }}
+          onDeleted={() => {
             void loadReport(period, month);
           }}
         />

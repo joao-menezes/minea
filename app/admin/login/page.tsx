@@ -7,12 +7,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { signIn } from '@/lib/api/auth';
-import { maskCPF } from '@/utils/utils';
+import { isValidPhoneNumber, maskPhone } from '@/utils/utils';
 
 export default function AdminLoginPage() {
   const router = useRouter();
 
-  const [cpf, setCpf] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -22,14 +22,14 @@ export default function AdminLoginPage() {
     event.preventDefault();
     setError('');
 
-    if (cpf.replace(/\D/g, '').length !== 11) {
-      setError('Informe um CPF válido.');
+    if (!isValidPhoneNumber(phoneNumber)) {
+      setError('Informe um telefone válido.');
       return;
     }
 
     try {
       setLoading(true);
-      const user = await signIn({ cpf, password });
+      const user = await signIn({ phoneNumber, password });
 
       if (!user.isAdmin) {
         setError('Esta conta não possui acesso administrativo.');
@@ -112,18 +112,19 @@ export default function AdminLoginPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label
-                  htmlFor="cpf"
+                  htmlFor="phoneNumber"
                   className="mb-2 block text-[10px] font-bold uppercase tracking-[0.12em] text-[#806f68]"
                 >
-                  CPF
+                  Telefone
                 </label>
 
                 <input
-                  id="cpf"
-                  value={cpf}
-                  onChange={(event) => setCpf(maskCPF(event.target.value))}
-                  placeholder="000.000.000-00"
-                  inputMode="numeric"
+                  id="phoneNumber"
+                  type="tel"
+                  inputMode="tel"
+                  value={phoneNumber}
+                  onChange={(event) => setPhoneNumber(maskPhone(event.target.value))}
+                  placeholder="(19) 98338-5257"
                   className="h-12 w-full rounded-xl border border-[#e4dad5] bg-white px-4 text-xs text-[#493a35] outline-none transition placeholder:text-[#b9a9a2] focus:border-[#a88b80] focus:ring-4 focus:ring-[#a88b80]/10"
                   required
                 />

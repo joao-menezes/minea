@@ -1,13 +1,33 @@
-import { MoreHorizontal } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+
+import { FileDown, MoreHorizontal, RefreshCw } from 'lucide-react';
 
 import { formatCurrency } from '@/lib/financial';
 import type { FinancialReport } from '@/types';
 
 type Props = {
   report: FinancialReport;
+  onExport?: () => void;
+  onRefresh?: () => void;
 };
 
-export function RevenueChart({ report }: Props) {
+export function RevenueChart({ report, onExport, onRefresh }: Props) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function handleOutsideClick(event: MouseEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [menuOpen]);
+
   const lastMonthIndex = report.monthlyRevenue.length - 1;
   const maxValue = Math.max(...report.monthlyRevenue.map((item) => item.value), 0);
   const chartMaxValue = getChartMaxValue(maxValue);
@@ -31,9 +51,50 @@ export function RevenueChart({ report }: Props) {
           </div>
         </div>
 
-        <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[#eee3dc] text-[#b49b90]">
-          <MoreHorizontal size={16} />
-        </button>
+        <div ref={menuRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((current) => !current)}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-[#eee3dc] text-[#b49b90] transition hover:bg-[#faf6f3]"
+          >
+            <MoreHorizontal size={16} />
+          </button>
+
+          {menuOpen && (
+            <div
+              role="menu"
+              className="absolute right-0 top-11 z-10 w-48 rounded-[16px] border border-[#eee3dc] bg-white p-1.5 shadow-[0_18px_40px_-15px_rgba(67,47,40,.35)]"
+            >
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onRefresh?.();
+                }}
+                className="flex w-full items-center gap-2.5 rounded-[11px] px-3 py-2.5 text-left text-[11px] font-medium text-[#66534c] transition hover:bg-[#faf4f1]"
+              >
+                <RefreshCw size={13} />
+                Atualizar dados
+              </button>
+
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onExport?.();
+                }}
+                className="flex w-full items-center gap-2.5 rounded-[11px] px-3 py-2.5 text-left text-[11px] font-medium text-[#66534c] transition hover:bg-[#faf4f1]"
+              >
+                <FileDown size={13} />
+                Exportar PDF
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="relative mt-9 h-[230px]">

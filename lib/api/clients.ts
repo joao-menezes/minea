@@ -15,7 +15,7 @@ export async function createClient(data: CreateClientData): Promise<Client> {
     method: 'POST',
     body: JSON.stringify({
       ...data,
-      cpf: data.cpf.replace(/\D/g, ''),
+      phoneNumber: data.phoneNumber,
     }),
   });
 

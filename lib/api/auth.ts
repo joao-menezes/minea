@@ -1,24 +1,24 @@
+import { unregisterPushNotifications } from '@/lib/push-notifications';
 import { SignInData, SignUpData, User } from '@/types';
+import { repairMojibake } from '@/utils/utils';
 
 import { ApiRequestError, apiFetch } from './client';
 import { TOKEN_KEY } from './client';
-import { unregisterPushNotifications } from '@/lib/push-notifications';
-import { repairMojibake } from '@/utils/utils';
 
 const SESSION_KEY = 'minea_user';
 
-export async function signIn({ cpf, password }: SignInData): Promise<User> {
+export async function signIn({ phoneNumber, password }: SignInData): Promise<User> {
   let data: { token?: string; user?: { message?: string; token?: string } };
 
   try {
     data = await apiFetch<{ token?: string; user?: { message?: string; token?: string } }>(
       '/auth/signin',
       {
-      method: 'POST',
-      body: JSON.stringify({
-        cpf: cpf.replace(/\D/g, ''),
-        password,
-      }),
+        method: 'POST',
+        body: JSON.stringify({
+          phoneNumber: phoneNumber.replace(/\D/g, ''),
+          password,
+        }),
       },
     );
   } catch (error) {
@@ -45,18 +45,18 @@ export async function signIn({ cpf, password }: SignInData): Promise<User> {
   return user;
 }
 
-export async function signUp({ cpf, name, birthDate, password }: SignUpData): Promise<User> {
+export async function signUp({ phoneNumber, name, birthDate, password }: SignUpData): Promise<User> {
   await apiFetch<{ user: User }>('/auth/signup', {
     method: 'POST',
     body: JSON.stringify({
-      cpf: cpf.replace(/\D/g, ''),
+      phoneNumber: phoneNumber.replace(/\D/g, ''),
       name,
       birthDate: birthDate ? toApiDate(birthDate) : undefined,
       password,
     }),
   });
 
-  return signIn({ cpf, password });
+  return signIn({ phoneNumber, password });
 }
 
 export async function getCurrentUser(): Promise<User | null> {
@@ -133,7 +133,7 @@ function decodeUserFromToken(token: string): User {
       sub?: string;
       userId?: string;
       name?: string;
-      cpf?: string;
+      phoneNumber?: string | null;
       birthDate?: string | null;
       isAdmin?: boolean;
       role?: string;
@@ -148,7 +148,7 @@ function decodeUserFromToken(token: string): User {
     return {
       id,
       name: repairMojibake(decoded.name ?? ''),
-      cpf: decoded.cpf ?? '',
+      phoneNumber: decoded.phoneNumber ?? null,
       birthDate: decoded.birthDate,
       isAdmin: decoded.isAdmin ?? decoded.role === 'admin',
     };

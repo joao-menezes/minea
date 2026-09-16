@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 import { updateUserStatus } from '@/lib/api/clients';
 import type { Client } from '@/types';
-import { maskCPF, maskDate } from '@/utils/utils';
+import { maskDate } from '@/utils/utils';
 
 type Props = {
   client: Client;
@@ -79,8 +79,8 @@ export function ClientDetails({ client, currentUserId, onClientUpdated }: Props)
       value: favoriteServices,
     },
     {
-      label: 'CPF',
-      value: client.cpf ? maskCPF(client.cpf) : 'Não informado',
+      label: 'Telefone de acesso',
+      value: client.phoneNumber ? client.phoneNumber : 'Não informado',
     },
     {
       label: 'Aniversário',

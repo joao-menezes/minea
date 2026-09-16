@@ -15,6 +15,20 @@ export async function createFinancialTransaction(
   });
 }
 
+export async function updateFinancialTransaction(
+  id: string,
+  data: CreateFinancialTransactionData,
+): Promise<FinancialTransaction> {
+  return apiFetch<FinancialTransaction>(`/financial/transactions/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteFinancialTransaction(id: string): Promise<void> {
+  await apiFetch<void>(`/financial/transactions/${id}`, { method: 'DELETE' });
+}
+
 export async function getFinancialReport(
   startDate?: Date,
   endDate?: Date,

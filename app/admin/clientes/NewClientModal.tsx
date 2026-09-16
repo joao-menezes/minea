@@ -2,13 +2,17 @@
 
 import { FormEvent, useState } from 'react';
 
-import { CalendarDays, Check, Lock, ShieldCheck, User, UserPlus, X } from 'lucide-react';
+
+
+import { CalendarDays, Check, Lock, Phone, User, UserPlus, X } from 'lucide-react';
 import { toast } from 'sonner';
+
+
 
 import { BaseModal } from '@/components/BaseModal';
 import { createClient } from '@/lib/api/clients';
 import type { Client } from '@/types';
-import { maskCPF, maskDate } from '@/utils/utils';
+import { isValidPhoneNumber, maskDate, maskPhone } from '@/utils/utils';
 
 type Props = {
   open: boolean;
@@ -18,7 +22,7 @@ type Props = {
 
 export function NewClientModal({ open, onClose, onCreated }: Props) {
   const [name, setName] = useState('');
-  const [cpf, setCpf] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [password, setPassword] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
@@ -27,7 +31,7 @@ export function NewClientModal({ open, onClose, onCreated }: Props) {
 
   function reset() {
     setName('');
-    setCpf('');
+    setPhoneNumber('');
     setBirthDate('');
     setPassword('');
     setIsAdmin(false);
@@ -44,7 +48,7 @@ export function NewClientModal({ open, onClose, onCreated }: Props) {
     event.preventDefault();
 
     if (!name.trim()) return setError('Informe o nome do cliente.');
-    if (cpf.replace(/\D/g, '').length !== 11) return setError('Informe um CPF válido.');
+    if (!isValidPhoneNumber(phoneNumber)) return setError('Informe um telefone válido.');
     if (password.length < 6) return setError('A senha deve ter pelo menos 6 caracteres.');
 
     try {
@@ -53,7 +57,7 @@ export function NewClientModal({ open, onClose, onCreated }: Props) {
 
       const client = await createClient({
         name: name.trim(),
-        cpf,
+        phoneNumber,
         birthDate: birthDate || undefined,
         password,
         isAdmin,
@@ -100,8 +104,8 @@ export function NewClientModal({ open, onClose, onCreated }: Props) {
             <input value={name} onChange={(event) => setName(event.target.value)} disabled={saving} className={inputClass} />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="CPF" icon={ShieldCheck}>
-              <input value={cpf} onChange={(event) => setCpf(maskCPF(event.target.value))} inputMode="numeric" disabled={saving} className={inputClass} />
+            <Field label="Telefone" icon={Phone}>
+              <input value={phoneNumber} onChange={(event) => setPhoneNumber(maskPhone(event.target.value))} inputMode="tel" placeholder="(99) 99999-9999" disabled={saving} className={inputClass} />
             </Field>
             <Field label="Nascimento" icon={CalendarDays}>
               <input value={birthDate} onChange={(event) => setBirthDate(maskDate(event.target.value))} inputMode="numeric" disabled={saving} className={inputClass} />

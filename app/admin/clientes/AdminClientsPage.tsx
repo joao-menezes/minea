@@ -50,7 +50,7 @@ export default function AdminClientsPage({ clients: initialClients }: AdminClien
     const query = normalize(search);
 
     return clients.filter((client) => {
-      const searchableContent = [client.name, client.phone, client.email, client.cpf]
+      const searchableContent = [client.name, client.phone, client.phoneNumber]
         .filter(Boolean)
         .map((value) => normalize(value))
         .join(' ');

@@ -3,20 +3,11 @@ import { useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, ChevronRight } from 'lucide-react';
 
 import { formatCurrency } from '@/lib/financial';
-
-type Transaction = {
-  id: string;
-  date: string;
-  description: string;
-  client?: string | null;
-  method: string;
-  category: string;
-  value: number;
-  type: 'income' | 'expense';
-};
+import type { FinancialTransaction } from '@/types';
 
 type Props = {
-  transactions: Transaction[];
+  transactions: FinancialTransaction[];
+  onSelect?: (transaction: FinancialTransaction) => void;
 };
 
 function formatDate(date: string) {
@@ -26,7 +17,7 @@ function formatDate(date: string) {
   });
 }
 
-export function TransactionsList({ transactions }: Props) {
+export function TransactionsList({ transactions, onSelect }: Props) {
   const [showAll, setShowAll] = useState(false);
   const visibleTransactions = showAll ? transactions : transactions.slice(0, 5);
 
@@ -62,7 +53,12 @@ export function TransactionsList({ transactions }: Props) {
             const income = transaction.type === 'income';
 
             return (
-              <div key={transaction.id} className="flex items-center gap-3 py-4">
+              <button
+                key={transaction.id}
+                type="button"
+                onClick={() => onSelect?.(transaction)}
+                className="flex w-full items-center gap-3 py-4 text-left transition hover:bg-[#faf6f3]"
+              >
                 <div
                   className={[
                     `flex h-11 w-11 items-center justify-center rounded-[15px]`,
@@ -72,12 +68,12 @@ export function TransactionsList({ transactions }: Props) {
                   {income ? <ArrowDownRight size={16} /> : <ArrowUpRight size={16} />}
                 </div>
 
-                <div className="flex-1">
-                  <p className="text-[11px] font-bold text-[#6b5850]">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[11px] font-bold text-[#6b5850]">
                     {transaction.description}
                   </p>
 
-                  <p className="text-[9px] text-[#b49b90]">
+                  <p className="truncate text-[9px] text-[#b49b90]">
                     {transaction.client ?? 'Cliente não informado'}
                     {' • '}
                     {transaction.method}
@@ -93,8 +89,8 @@ export function TransactionsList({ transactions }: Props) {
                   </strong>
                 </div>
 
-                <ChevronRight size={14} className="text-[#d0beb5]" />
-              </div>
+                <ChevronRight size={14} className="shrink-0 text-[#d0beb5]" />
+              </button>
             );
           })
         )}

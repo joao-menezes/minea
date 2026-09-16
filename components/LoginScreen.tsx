@@ -2,19 +2,38 @@
 
 import { type FormEvent, useState } from 'react';
 
+
+
 import { ArrowRight, Eye, EyeOff, Lock, ShieldCheck, User } from 'lucide-react';
 
+
+
 import { ErrorMessage } from '@/components/ErrorMessage';
-import { maskCPF } from '@/utils/utils';
+import { isValidPhoneNumber, maskPhone } from '@/utils/utils';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 type LoginScreenProps = {
-  onLogin: (cpf: string, password: string) => void | Promise<void>;
+  onLogin: (phoneNumber: string, password: string) => void | Promise<void>;
   error?: string;
   goSignup: () => void;
 };
 
 export default function LoginScreen({ onLogin, error, goSignup }: LoginScreenProps) {
-  const [cpf, setCpf] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [showSenha, setShowSenha] = useState(false);
   const [erro, setErro] = useState('');
@@ -23,10 +42,8 @@ export default function LoginScreen({ onLogin, error, goSignup }: LoginScreenPro
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const normalizedCPF = cpf.replace(/\D/g, '');
-
-    if (normalizedCPF.length !== 11) {
-      setErro('Digite um CPF válido, com os 11 números.');
+    if (!isValidPhoneNumber(phoneNumber)) {
+      setErro('Digite um telefone válido.');
       return;
     }
 
@@ -39,7 +56,7 @@ export default function LoginScreen({ onLogin, error, goSignup }: LoginScreenPro
       setErro('');
       setLoading(true);
 
-      await onLogin(cpf, password);
+      await onLogin(phoneNumber, password);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Não foi possível entrar.';
 
@@ -250,7 +267,7 @@ export default function LoginScreen({ onLogin, error, goSignup }: LoginScreenPro
             >
               <div>
                 <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#79665f]">
-                  CPF
+                  Telefone
                 </label>
 
                 <div className="group flex h-14 items-center gap-3 rounded-2xl border border-[#e9dfda] bg-[#fcfaf9] px-4 transition-all focus-within:border-[#b99386] focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgba(185,147,134,0.08)]">
@@ -259,14 +276,14 @@ export default function LoginScreen({ onLogin, error, goSignup }: LoginScreenPro
                   </div>
 
                   <input
-                    value={cpf}
+                    value={phoneNumber}
                     onChange={(e) => {
-                      setCpf(maskCPF(e.target.value));
+                      setPhoneNumber(maskPhone(e.target.value));
                       setErro('');
                     }}
-                    placeholder="000.000.000-00"
-                    inputMode="numeric"
-                    autoComplete="username"
+                    placeholder="(99) 99999-9999"
+                    inputMode="tel"
+                    autoComplete="tel"
                     disabled={loading}
                     className="w-full bg-transparent text-sm text-[#453a36] outline-none placeholder:text-[#c5b5ae] disabled:cursor-not-allowed disabled:opacity-60"
                   />
