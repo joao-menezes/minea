@@ -124,7 +124,7 @@ export default function AdminLoginPage() {
                   inputMode="tel"
                   value={phoneNumber}
                   onChange={(event) => setPhoneNumber(maskPhone(event.target.value))}
-                  placeholder="(19) 98338-5257"
+                  placeholder="(99) 99999-9999"
                   className="h-12 w-full rounded-xl border border-[#e4dad5] bg-white px-4 text-xs text-[#493a35] outline-none transition placeholder:text-[#b9a9a2] focus:border-[#a88b80] focus:ring-4 focus:ring-[#a88b80]/10"
                   required
                 />
