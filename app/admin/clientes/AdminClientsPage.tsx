@@ -15,6 +15,7 @@ import { getAllAppointment } from '@/lib/api/appointments';
 import { getCurrentUser } from '@/lib/api/auth';
 import { getServices } from '@/lib/api/services';
 import type { Appointment, Client, ClientFilter, Service } from '@/types';
+import { formatPhoneNumber } from '@/utils/utils';
 
 type AdminClientsPageProps = {
   clients: Client[];
@@ -50,12 +51,16 @@ export default function AdminClientsPage({ clients: initialClients }: AdminClien
     const query = normalize(search);
 
     return clients.filter((client) => {
-      const searchableContent = [client.name, client.phone, client.phoneNumber]
+      const searchableContent = [client.name, client.phoneNumber, formatPhoneNumber(client.phoneNumber)]
         .filter(Boolean)
         .map((value) => normalize(value))
         .join(' ');
 
-      const matchesSearch = query.length === 0 || searchableContent.includes(query);
+      const queryDigits = query.replace(/\D/g, '');
+      const matchesSearch =
+        query.length === 0 ||
+        searchableContent.includes(query) ||
+        (queryDigits.length > 0 && (client.phoneNumber ?? '').includes(queryDigits));
 
       const matchesStatus =
         status === 'Todos' ||
@@ -172,7 +177,7 @@ export default function AdminClientsPage({ clients: initialClients }: AdminClien
             ) : (
               <EmptyRow
                 title={'Nenhum cliente encontrado'}
-                message={'Tente buscar por outro nome, telefone ou e-mail.'}
+                message={'Tente buscar por outro nome ou telefone.'}
               />
             )}
           </section>

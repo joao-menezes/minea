@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 import { CustomCalendar } from '@/components/CustomCalendar';
 import type { User } from '@/types';
+import { formatPhoneNumber } from '@/utils/utils';
 
 
 
@@ -230,7 +231,7 @@ export default function ProfileScreen({
                       <LockKeyhole size={11} strokeWidth={2} />
                     </span>
                   )}
-                  {user.phoneNumber ?? 'Não informado'}
+                  {formatPhoneNumber(user.phoneNumber) || 'Não informado'}
                 </div>
                 <p className="mt-2 text-[9px] text-[#b49b90]">
                   O telefone é protegido e não pode ser alterado.

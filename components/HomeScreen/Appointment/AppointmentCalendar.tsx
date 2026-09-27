@@ -181,7 +181,7 @@ export function AppointmentCalendar({
             onClick={toggleCalendar}
             className="group mt-2 flex items-center gap-2"
           >
-            <h2 className="font-display text-[27px] leading-none tracking-[-0.02em] text-[#6b5850]">
+            <h2 className="font-display text-[20px] leading-none tracking-[-0.02em] text-[#6b5850]">
               {selected.getDate()} de {MONTHS[selected.getMonth()]}
             </h2>
 

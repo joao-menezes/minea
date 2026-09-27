@@ -143,6 +143,16 @@ export function maskPhone(value: string): string {
   return digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
 }
 
+// O backend guarda só os dígitos (ex.: "19999999999" ou "5519999999999").
+export function formatPhoneNumber(value: string | null | undefined): string {
+  if (!value) return '';
+
+  const digits = value.replace(/\D/g, '');
+  const local = digits.length > 11 && digits.startsWith('55') ? digits.slice(2) : digits;
+
+  return maskPhone(local);
+}
+
 export function isValidPhoneNumber(value: string): boolean {
   const digits = value.replace(/\D/g, '');
 

@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 import { updateUserStatus } from '@/lib/api/clients';
 import type { Client } from '@/types';
-import { maskDate } from '@/utils/utils';
+import { formatPhoneNumber, maskDate } from '@/utils/utils';
 
 type Props = {
   client: Client;
@@ -64,7 +64,7 @@ export function ClientDetails({ client, currentUserId, onClientUpdated }: Props)
   const details = [
     {
       label: 'Telefone',
-      value: client.phone || 'Não informado',
+      value: formatPhoneNumber(client.phoneNumber) || 'Não informado',
     },
     {
       label: 'Atendimentos',
@@ -77,10 +77,6 @@ export function ClientDetails({ client, currentUserId, onClientUpdated }: Props)
     {
       label: 'Serviço favorito',
       value: favoriteServices,
-    },
-    {
-      label: 'Telefone de acesso',
-      value: client.phoneNumber ? client.phoneNumber : 'Não informado',
     },
     {
       label: 'Aniversário',

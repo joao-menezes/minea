@@ -10,6 +10,7 @@ import { AppointmentHistoryModal } from '@/components/HomeScreen/Appointment/App
 import { AppointmentList } from '@/components/HomeScreen/Appointment/AppointmentList';
 import { AppointmentModal } from '@/components/HomeScreen/Appointment/AppointmentModal';
 import { NewAppointmentButton } from '@/components/HomeScreen/Appointment/NewAppointmentButton';
+import { ClinicLocationFooter } from '@/components/HomeScreen/ClinicLocationFooter';
 import { HomeHeader } from '@/components/HomeScreen/HomeHeader';
 import { InstallAppPrompt } from '@/components/HomeScreen/InstallAppPrompt';
 import { deleteAppointment, updateAppointment } from '@/lib/api/appointments';
@@ -60,35 +61,53 @@ export default function Page({
     <main className="min-h-screen bg-[#faf6f3] text-[#5c4a43] selection:bg-[#e9d3c8]/40">
       <AmbientBackground />
 
-      <div className="relative mx-auto min-h-screen max-w-md px-5 pb-32 pt-6">
+      <div className="relative mx-auto min-h-screen max-w-md px-5 pb-32 pt-6 md:max-w-2xl md:px-8 lg:max-w-6xl lg:px-10 lg:pt-10">
         <HomeHeader user={user} onLogout={onLogout} onProfile={onProfile} />
 
-        <HomeHero appointment={nextAppointment} />
+        <div className="lg:grid lg:grid-cols-2 lg:gap-10">
+          <div>
+            <HomeHero appointment={nextAppointment} />
 
-        <NewAppointmentButton onClick={openNew} variant="primary" />
+            <NewAppointmentButton onClick={openNew} variant="primary" />
 
-        <button
-          type="button"
-          onClick={() => setHistoryOpen(true)}
-          className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-[16px] border border-[#eaded8] bg-white/75 text-[10px] font-bold text-[#9a8076] transition hover:bg-white"
-        >
-          Ver histórico de procedimentos
-        </button>
+            <button
+              type="button"
+              onClick={() => setHistoryOpen(true)}
+              className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-[16px] border border-[#eaded8] bg-white/75 text-[10px] font-bold text-[#9a8076] transition hover:bg-white"
+            >
+              Ver histórico de procedimentos
+            </button>
+          </div>
 
-        <AppointmentCalendar
-          selected={selected}
-          week={week}
-          appointmentCount={appointments.length}
-          appointmentDates={appointments.map((appointment) => new Date(appointment.date))}
-          appointments={appointments}
-          onSelect={setSelected}
-        />
+          {/*
+            No desktop a coluna da direita fica fora do fluxo (absolute) para não
+            aumentar a altura da linha: ela acompanha a coluna da esquerda e a
+            lista de agendamentos rola por dentro, sem empurrar o mapa.
+            O calendário tem mt-9; -mt-2 alinha o topo com o card da esquerda (mt-7).
+          */}
+          <div className="lg:relative">
+            <div className="lg:absolute lg:inset-0 lg:-mt-2 lg:flex lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden">
+              <AppointmentCalendar
+                selected={selected}
+                week={week}
+                appointmentCount={appointments.length}
+                appointmentDates={appointments.map((appointment) => new Date(appointment.date))}
+                appointments={appointments}
+                onSelect={setSelected}
+              />
 
-        <AppointmentList
-          appointments={dayAppointments}
-          onSelect={setSelectedAppointment}
-          onCreate={openNew}
-        />
+              <div className="lg:-mx-2 lg:min-h-[180px] lg:flex-1 lg:overflow-y-auto lg:overflow-x-hidden lg:px-2 lg:pb-8 lg:[mask-image:linear-gradient(to_bottom,black_calc(100%-2rem),transparent)]">
+                <AppointmentList
+                  appointments={dayAppointments}
+                  onSelect={setSelectedAppointment}
+                  onCreate={openNew}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ClinicLocationFooter />
       </div>
 
       <AppointmentModal

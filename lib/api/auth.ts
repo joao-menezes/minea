@@ -40,9 +40,27 @@ export async function signIn({ phoneNumber, password }: SignInData): Promise<Use
 
   localStorage.setItem(TOKEN_KEY, token);
 
-  const user = decodeUserFromToken(token);
+  const user = await loadUserProfile(decodeUserFromToken(token));
   localStorage.setItem(SESSION_KEY, JSON.stringify(user));
   return user;
+}
+
+// O token só carrega id, nome e isAdmin; telefone e aniversário vêm do perfil.
+async function loadUserProfile(tokenUser: User): Promise<User> {
+  try {
+    const { user } = await apiFetch<{ user: User }>(`/auth/me/${tokenUser.id}`);
+
+    return {
+      ...tokenUser,
+      ...user,
+      name: repairMojibake(user.name ?? tokenUser.name),
+      phoneNumber: user.phoneNumber ?? null,
+      birthDate: user.birthDate ?? null,
+    };
+  } catch (error) {
+    console.warn('Não foi possível carregar o perfil do usuário:', error);
+    return tokenUser;
+  }
 }
 
 export async function signUp({ phoneNumber, name, birthDate, password }: SignUpData): Promise<User> {
@@ -74,8 +92,14 @@ export async function getCurrentUser(): Promise<User | null> {
   }
 
   try {
-    const user = JSON.parse(value) as User;
+    let user = JSON.parse(value) as User;
     user.name = repairMojibake(user.name);
+
+    // Sessões antigas foram montadas só com o token e não têm telefone/aniversário.
+    if (!('birthDate' in user)) {
+      user = await loadUserProfile(user);
+    }
+
     localStorage.setItem(SESSION_KEY, JSON.stringify(user));
     return user;
   } catch {

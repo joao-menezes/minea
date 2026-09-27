@@ -252,7 +252,8 @@ export function AppointmentModal({
               onClick={() => {
                 const destination = encodeURIComponent(appointment.local ?? '');
                 window.open(
-                  `https://www.google.com/maps/search/?api=1&query=${destination}`,
+                  appointment.localUrl ||
+                    `https://www.google.com/maps/search/?api=1&query=${destination}`,
                   '_blank',
                   'noopener,noreferrer',
                 );

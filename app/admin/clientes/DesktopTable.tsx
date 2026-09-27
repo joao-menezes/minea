@@ -2,7 +2,7 @@ import { ChevronRight } from 'lucide-react';
 
 import { StatusBadge } from '@/components/badge';
 import { Client } from '@/types';
-import { formatDateShort, formatTime } from '@/utils/utils';
+import { formatDateShort, formatPhoneNumber, formatTime } from '@/utils/utils';
 
 type Props = {
   clients: Client[];
@@ -75,7 +75,9 @@ function ClientRow({ client, onClick }: { client: Client; onClick: () => void })
         <div className="min-w-0">
           <p className="truncate text-[11px] font-bold text-[#6b5850]">{client.name}</p>
 
-          <p className="mt-1 truncate text-[9px] text-[#b49b90]">{client.phone}</p>
+          <p className="mt-1 truncate text-[9px] text-[#b49b90]">
+            {formatPhoneNumber(client.phoneNumber)}
+          </p>
         </div>
       </div>
 

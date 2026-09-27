@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 
 import type { Client } from '@/types';
+import { formatPhoneNumber } from '@/utils/utils';
 
 type Props = {
   client: Client;
@@ -41,11 +42,15 @@ export function ClientModalHeader({ client, onClose }: Props) {
           </h2>
 
           <div className="mt-2 flex items-center gap-2">
-            <span className="text-[9px] text-[#a48a7f] sm:text-[10px]">{client.phone}</span>
+            <span className="text-[9px] text-[#a48a7f] sm:text-[10px]">
+              {formatPhoneNumber(client.phoneNumber)}
+            </span>
 
             <span className="h-1 w-1 rounded-full bg-[#c8aea3]" />
 
-            <span className="text-[9px] text-[#a48a7f]">{client.isActive}</span>
+            <span className="text-[9px] text-[#a48a7f]">
+              {client.isActive ? 'Ativa' : 'Inativa'}
+            </span>
           </div>
         </div>
       </div>

@@ -44,7 +44,6 @@ export type Client = {
 
   name: string;
   phoneNumber: string | null;
-  phone: string | null;
   birthDate: string | null;
 
   isActive: boolean;
@@ -107,6 +106,8 @@ export type Appointment = {
   date: string;
 
   local: string;
+  localUrl?: string;
+  localCoordinates?: { latitude: number; longitude: number };
 
   services: string[];
 

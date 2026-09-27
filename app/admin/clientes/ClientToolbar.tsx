@@ -40,7 +40,7 @@ export function ClientToolbar({ search, status, count, onSearch, onStatus }: Pro
           <input
             value={search}
             onChange={(e) => onSearch(e.target.value)}
-            placeholder="Buscar nome, telefone ou e-mail..."
+            placeholder="Buscar nome ou telefone..."
             className="h-11 w-full rounded-[15px] border border-[#f0e6df] bg-[#faf6f3] pl-11 pr-10 text-[11px] text-[#6b5850] outline-none placeholder:text-[#c4afa5] focus:bg-white"
           />
 
