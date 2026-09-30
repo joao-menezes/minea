@@ -15,6 +15,8 @@ import Link from 'next/link';
 import { notFound, usePathname, useRouter } from 'next/navigation';
 
 import { getCurrentUser } from '@/lib/api/auth';
+import type { User } from '@/types';
+import { repairMojibake } from '@/utils/utils';
 
 import { AdminHeader } from './AdminHeader';
 import { AdminSidebar } from './AdminSidebar';
@@ -59,6 +61,7 @@ export function AdminShell({ children }: AdminShellProps) {
 
   // 'checking' | 'authorized' | 'denied' (nunca teve acesso -> 404) | 'expired' (tinha acesso, sessão caiu no meio do uso -> volta pro login)
   const [status, setStatus] = useState<'checking' | 'authorized' | 'denied' | 'expired'>('checking');
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     async function checkAccess() {
@@ -69,11 +72,21 @@ export function AdminShell({ children }: AdminShellProps) {
         return;
       }
 
+      setUser(currentUser);
       setStatus(isAuthenticated ? 'authorized' : 'denied');
     }
 
     void checkAccess();
   }, [pathname]);
+
+  const displayName = user?.name ? repairMojibake(user.name) : 'Administrador';
+  const initials =
+    displayName
+      .split(' ')
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'AD';
 
   useEffect(() => {
     function handleUnauthorized() {
@@ -217,14 +230,14 @@ export function AdminShell({ children }: AdminShellProps) {
                 <div className="flex items-center gap-3 rounded-[18px] bg-[#f3ece8] p-3">
                   <div className="relative">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#c9afa5] text-[9px] font-bold text-white">
-                      RE
+                      {initials}
                     </div>
 
                     <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#f3ece8] bg-[#91a895]" />
                   </div>
 
                   <div className="min-w-0">
-                    <p className="truncate text-[11px] font-bold text-[#493a35]">Rebeca</p>
+                    <p className="truncate text-[11px] font-bold text-[#493a35]">{displayName}</p>
 
                     <p className="mt-0.5 text-[8px] font-medium text-[#9b8279]">Administrador</p>
                   </div>

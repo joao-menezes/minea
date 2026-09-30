@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 import {
   BarChart3,
   Bell,
@@ -11,6 +13,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+
+import { getCurrentUser } from '@/lib/api/auth';
+import type { User } from '@/types';
+import { repairMojibake } from '@/utils/utils';
 
 const NAVIGATION = [
   {
@@ -53,6 +59,20 @@ const NAVIGATION = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    void getCurrentUser().then(setUser);
+  }, []);
+
+  const displayName = user?.name ? repairMojibake(user.name) : 'Administrador';
+  const initials =
+    displayName
+      .split(' ')
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'AD';
 
   return (
     <aside className="sticky top-0 hidden h-dvh w-[250px] shrink-0 overflow-hidden border-r border-[#e9e1dc] bg-[#fcfaf9] lg:flex lg:flex-col">
@@ -119,11 +139,11 @@ export function AdminSidebar() {
 
           <div className="mt-4 flex items-center gap-3 rounded-2xl bg-[#f3ece8] p-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#c9afa5] text-xs font-bold text-white">
-              RE
+              {initials}
             </div>
 
             <div className="min-w-0">
-              <p className="truncate text-xs font-bold text-[#493a35]">Rebeca</p>
+              <p className="truncate text-xs font-bold text-[#493a35]">{displayName}</p>
 
               <p className="text-[9px] font-medium text-[#9b8279]">Administrador</p>
             </div>

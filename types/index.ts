@@ -227,6 +227,14 @@ export type FinancialSummary = {
   averageTransaction: number;
 };
 
+// 0 = domingo ... 6 = sábado, igual ao Date.getDay() do JS.
+export type BusinessHour = {
+  dayOfWeek: number;
+  enabled: boolean;
+  startTime: string;
+  endTime: string;
+};
+
 // ============================================================
 // PAYMENT
 // ============================================================

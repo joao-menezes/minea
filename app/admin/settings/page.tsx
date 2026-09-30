@@ -23,13 +23,19 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 import { AdminShell } from '@/components/admin/AdminShell';
-import { signOut } from '@/lib/api/auth';
+import { getCurrentUser, signOut } from '@/lib/api/auth';
+import { getBusinessHours, updateBusinessHours } from '@/lib/api/business-hours';
+import { ApiRequestError } from '@/lib/api/client';
+import type { BusinessHour, User } from '@/types';
+import { repairMojibake } from '@/utils/utils';
 
 type ToggleProps = {
   checked: boolean;
   onChange: (value: boolean) => void;
+  ariaLabel?: string;
 };
 
 type SettingsSectionId =
@@ -74,15 +80,19 @@ const SETTINGS_NAVIGATION: SettingsNavigationItem[] = [
   },
 ];
 
-const SCHEDULE = [
-  { day: 'Segunda-feira', enabled: true, start: '08:00', end: '18:00' },
-  { day: 'Terça-feira', enabled: true, start: '08:00', end: '18:00' },
-  { day: 'Quarta-feira', enabled: true, start: '08:00', end: '18:00' },
-  { day: 'Quinta-feira', enabled: true, start: '08:00', end: '18:00' },
-  { day: 'Sexta-feira', enabled: true, start: '08:00', end: '18:00' },
-  { day: 'Sábado', enabled: true, start: '08:00', end: '13:00' },
-  { day: 'Domingo', enabled: false, start: '—', end: '—' },
-];
+// 0 = domingo ... 6 = sábado, igual ao Date.getDay() do JS (e ao backend).
+const WEEKDAY_LABELS: Record<number, string> = {
+  0: 'Domingo',
+  1: 'Segunda-feira',
+  2: 'Terça-feira',
+  3: 'Quarta-feira',
+  4: 'Quinta-feira',
+  5: 'Sexta-feira',
+  6: 'Sábado',
+};
+
+// Ordem de exibição: segunda a sábado, domingo por último.
+const SCHEDULE_DISPLAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 const SETTINGS_STORAGE_KEY = 'minea_admin_settings';
 
@@ -93,7 +103,6 @@ type ClinicSettings = {
   instagram: string;
   address: string;
   showAddress: boolean;
-  schedule: typeof SCHEDULE;
   notifications: boolean;
   reminders: boolean;
   emailNotifications: boolean;
@@ -110,7 +119,6 @@ const DEFAULT_SETTINGS: ClinicSettings = {
   instagram: '@minea.estetica',
   address: 'Rua das Flores, 120 — Centro',
   showAddress: true,
-  schedule: SCHEDULE,
   notifications: true,
   reminders: true,
   emailNotifications: false,
@@ -126,6 +134,11 @@ export default function AdminSettingsPage() {
 
   const [settings, setSettings] = useState<ClinicSettings>(DEFAULT_SETTINGS);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const [schedule, setSchedule] = useState<BusinessHour[]>([]);
+  const [scheduleLoading, setScheduleLoading] = useState(true);
+  const [scheduleError, setScheduleError] = useState('');
 
   useEffect(() => {
     const storedSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
@@ -137,6 +150,16 @@ export default function AdminSettingsPage() {
     } catch {
       window.localStorage.removeItem(SETTINGS_STORAGE_KEY);
     }
+  }, []);
+
+  useEffect(() => {
+    getBusinessHours()
+      .then(setSchedule)
+      .catch((error: unknown) => {
+        console.error('Erro ao carregar horários de funcionamento:', error);
+        setScheduleError('Não foi possível carregar os horários de funcionamento.');
+      })
+      .finally(() => setScheduleLoading(false));
   }, []);
 
   useEffect(() => {
@@ -205,29 +228,40 @@ export default function AdminSettingsPage() {
     return () => window.removeEventListener('hashchange', scrollToHashSection);
   }, []);
 
-  function handleSave() {
-    window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-    setSaved(true);
+  async function handleSave() {
+    setSaving(true);
 
-    window.setTimeout(() => {
-      setSaved(false);
-    }, 2200);
+    try {
+      if (schedule.length > 0) {
+        const updated = await updateBusinessHours(schedule);
+        setSchedule(updated);
+      }
+
+      window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+      setSaved(true);
+
+      window.setTimeout(() => {
+        setSaved(false);
+      }, 2200);
+    } catch (error) {
+      toast.error(
+        error instanceof ApiRequestError
+          ? error.message
+          : 'Não foi possível salvar os horários de funcionamento.',
+      );
+    } finally {
+      setSaving(false);
+    }
   }
 
   function updateSetting<K extends keyof ClinicSettings>(key: K, value: ClinicSettings[K]) {
     setSettings((current) => ({ ...current, [key]: value }));
   }
 
-  function updateSchedule(
-    index: number,
-    values: Partial<(typeof SCHEDULE)[number]>,
-  ) {
-    setSettings((current) => ({
-      ...current,
-      schedule: current.schedule.map((item, itemIndex) =>
-        itemIndex === index ? { ...item, ...values } : item,
-      ),
-    }));
+  function updateScheduleDay(dayOfWeek: number, values: Partial<BusinessHour>) {
+    setSchedule((current) =>
+      current.map((item) => (item.dayOfWeek === dayOfWeek ? { ...item, ...values } : item)),
+    );
   }
 
   async function handleLogout() {
@@ -241,7 +275,7 @@ export default function AdminSettingsPage() {
         <SettingsBackground />
 
         <div className="relative mx-auto max-w-[1200px] px-4 py-5 sm:px-5 sm:py-7 lg:px-8 lg:py-9">
-          <SettingsHeader saved={saved} onSave={handleSave} />
+          <SettingsHeader saved={saved} saving={saving} onSave={handleSave} />
 
           <div className="mt-5 lg:mt-8 lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-5">
             <SettingsSidebar activeSection={activeSection} onNavigate={scrollToSection} />
@@ -311,16 +345,35 @@ export default function AdminSettingsPage() {
                   description="Defina quando sua clínica está disponível para novos agendamentos."
                   icon={Clock3}
                 >
-                  <div className="space-y-2">
-                    {settings.schedule.map((schedule, index) => (
-                      <ScheduleRow
-                        key={schedule.day}
-                        {...schedule}
-                        onToggle={(enabled) => updateSchedule(index, { enabled })}
-                        onTimeChange={(field, value) => updateSchedule(index, { [field]: value })}
-                      />
-                    ))}
-                  </div>
+                  {scheduleLoading ? (
+                    <p className="text-[10px] text-[#a48a7f]">Carregando horários...</p>
+                  ) : scheduleError ? (
+                    <p className="text-[10px] text-[#9a5e55]">{scheduleError}</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {SCHEDULE_DISPLAY_ORDER.map((dayOfWeek) => {
+                        const day = schedule.find((item) => item.dayOfWeek === dayOfWeek);
+
+                        if (!day) return null;
+
+                        return (
+                          <ScheduleRow
+                            key={dayOfWeek}
+                            day={WEEKDAY_LABELS[dayOfWeek]}
+                            enabled={day.enabled}
+                            start={day.startTime}
+                            end={day.endTime}
+                            onToggle={(enabled) => updateScheduleDay(dayOfWeek, { enabled })}
+                            onTimeChange={(field, value) =>
+                              updateScheduleDay(dayOfWeek, {
+                                [field === 'start' ? 'startTime' : 'endTime']: value,
+                              })
+                            }
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
                 </SettingsSection>
 
                 <SettingsSection
@@ -437,7 +490,9 @@ export default function AdminSettingsPage() {
                       onClick={() =>
                         updateSetting(
                           'language',
-                          settings.language === 'Português (Brasil)' ? 'English' : 'Português (Brasil)',
+                          settings.language === 'Português (Brasil)'
+                            ? 'English'
+                            : 'Português (Brasil)',
                         )
                       }
                     />
@@ -480,7 +535,15 @@ function SettingsBackground() {
   );
 }
 
-function SettingsHeader({ saved, onSave }: { saved: boolean; onSave: () => void }) {
+function SettingsHeader({
+  saved,
+  saving,
+  onSave,
+}: {
+  saved: boolean;
+  saving: boolean;
+  onSave: () => void;
+}) {
   return (
     <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
@@ -508,9 +571,10 @@ function SettingsHeader({ saved, onSave }: { saved: boolean; onSave: () => void 
       <button
         type="button"
         onClick={onSave}
+        disabled={saving}
         className={[
           'flex h-11 w-full items-center justify-center gap-2 rounded-[15px] px-5 text-[10px] font-bold text-white sm:w-auto',
-          'shadow-[0_18px_35px_-18px_rgba(138,111,99,.55)] transition-all',
+          'shadow-[0_18px_35px_-18px_rgba(138,111,99,.55)] transition-all disabled:opacity-70',
           saved ? 'bg-[#718678]' : 'bg-[#8a6f63] hover:-translate-y-0.5 hover:bg-[#7c6156]',
         ].join(' ')}
       >
@@ -522,7 +586,7 @@ function SettingsHeader({ saved, onSave }: { saved: boolean; onSave: () => void 
         ) : (
           <>
             <Save size={14} />
-            Salvar alterações
+            {saving ? 'Salvando...' : 'Salvar alterações'}
           </>
         )}
       </button>
@@ -653,18 +717,35 @@ function SettingsSection({
 }
 
 function AccountContent() {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    void getCurrentUser().then(setUser);
+  }, []);
+
+  const displayName = user?.name ? repairMojibake(user.name) : 'Administrador';
+  const initials =
+    displayName
+      .split(' ')
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'AD';
+
   return (
     <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
       <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[20px] bg-[#c9afa5] text-sm font-bold text-white shadow-[0_12px_25px_-15px_rgba(100,70,60,.4)]">
-        RE
+        {initials}
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="text-[13px] font-bold text-[#6b5850]">Rebeca</p>
+        <p className="text-[13px] font-bold text-[#6b5850]">{displayName}</p>
 
         <p className="mt-1 text-[10px] text-[#a48a7f]">Administradora da Minea</p>
 
-        <p className="mt-2 text-[9px] text-[#b49b90]">contato@minea.com.br</p>
+        <p className="mt-2 text-[9px] text-[#b49b90]">
+          {user?.phoneNumber ?? 'contato@minea.com.br'}
+        </p>
       </div>
 
       <button
@@ -705,12 +786,13 @@ function InputField({
   );
 }
 
-function Toggle({ checked, onChange }: ToggleProps) {
+function Toggle({ checked, onChange, ariaLabel }: ToggleProps) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-label={ariaLabel}
       onClick={() => onChange(!checked)}
       className={[
         'relative h-6 w-10 shrink-0 rounded-full p-0.5 transition-all',
@@ -773,21 +855,31 @@ function ScheduleRow({
   onTimeChange: (field: 'start' | 'end', value: string) => void;
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-[17px] bg-[#faf6f3] px-4 py-3 sm:flex-row sm:items-center">
+    <div
+      className={[
+        'flex flex-col gap-3 rounded-[17px] px-4 py-3 transition-colors sm:flex-row sm:items-center',
+        enabled ? 'bg-[#faf6f3]' : 'bg-[#f4efec]',
+      ].join(' ')}
+    >
       <div className="flex flex-1 items-center gap-3">
-        <button
-          type="button"
-          role="switch"
-          aria-checked={enabled}
-          aria-label={`Ativar ${day}`}
-          onClick={() => onToggle(!enabled)}
-          className={[
-            'h-2 w-2 shrink-0 rounded-full transition-colors',
-            enabled ? 'bg-[#91a695]' : 'bg-[#d4c6bf]',
-          ].join(' ')}
-        />
+        <Toggle checked={enabled} onChange={onToggle} ariaLabel={`Ativar ${day}`} />
 
-        <span className="text-[10px] font-semibold text-[#80685e]">{day}</span>
+        <div className="flex items-center gap-2">
+          <span
+            className={[
+              'text-[10px] font-semibold',
+              enabled ? 'text-[#80685e]' : 'text-[#b8a89f]',
+            ].join(' ')}
+          >
+            {day}
+          </span>
+
+          {!enabled && (
+            <span className="rounded-full bg-[#e9ded9] px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em] text-[#a4897e]">
+              Fechado
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
