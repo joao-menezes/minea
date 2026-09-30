@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 
+import { Gift, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { updateUserStatus } from '@/lib/api/clients';
-import type { Client } from '@/types';
+import { ApiRequestError } from '@/lib/api/client';
+import { getUserLoyaltyStatus, redeemLoyaltyReward } from '@/lib/api/loyalty';
+import type { Client, LoyaltyStatus } from '@/types';
 import { formatPhoneNumber, maskDate } from '@/utils/utils';
 
 type Props = {
@@ -15,10 +18,37 @@ type Props = {
 export function ClientDetails({ client, currentUserId, onClientUpdated }: Props) {
   const [isActive, setIsActive] = useState(client.isActive);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [loyalty, setLoyalty] = useState<LoyaltyStatus | null>(null);
+  const [redeemingReward, setRedeemingReward] = useState(false);
 
   useEffect(() => {
     setIsActive(client.isActive);
   }, [client.id, client.isActive]);
+
+  useEffect(() => {
+    setLoyalty(null);
+
+    getUserLoyaltyStatus(client.id)
+      .then(setLoyalty)
+      .catch((error: unknown) => console.error('Erro ao carregar fidelidade:', error));
+  }, [client.id]);
+
+  async function handleRedeemReward() {
+    if (redeemingReward) return;
+
+    try {
+      setRedeemingReward(true);
+      const updated = await redeemLoyaltyReward(client.id);
+      setLoyalty(updated);
+      toast.success('Recompensa marcada como entregue!');
+    } catch (error) {
+      toast.error(
+        error instanceof ApiRequestError ? error.message : 'Não foi possível resgatar a recompensa.',
+      );
+    } finally {
+      setRedeemingReward(false);
+    }
+  }
 
   const lastAppointment = client.lastAppointmentAt ? new Date(client.lastAppointmentAt) : null;
 
@@ -125,6 +155,47 @@ export function ClientDetails({ client, currentUserId, onClientUpdated }: Props)
           />
         </button>
       </div>
+
+      {loyalty && (
+        <div className="rounded-[17px] bg-[#faf6f3] p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[11px] bg-[#f6ede8] text-[#ab8f83]">
+                <Sparkles size={13} strokeWidth={1.7} />
+              </div>
+
+              <div>
+                <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-[#c2a99d]">
+                  Fidelidade
+                </p>
+
+                <p className="mt-1 text-[10px] font-semibold text-[#80685e]">
+                  {loyalty.progress}/{loyalty.pointsPerReward} pontos · {loyalty.points} no total
+                </p>
+              </div>
+            </div>
+
+            {loyalty.rewardsAvailable > 0 && (
+              <button
+                type="button"
+                onClick={handleRedeemReward}
+                disabled={redeemingReward}
+                className="flex items-center gap-1.5 rounded-full bg-[#8a6f63] px-3 py-1.5 text-[9px] font-bold text-white transition hover:bg-[#7c6156] disabled:opacity-60"
+              >
+                <Gift size={11} />
+                {redeemingReward ? 'Resgatando...' : `Resgatar (${loyalty.rewardsAvailable})`}
+              </button>
+            )}
+          </div>
+
+          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white">
+            <div
+              className="h-full rounded-full bg-[#8a6f63] transition-all"
+              style={{ width: `${(loyalty.progress / loyalty.pointsPerReward) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

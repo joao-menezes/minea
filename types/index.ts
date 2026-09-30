@@ -121,6 +121,7 @@ export type Appointment = {
 
   userId?: string;
   clientName?: string;
+  loyaltyClaimed?: boolean;
 };
 
 // ============================================================
@@ -233,6 +234,14 @@ export type BusinessHour = {
   enabled: boolean;
   startTime: string;
   endTime: string;
+};
+
+export type LoyaltyStatus = {
+  points: number;
+  progress: number;
+  pointsPerReward: number;
+  rewardsAvailable: number;
+  rewardsRedeemed: number;
 };
 
 // ============================================================

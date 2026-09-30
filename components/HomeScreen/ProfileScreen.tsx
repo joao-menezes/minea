@@ -1,16 +1,17 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 
 
 
-import { ArrowLeft, CalendarDays, Check, ChevronDown, LockKeyhole, Save, UserRound } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Check, ChevronDown, LockKeyhole, Save, Sparkles, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
 
 
 
 import { CustomCalendar } from '@/components/CustomCalendar';
-import type { User } from '@/types';
+import { getMyLoyaltyStatus } from '@/lib/api/loyalty';
+import type { LoyaltyStatus, User } from '@/types';
 import { formatPhoneNumber } from '@/utils/utils';
 
 
@@ -149,6 +150,8 @@ export default function ProfileScreen({
             <UserRound size={22} strokeWidth={1.6} />
           </div>
         </div>
+
+        <LoyaltyCard />
 
         <div className="mt-8 grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
           <form
@@ -305,6 +308,59 @@ export default function ProfileScreen({
         </div>
       </div>
     </main>
+  );
+}
+
+function LoyaltyCard() {
+  const [status, setStatus] = useState<LoyaltyStatus | null>(null);
+
+  useEffect(() => {
+    getMyLoyaltyStatus()
+      .then(setStatus)
+      .catch((error: unknown) => console.error('Erro ao carregar fidelidade:', error));
+  }, []);
+
+  if (!status) return null;
+
+  const hasReward = status.rewardsAvailable > 0;
+
+  return (
+    <div className="mt-6 rounded-[22px] border border-[#eee4df] bg-white/90 p-5 shadow-[0_18px_45px_-32px_rgba(64,46,40,.28)]">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-[#f6ede8] text-[#ab8f83]">
+            <Sparkles size={16} strokeWidth={1.7} />
+          </div>
+
+          <div>
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#c2a99d]">
+              Cartão fidelidade
+            </p>
+            <p className="mt-0.5 text-[11px] font-bold text-[#6b5850]">
+              {status.progress}/{status.pointsPerReward} pontos
+            </p>
+          </div>
+        </div>
+
+        {hasReward && (
+          <span className="rounded-full bg-[#f6ede8] px-3 py-1.5 text-[9px] font-bold text-[#8a6f63]">
+            Recompensa disponível!
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-[#f1e8e2]">
+        <div
+          className="h-full rounded-full bg-[#8a6f63] transition-all"
+          style={{ width: `${(status.progress / status.pointsPerReward) * 100}%` }}
+        />
+      </div>
+
+      <p className="mt-3 text-[9px] leading-relaxed text-[#b49b90]">
+        A cada atendimento, peça para escanear o QR de fidelidade e ganhe 1 ponto. A cada{' '}
+        {status.pointsPerReward} pontos você ganha uma recompensa.
+      </p>
+    </div>
   );
 }
 
