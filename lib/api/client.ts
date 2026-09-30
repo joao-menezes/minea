@@ -3,8 +3,13 @@ const API_URL = configuredApiUrl.replace(/\/$/, '').endsWith('/api')
   ? configuredApiUrl.replace(/\/$/, '')
   : `${configuredApiUrl.replace(/\/$/, '')}/api`;
 
-export const TOKEN_KEY = 'minea_access_token';
+// O token de acesso e o refresh token vivem em cookies httpOnly setados pela API;
+// o front nunca os lê nem os guarda. Isso só cacheia o perfil pra UI renderizar rápido.
 const SESSION_KEY = 'minea_user';
+
+// Endpoints cujo 401 significa "credencial errada", não "sessão expirou" — não deve
+// disparar uma tentativa de refresh (evitaria um loop ou um refresh sem sentido).
+const AUTH_ENDPOINTS_WITHOUT_REFRESH = ['/auth/signin', '/auth/signup', '/auth/refresh', '/auth/logout'];
 
 type ApiError = {
   message?: string;
@@ -21,16 +26,45 @@ export class ApiRequestError extends Error {
   }
 }
 
-export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
-  const response = await fetch(`${API_URL}${endpoint}`, {
+let refreshInFlight: Promise<boolean> | null = null;
+
+async function refreshSession(): Promise<boolean> {
+  if (!refreshInFlight) {
+    refreshInFlight = fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+      .then((response) => response.ok)
+      .catch(() => false)
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+
+  return refreshInFlight;
+}
+
+async function doFetch(endpoint: string, options: RequestInit): Promise<Response> {
+  return fetch(`${API_URL}${endpoint}`, {
     ...options,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
   });
+}
+
+export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  let response = await doFetch(endpoint, options);
+
+  if (response.status === 401 && !AUTH_ENDPOINTS_WITHOUT_REFRESH.includes(endpoint)) {
+    const refreshed = await refreshSession();
+
+    if (refreshed) {
+      response = await doFetch(endpoint, options);
+    }
+  }
 
   const data = response.status === 204 ? null : await response.json().catch(() => null);
 
@@ -38,7 +72,6 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
     const error = data as ApiError | null;
 
     if (response.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(SESSION_KEY);
       window.dispatchEvent(new CustomEvent('minea:unauthorized'));
     }

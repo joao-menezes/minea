@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { Check, Edit3, Sparkles, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { ServiceDetail } from '@/app/admin/servicos/ServiceDetail';
 import { BaseModal } from '@/components/BaseModal';
@@ -52,6 +53,8 @@ export function ServiceModal({ service, onClose, onSave }: ServiceModalProps) {
       setSaving(true);
       await onSave?.(updated);
       setIsEditing(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Não foi possível salvar o serviço.');
     } finally {
       setSaving(false);
     }

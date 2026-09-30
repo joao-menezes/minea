@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { notFound, usePathname, useRouter } from 'next/navigation';
 
 import { getCurrentUser } from '@/lib/api/auth';
 
@@ -57,35 +57,41 @@ export function AdminShell({ children }: AdminShellProps) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [authenticated, setAuthenticated] = useState(false);
-  const [checking, setChecking] = useState(true);
+  // 'checking' | 'authorized' | 'denied' (nunca teve acesso -> 404) | 'expired' (tinha acesso, sessão caiu no meio do uso -> volta pro login)
+  const [status, setStatus] = useState<'checking' | 'authorized' | 'denied' | 'expired'>('checking');
 
   useEffect(() => {
     async function checkAccess() {
       const currentUser = await getCurrentUser();
       const isAuthenticated = Boolean(currentUser?.isAdmin);
 
-      if (!isAuthenticated && pathname !== '/admin/login') {
-        router.replace('/admin/login');
+      if (!isAuthenticated && pathname === '/admin/login') {
         return;
       }
 
-      setAuthenticated(isAuthenticated);
-      setChecking(false);
+      setStatus(isAuthenticated ? 'authorized' : 'denied');
     }
 
     void checkAccess();
-  }, [pathname, router]);
+  }, [pathname]);
 
   useEffect(() => {
     function handleUnauthorized() {
-      setAuthenticated(false);
-      router.replace('/admin/login');
+      // Só quem já estava autorizado nesta sessão chega aqui (a checagem inicial
+      // já barrou quem nunca teve acesso). Uma sessão que expira no meio do uso
+      // manda de volta pro login, em vez do 404 usado pra esconder o painel.
+      setStatus((current) => (current === 'authorized' ? 'expired' : current));
     }
 
     window.addEventListener('minea:unauthorized', handleUnauthorized);
     return () => window.removeEventListener('minea:unauthorized', handleUnauthorized);
-  }, [router]);
+  }, []);
+
+  useEffect(() => {
+    if (status === 'expired') {
+      router.replace('/admin/login');
+    }
+  }, [status, router]);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -101,12 +107,12 @@ export function AdminShell({ children }: AdminShellProps) {
     };
   }, [mobileMenuOpen]);
 
-  if (checking) {
+  if (status === 'checking' || status === 'expired') {
     return null;
   }
 
-  if (!authenticated) {
-    return null;
+  if (status === 'denied') {
+    notFound();
   }
 
   return (

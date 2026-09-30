@@ -3,24 +3,22 @@ import { SignInData, SignUpData, User } from '@/types';
 import { repairMojibake } from '@/utils/utils';
 
 import { ApiRequestError, apiFetch } from './client';
-import { TOKEN_KEY } from './client';
 
+// Cache só pra UI renderizar rápido/otimista; a sessão de verdade vive em cookies
+// httpOnly que o front nunca lê. A fonte da verdade é sempre `/auth/me`.
 const SESSION_KEY = 'minea_user';
 
 export async function signIn({ phoneNumber, password }: SignInData): Promise<User> {
-  let data: { token?: string; user?: { message?: string; token?: string } };
+  let data: { user?: User };
 
   try {
-    data = await apiFetch<{ token?: string; user?: { message?: string; token?: string } }>(
-      '/auth/signin',
-      {
-        method: 'POST',
-        body: JSON.stringify({
-          phoneNumber: phoneNumber.replace(/\D/g, ''),
-          password,
-        }),
-      },
-    );
+    data = await apiFetch<{ user?: User }>('/auth/signin', {
+      method: 'POST',
+      body: JSON.stringify({
+        phoneNumber: phoneNumber.replace(/\D/g, ''),
+        password,
+      }),
+    });
   } catch (error) {
     if (
       error instanceof ApiRequestError &&
@@ -32,35 +30,13 @@ export async function signIn({ phoneNumber, password }: SignInData): Promise<Use
     throw error;
   }
 
-  const token = data.user?.token ?? data.token;
-
-  if (!token) {
-    throw new Error('O servidor não retornou um token de autenticação.');
+  if (!data.user) {
+    throw new Error('O servidor não retornou os dados do usuário.');
   }
 
-  localStorage.setItem(TOKEN_KEY, token);
-
-  const user = await loadUserProfile(decodeUserFromToken(token));
+  const user: User = { ...data.user, name: repairMojibake(data.user.name) };
   localStorage.setItem(SESSION_KEY, JSON.stringify(user));
   return user;
-}
-
-// O token só carrega id, nome e isAdmin; telefone e aniversário vêm do perfil.
-async function loadUserProfile(tokenUser: User): Promise<User> {
-  try {
-    const { user } = await apiFetch<{ user: User }>(`/auth/me/${tokenUser.id}`);
-
-    return {
-      ...tokenUser,
-      ...user,
-      name: repairMojibake(user.name ?? tokenUser.name),
-      phoneNumber: user.phoneNumber ?? null,
-      birthDate: user.birthDate ?? null,
-    };
-  } catch (error) {
-    console.warn('Não foi possível carregar o perfil do usuário:', error);
-    return tokenUser;
-  }
 }
 
 export async function signUp({ phoneNumber, name, birthDate, password }: SignUpData): Promise<User> {
@@ -82,29 +58,31 @@ export async function getCurrentUser(): Promise<User | null> {
     return null;
   }
 
-  const value = localStorage.getItem(SESSION_KEY);
-
-  const token = localStorage.getItem(TOKEN_KEY);
-
-  if (!value || !token) {
-    localStorage.removeItem(SESSION_KEY);
-    return null;
-  }
-
   try {
-    let user = JSON.parse(value) as User;
-    user.name = repairMojibake(user.name);
+    const { user } = await apiFetch<{ user: User }>('/auth/me');
+    const normalized: User = { ...user, name: repairMojibake(user.name) };
 
-    // Sessões antigas foram montadas só com o token e não têm telefone/aniversário.
-    if (!('birthDate' in user)) {
-      user = await loadUserProfile(user);
+    localStorage.setItem(SESSION_KEY, JSON.stringify(normalized));
+    return normalized;
+  } catch (error) {
+    if (error instanceof ApiRequestError && error.status === 401) {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
     }
 
-    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-    return user;
-  } catch {
-    localStorage.removeItem(SESSION_KEY);
-    return null;
+    // Falha de rede: cai pro último perfil conhecido em vez de deslogar à toa.
+    const cached = localStorage.getItem(SESSION_KEY);
+
+    if (!cached) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(cached) as User;
+    } catch {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
   }
 }
 
@@ -113,9 +91,14 @@ export async function signOut(): Promise<void> {
     await unregisterPushNotifications();
   } catch (error) {
     console.warn('Não foi possível remover o token de notificações:', error);
+  }
+
+  try {
+    await apiFetch('/auth/logout', { method: 'POST' });
+  } catch (error) {
+    console.warn('Não foi possível encerrar a sessão no servidor:', error);
   } finally {
     localStorage.removeItem(SESSION_KEY);
-    localStorage.removeItem(TOKEN_KEY);
   }
 }
 
@@ -142,43 +125,6 @@ export async function changeUserPassword(
     method: 'PATCH',
     body: JSON.stringify(data),
   });
-}
-
-function decodeUserFromToken(token: string): User {
-  const payload = token.split('.')[1];
-
-  if (!payload) {
-    throw new Error('Token de autenticação inválido.');
-  }
-
-  try {
-    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as {
-      id?: string;
-      sub?: string;
-      userId?: string;
-      name?: string;
-      phoneNumber?: string | null;
-      birthDate?: string | null;
-      isAdmin?: boolean;
-      role?: string;
-    };
-
-    const id = decoded.id ?? decoded.userId ?? decoded.sub;
-
-    if (!id) {
-      throw new Error('Token de autenticação inválido.');
-    }
-
-    return {
-      id,
-      name: repairMojibake(decoded.name ?? ''),
-      phoneNumber: decoded.phoneNumber ?? null,
-      birthDate: decoded.birthDate,
-      isAdmin: decoded.isAdmin ?? decoded.role === 'admin',
-    };
-  } catch {
-    throw new Error('Token de autenticação inválido.');
-  }
 }
 
 function toApiDate(value: string): string {
