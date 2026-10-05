@@ -1,4 +1,7 @@
-const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3333';
+// Em produção o padrão é a mesma origem (/api), encaminhada pelo rewrite do next.config.js.
+// Assim os cookies de login são de primeira parte no Safari, mesmo que NEXT_PUBLIC_API_URL não chegue ao build.
+const configuredApiUrl =
+  process.env.NEXT_PUBLIC_API_URL ?? (process.env.NODE_ENV === 'development' ? 'http://localhost:3333' : '');
 const API_URL = configuredApiUrl.replace(/\/$/, '').endsWith('/api')
   ? configuredApiUrl.replace(/\/$/, '')
   : `${configuredApiUrl.replace(/\/$/, '')}/api`;
