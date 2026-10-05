@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 
-import { Gift, Sparkles } from 'lucide-react';
+import { Gift, QrCode, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { LoyaltyQrModal } from '@/components/LoyaltyQrModal';
 import { updateUserStatus } from '@/lib/api/clients';
 import { ApiRequestError } from '@/lib/api/client';
 import { getUserLoyaltyStatus, redeemLoyaltyReward } from '@/lib/api/loyalty';
@@ -20,6 +21,7 @@ export function ClientDetails({ client, currentUserId, onClientUpdated }: Props)
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [loyalty, setLoyalty] = useState<LoyaltyStatus | null>(null);
   const [redeemingReward, setRedeemingReward] = useState(false);
+  const [showLoyaltyQr, setShowLoyaltyQr] = useState(false);
 
   useEffect(() => {
     setIsActive(client.isActive);
@@ -27,11 +29,21 @@ export function ClientDetails({ client, currentUserId, onClientUpdated }: Props)
 
   useEffect(() => {
     setLoyalty(null);
-
-    getUserLoyaltyStatus(client.id)
-      .then(setLoyalty)
-      .catch((error: unknown) => console.error('Erro ao carregar fidelidade:', error));
+    void loadLoyalty();
   }, [client.id]);
+
+  async function loadLoyalty() {
+    try {
+      setLoyalty(await getUserLoyaltyStatus(client.id));
+    } catch (error) {
+      console.error('Erro ao carregar fidelidade:', error);
+    }
+  }
+
+  function handleCloseLoyaltyQr() {
+    setShowLoyaltyQr(false);
+    void loadLoyalty();
+  }
 
   async function handleRedeemReward() {
     if (redeemingReward) return;
@@ -175,17 +187,28 @@ export function ClientDetails({ client, currentUserId, onClientUpdated }: Props)
               </div>
             </div>
 
-            {loyalty.rewardsAvailable > 0 && (
+            <div className="flex items-center gap-2">
+              {loyalty.rewardsAvailable > 0 && (
+                <button
+                  type="button"
+                  onClick={handleRedeemReward}
+                  disabled={redeemingReward}
+                  className="flex items-center gap-1.5 rounded-full bg-[#8a6f63] px-3 py-1.5 text-[9px] font-bold text-white transition hover:bg-[#7c6156] disabled:opacity-60"
+                >
+                  <Gift size={11} />
+                  {redeemingReward ? 'Resgatando...' : `Resgatar (${loyalty.rewardsAvailable})`}
+                </button>
+              )}
+
               <button
                 type="button"
-                onClick={handleRedeemReward}
-                disabled={redeemingReward}
-                className="flex items-center gap-1.5 rounded-full bg-[#8a6f63] px-3 py-1.5 text-[9px] font-bold text-white transition hover:bg-[#7c6156] disabled:opacity-60"
+                onClick={() => setShowLoyaltyQr(true)}
+                className="flex items-center gap-1.5 rounded-full border border-[#e2d3cc] bg-white px-3 py-1.5 text-[9px] font-bold text-[#8a6f63] transition hover:bg-[#f6ede8]"
               >
-                <Gift size={11} />
-                {redeemingReward ? 'Resgatando...' : `Resgatar (${loyalty.rewardsAvailable})`}
+                <QrCode size={11} />
+                Gerar QR
               </button>
-            )}
+            </div>
           </div>
 
           <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white">
@@ -196,6 +219,13 @@ export function ClientDetails({ client, currentUserId, onClientUpdated }: Props)
           </div>
         </div>
       )}
+
+      <LoyaltyQrModal
+        userId={client.id}
+        clientName={client.name}
+        open={showLoyaltyQr}
+        onClose={handleCloseLoyaltyQr}
+      />
     </div>
   );
 }

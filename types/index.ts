@@ -121,7 +121,6 @@ export type Appointment = {
 
   userId?: string;
   clientName?: string;
-  loyaltyClaimed?: boolean;
 };
 
 // ============================================================

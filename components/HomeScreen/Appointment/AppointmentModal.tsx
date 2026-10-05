@@ -9,7 +9,6 @@ import {
   Clock3,
   MapPin,
   Pencil,
-  QrCode,
   Sparkles,
   Trash2,
 } from 'lucide-react';
@@ -21,8 +20,6 @@ import { Modal } from '@/components/Modal';
 import { updateAppointment } from '@/lib/api/appointments';
 import type { Appointment } from '@/types';
 import { getAppointmentStatusLabel, getCurrentTimeValue, isLateCancellation } from '@/utils/utils';
-
-import { LoyaltyQrModal } from './LoyaltyQrModal';
 
 type AppointmentModalProps = {
   appointment: Appointment | null;
@@ -52,17 +49,9 @@ export function AppointmentModal({
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
-  const [showLoyaltyQr, setShowLoyaltyQr] = useState(false);
 
   const isLocked =
     (!isAdmin && appointment?.status === 'completed') || appointment?.status === 'cancelled';
-
-  const canGenerateLoyaltyQr =
-    isAdmin &&
-    Boolean(appointment) &&
-    appointment?.status !== 'cancelled' &&
-    !appointment?.loyaltyClaimed &&
-    isSameDay(new Date(appointment?.date ?? ''), new Date());
 
   async function handleApprove() {
     if (!onApprove || !appointment) return;
@@ -285,7 +274,7 @@ export function AppointmentModal({
                 </p>
 
                 <div className="mt-1 flex items-center gap-1.5">
-                  <span className="text-[9px] font-bold text-[#98766b]">Ver como chegar</span>
+                  <span className= "text-[9px] font-bold text-[#98766b]">Ver como chegar</span>
 
                   <ArrowUpRight
                     size={11}
@@ -322,24 +311,6 @@ export function AppointmentModal({
                 {saving ? 'Atualizando...' : 'Marcar como concluído'}
               </button>
             )}
-          {canGenerateLoyaltyQr && (
-            <button
-              type="button"
-              onClick={() => setShowLoyaltyQr(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#e2d3cc] bg-[#fbf5f1] px-4 py-3 text-xs font-bold text-[#8a6f63] transition hover:border-[#d5beb4] hover:bg-[#f6ede8]"
-            >
-              <QrCode size={15} />
-              Gerar QR de fidelidade
-            </button>
-          )}
-
-          {appointment.loyaltyClaimed && (
-            <p className="flex items-center justify-center gap-1.5 text-[10px] font-semibold text-[#7c9481]">
-              <Check size={12} />
-              Ponto de fidelidade já resgatado neste atendimento
-            </p>
-          )}
-
           {onCancel && appointment.status !== 'completed' && (
             <div className="border-t border-[#eadfd9] pt-5">
               <button
@@ -410,12 +381,6 @@ export function AppointmentModal({
         </div>
       </Modal>
 
-      <LoyaltyQrModal
-        appointmentId={appointment.id}
-        clientName={appointment.clientName ?? 'o cliente'}
-        open={showLoyaltyQr}
-        onClose={() => setShowLoyaltyQr(false)}
-      />
     </>
   );
 }
@@ -432,14 +397,6 @@ function formatDate(value: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-function isSameDay(first: Date, second: Date): boolean {
-  return (
-    !Number.isNaN(first.getTime()) &&
-    first.getFullYear() === second.getFullYear() &&
-    first.getMonth() === second.getMonth() &&
-    first.getDate() === second.getDate()
-  );
-}
 
 function formatDisplayDate(value: string): string {
   if (!value) return '-';

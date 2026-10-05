@@ -11,18 +11,23 @@ export async function getUserLoyaltyStatus(userId: string): Promise<LoyaltyStatu
 }
 
 export async function generateLoyaltyQr(
-  appointmentId: string,
+  userId: string,
 ): Promise<{ token: string; expiresInSeconds: number }> {
-  return apiFetch<{ token: string; expiresInSeconds: number }>(
-    `/loyalty/appointments/${appointmentId}/qr`,
-    { method: 'POST' },
-  );
+  return apiFetch<{ token: string; expiresInSeconds: number }>(`/loyalty/users/${userId}/qr`, {
+    method: 'POST',
+  });
 }
 
 export async function redeemLoyaltyToken(token: string): Promise<LoyaltyStatus> {
   return apiFetch<LoyaltyStatus>('/loyalty/redeem', {
     method: 'POST',
     body: JSON.stringify({ token }),
+  });
+}
+
+export async function redeemMyLoyaltyReward(): Promise<LoyaltyStatus> {
+  return apiFetch<LoyaltyStatus>('/loyalty/me/redeem-reward', {
+    method: 'POST',
   });
 }
 

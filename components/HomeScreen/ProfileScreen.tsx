@@ -343,9 +343,12 @@ function LoyaltyCard() {
         </div>
 
         {hasReward && (
-          <span className="rounded-full bg-[#f6ede8] px-3 py-1.5 text-[9px] font-bold text-[#8a6f63]">
-            Recompensa disponível!
-          </span>
+          <a
+            href="/fidelidade/resgatar"
+            className="rounded-full bg-[#f6ede8] px-3 py-1.5 text-[9px] font-bold text-[#8a6f63] transition hover:bg-[#efe2da]"
+          >
+            Recompensa disponível! Resgatar
+          </a>
         )}
       </div>
 
@@ -357,7 +360,7 @@ function LoyaltyCard() {
       </div>
 
       <p className="mt-3 text-[9px] leading-relaxed text-[#b49b90]">
-        A cada atendimento, peça para escanear o QR de fidelidade e ganhe 1 ponto. A cada{' '}
+        Peça para a clínica gerar um QR de fidelidade e escaneie para ganhar 1 ponto. A cada{' '}
         {status.pointsPerReward} pontos você ganha uma recompensa.
       </p>
     </div>

@@ -11,13 +11,13 @@ import { ApiRequestError } from '@/lib/api/client';
 import { generateLoyaltyQr } from '@/lib/api/loyalty';
 
 type LoyaltyQrModalProps = {
-  appointmentId: string;
+  userId: string;
   clientName: string;
   open: boolean;
   onClose: () => void;
 };
 
-export function LoyaltyQrModal({ appointmentId, clientName, open, onClose }: LoyaltyQrModalProps) {
+export function LoyaltyQrModal({ userId, clientName, open, onClose }: LoyaltyQrModalProps) {
   const [qrImage, setQrImage] = useState<string | null>(null);
   const [link, setLink] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
@@ -41,7 +41,7 @@ export function LoyaltyQrModal({ appointmentId, clientName, open, onClose }: Loy
       setError('');
 
       try {
-        const { token, expiresInSeconds } = await generateLoyaltyQr(appointmentId);
+        const { token, expiresInSeconds } = await generateLoyaltyQr(userId);
 
         if (cancelled) return;
 
@@ -71,7 +71,7 @@ export function LoyaltyQrModal({ appointmentId, clientName, open, onClose }: Loy
     return () => {
       cancelled = true;
     };
-  }, [open, appointmentId]);
+  }, [open, userId]);
 
   useEffect(() => {
     if (!qrImage || secondsLeft <= 0) return;
@@ -173,7 +173,7 @@ export function LoyaltyQrModal({ appointmentId, clientName, open, onClose }: Loy
         )}
 
         <p className="text-center text-[10px] leading-relaxed text-[#b49b90]">
-          Esse código só vale para o atendimento de hoje de {clientName} e não pode ser usado de novo.
+          Esse código vale 1 ponto para {clientName} e só pode ser usado uma vez.
         </p>
       </div>
     </Modal>

@@ -2,39 +2,37 @@
 
 import { Suspense, useEffect, useState } from 'react';
 
-import { LogIn, PartyPopper, Sparkles, X } from 'lucide-react';
+import { CheckCircle2, Gift, LogIn, PartyPopper, Sparkles, X } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
 import { getCurrentUser } from '@/lib/api/auth';
 import { ApiRequestError } from '@/lib/api/client';
-import { redeemLoyaltyToken } from '@/lib/api/loyalty';
+import { getMyLoyaltyStatus, redeemLoyaltyToken, redeemMyLoyaltyReward } from '@/lib/api/loyalty';
 import type { LoyaltyStatus } from '@/types';
 
-type ViewState = 'checking' | 'need-login' | 'redeeming' | 'success' | 'error';
+type ViewState = 'checking' | 'need-login' | 'ready' | 'error';
 
-export default function RedeemLoyaltyPage() {
+export default function LoyaltyPage() {
   return (
     <Suspense fallback={<CenteredCard><Sparkles className="animate-pulse text-[#a98d81]" /></CenteredCard>}>
-      <RedeemLoyaltyContent />
+      <LoyaltyContent />
     </Suspense>
   );
 }
 
-function RedeemLoyaltyContent() {
+function LoyaltyContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
   const [state, setState] = useState<ViewState>('checking');
   const [status, setStatus] = useState<LoyaltyStatus | null>(null);
+  const [pointEarned, setPointEarned] = useState(false);
+  const [rewardJustRedeemed, setRewardJustRedeemed] = useState(false);
+  const [redeemingReward, setRedeemingReward] = useState(false);
+  const [actionError, setActionError] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!token) {
-      setError('Esse link de fidelidade está incompleto. Peça para a clínica gerar um novo QR.');
-      setState('error');
-      return;
-    }
-
     let cancelled = false;
 
     async function run() {
@@ -47,22 +45,32 @@ function RedeemLoyaltyContent() {
         return;
       }
 
-      setState('redeeming');
-
       try {
-        const result = await redeemLoyaltyToken(token as string);
+        const result = token ? await redeemLoyaltyToken(token) : await getMyLoyaltyStatus();
 
         if (cancelled) return;
 
         setStatus(result);
-        setState('success');
+        setPointEarned(Boolean(token));
+        setState('ready');
       } catch (err) {
         if (cancelled) return;
+
+        // Recarregar a página com um QR já usado não deve parecer erro: mostra o cartão atual.
+        if (token && err instanceof ApiRequestError && err.status === 409) {
+          try {
+            setStatus(await getMyLoyaltyStatus());
+            setState('ready');
+            return;
+          } catch {
+            // cai no erro abaixo
+          }
+        }
 
         setError(
           err instanceof ApiRequestError
             ? err.message
-            : 'Não foi possível resgatar o ponto de fidelidade.',
+            : 'Não foi possível carregar seu cartão fidelidade.',
         );
         setState('error');
       }
@@ -75,13 +83,28 @@ function RedeemLoyaltyContent() {
     };
   }, [token]);
 
-  if (state === 'checking' || state === 'redeeming') {
+  async function handleRedeemReward() {
+    if (redeemingReward) return;
+
+    try {
+      setRedeemingReward(true);
+      setActionError('');
+      setStatus(await redeemMyLoyaltyReward());
+      setRewardJustRedeemed(true);
+    } catch (err) {
+      setActionError(
+        err instanceof ApiRequestError ? err.message : 'Não foi possível resgatar sua recompensa.',
+      );
+    } finally {
+      setRedeemingReward(false);
+    }
+  }
+
+  if (state === 'checking') {
     return (
       <CenteredCard>
         <Sparkles size={28} className="animate-pulse text-[#a98d81]" />
-        <p className="mt-4 text-sm text-[#a48a7f]">
-          {state === 'checking' ? 'Verificando sua sessão...' : 'Resgatando seu ponto...'}
-        </p>
+        <p className="mt-4 text-sm text-[#a48a7f]">Verificando sua sessão...</p>
       </CenteredCard>
     );
   }
@@ -96,8 +119,7 @@ function RedeemLoyaltyContent() {
         <h1 className="mt-5 font-display text-[24px] text-[#6b5850]">Entre para continuar</h1>
 
         <p className="mt-2 max-w-xs text-sm leading-relaxed text-[#a48a7f]">
-          Você precisa estar logado na sua conta Minea para resgatar o ponto de fidelidade. Entre e
-          peça para escanear o QR de novo.
+          Você precisa estar logado na sua conta Minea para ver seu cartão fidelidade.
         </p>
 
         <a
@@ -110,16 +132,16 @@ function RedeemLoyaltyContent() {
     );
   }
 
-  if (state === 'success' && status) {
-    const isRewardReady = status.rewardsAvailable > 0;
-
+  if (state === 'ready' && status) {
     return (
       <CenteredCard>
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#edf4ee] text-[#66806d]">
           <PartyPopper size={22} />
         </div>
 
-        <h1 className="mt-5 font-display text-[26px] text-[#6b5850]">Ponto conquistado!</h1>
+        <h1 className="mt-5 font-display text-[26px] text-[#6b5850]">
+          {pointEarned ? 'Ponto conquistado!' : 'Seu cartão fidelidade'}
+        </h1>
 
         <p className="mt-2 text-sm text-[#a48a7f]">
           Você está em <strong className="text-[#6b5850]">{status.progress}/{status.pointsPerReward}</strong> nesse
@@ -133,10 +155,48 @@ function RedeemLoyaltyContent() {
           />
         </div>
 
-        {isRewardReady && (
-          <p className="mt-4 rounded-xl bg-[#f6ede8] px-4 py-3 text-xs font-bold text-[#8a6f63]">
-            🎉 Você completou o cartão! Fale com a clínica para resgatar sua recompensa.
-          </p>
+        {status.rewardsAvailable > 0 && (
+          <div className="mt-5 w-full rounded-xl bg-[#f6ede8] px-4 py-4">
+            {rewardJustRedeemed && (
+              <p className="mb-2 flex items-center justify-center gap-1.5 text-xs font-bold text-[#66806d]">
+                <CheckCircle2 size={14} />
+                Recompensa resgatada!
+              </p>
+            )}
+
+            <p className="text-xs font-bold text-[#8a6f63]">
+              🎉 Você tem {status.rewardsAvailable}{' '}
+              {status.rewardsAvailable === 1 ? 'recompensa disponível' : 'recompensas disponíveis'}!
+            </p>
+
+            <button
+              type="button"
+              onClick={handleRedeemReward}
+              disabled={redeemingReward}
+              className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#8a6f63] px-4 text-xs font-bold text-white transition hover:bg-[#7c6156] disabled:opacity-60"
+            >
+              <Gift size={14} />
+              {redeemingReward ? 'Resgatando...' : 'Resgatar recompensa'}
+            </button>
+
+            {actionError && <p className="mt-2 text-[11px] font-semibold text-[#a45f59]">{actionError}</p>}
+          </div>
+        )}
+
+        {status.rewardsAvailable === 0 && status.rewardsRedeemed > 0 && (
+          <div className="mt-5 w-full rounded-xl border border-[#d6e6d8] bg-[#edf4ee] px-4 py-4">
+            <p className="flex items-center justify-center gap-1.5 text-sm font-bold text-[#66806d]">
+              <CheckCircle2 size={16} />
+              Recompensa resgatada
+            </p>
+
+            <p className="mt-1 text-[11px] leading-relaxed text-[#6b8a72]">
+              {status.rewardsRedeemed === 1
+                ? 'Você já resgatou 1 recompensa.'
+                : `Você já resgatou ${status.rewardsRedeemed} recompensas.`}{' '}
+              Mostre esta tela para a clínica.
+            </p>
+          </div>
         )}
       </CenteredCard>
     );
